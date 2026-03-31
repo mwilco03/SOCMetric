@@ -43,12 +43,18 @@ export class JiraClient {
 
   private async request<T>(path: string, options: { method?: string; body?: unknown } = {}): Promise<T> {
     const url = `${this.baseUrl}${path}`;
+    const bodyStr = options.body ? JSON.stringify(options.body) : undefined;
+
+    console.log(`[JiraClient] ${options.method || 'GET'} ${url}`, bodyStr ? JSON.parse(bodyStr) : '');
+
     const response = await httpRequest(url, {
       method: options.method || 'GET',
       headers: this.headers,
-      body: options.body ? JSON.stringify(options.body) : undefined,
+      body: bodyStr,
       timeout: HTTP_TIMEOUT_MS,
     });
+
+    console.log(`[JiraClient] Response ${response.status}`, response.data);
 
     if (response.status === 401) throw new Error('Invalid Jira credentials');
     if (response.status === 403) throw new Error('Insufficient permissions');
@@ -117,7 +123,7 @@ export class JiraClient {
         jql,
         startAt,
         maxResults,
-        expand: expand.join(','),
+        expand,
         fields: [
           'summary', 'created', 'updated', 'resolutiondate',
           'status', 'issuetype', 'priority', 'assignee',
