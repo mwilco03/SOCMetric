@@ -157,10 +157,12 @@ export const useDashboardStore = create<DashboardState>()(
       partialize: (state) => ({
         viewMode: state.viewMode,
         activeChapter: state.activeChapter,
+        selectedProjectKeys: state.selectedProjectKeys,
         statusMappings: state.statusMappings,
         ttftAnchors: state.ttftAnchors,
         workSchedule: state.workSchedule,
         ledgerEvents: state.ledgerEvents,
+        dimensionFilters: state.dimensionFilters,
       }),
       migrate: (persisted, version) => {
         if (version === 0) {
