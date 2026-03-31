@@ -4,6 +4,8 @@ import { LineChart } from '../charts/LineChart';
 import { BarChart } from '../charts/BarChart';
 import { LoadingState } from '../shared/LoadingState';
 import { useMetrics } from '../../hooks/useMetrics';
+import { calculateTTFT } from '../../metrics/headlineMetrics';
+import { percentile } from '../../utils/statistics';
 import type { ViewMode } from '../../api/types';
 
 interface FlowChapterProps {
@@ -57,7 +59,13 @@ export const FlowChapter: React.FC<FlowChapterProps> = ({ viewMode }) => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <LineChart
           title="Intake vs Close Rate"
-          headline="Daily intake and close rates from real data"
+          headline={(() => {
+            const ts = metrics.timeSeries;
+            if (ts.length === 0) return 'No time series data';
+            const avgIntake = ts.reduce((s, p) => s + p.intake, 0) / ts.length;
+            const avgClosed = ts.reduce((s, p) => s + p.closed, 0) / ts.length;
+            return `Avg intake ${avgIntake.toFixed(1)}/day, close rate ${avgClosed.toFixed(1)}/day over ${ts.length} days`;
+          })()}
           data={metrics.timeSeries.map((p) => ({ date: p.date, intake: p.intake, closed: p.closed }))}
           lines={[
             { key: 'intake', name: 'Intake', color: '#3b82f6' },
@@ -92,14 +100,55 @@ export const FlowChapter: React.FC<FlowChapterProps> = ({ viewMode }) => {
         )}
       </div>
 
-      {viewMode === 'analyst' && (
-        <div className="bg-soc-card border border-soc-border rounded-lg p-4">
-          <h3 className="text-sm font-medium text-gray-300 mb-3">Your Flow Metrics</h3>
-          <p className="text-sm text-gray-400">
-            Individual analyst flow metrics would appear here with opt-in assignee data enabled.
-          </p>
-        </div>
-      )}
+      {viewMode === 'analyst' && (() => {
+        const { projectIssues, flatMapping } = metrics;
+        const byPriority = new Map<string, number[]>();
+        for (const issue of projectIssues ?? []) {
+          const ttft = calculateTTFT(issue, flatMapping ?? {}, { timezone: 'UTC', shifts: [] });
+          if (ttft === null) continue;
+          const priority = issue.fields.priority?.name ?? 'None';
+          const arr = byPriority.get(priority) || [];
+          arr.push(ttft);
+          byPriority.set(priority, arr);
+        }
+        const priorityRows = [...byPriority.entries()]
+          .map(([name, ttfts]) => ({
+            name,
+            count: ttfts.length,
+            ttftP85: Number(percentile(ttfts, 85).toFixed(1)),
+          }))
+          .sort((a, b) => b.ttftP85 - a.ttftP85);
+
+        return (
+          <div className="bg-soc-card border border-soc-border rounded-lg p-4">
+            <h3 className="text-sm font-medium text-gray-300 mb-3">TTFT P85 by Priority</h3>
+            {priorityRows.length > 0 ? (
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-gray-700">
+                    <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">Priority</th>
+                    <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">Count</th>
+                    <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">TTFT P85 (h)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {priorityRows.map((row) => (
+                    <tr key={row.name} className="border-b border-gray-800">
+                      <td className="py-2 px-3 text-sm text-gray-300">{row.name}</td>
+                      <td className="py-2 px-3 text-sm text-gray-400 text-right">{row.count}</td>
+                      <td className={`py-2 px-3 text-sm text-right ${
+                        row.ttftP85 < 4 ? 'text-green-400' : row.ttftP85 < 8 ? 'text-yellow-400' : 'text-red-400'
+                      }`}>{row.ttftP85}h</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <p className="text-sm text-gray-400">No TTFT data available for priority breakdown.</p>
+            )}
+          </div>
+        );
+      })()}
     </div>
   );
 };

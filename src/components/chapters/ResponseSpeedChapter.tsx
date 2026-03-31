@@ -105,12 +105,37 @@ export const ResponseSpeedChapter: React.FC<ResponseSpeedChapterProps> = ({ view
         )}
       </div>
 
-      {viewMode === 'lead' && (
+      {viewMode === 'lead' && metrics.afterHours && metrics.afterHours.totalTransitions > 0 && (
         <div className="bg-soc-card border border-soc-border rounded-lg p-4">
           <h3 className="text-sm font-medium text-gray-300 mb-3">After-Hours Response</h3>
-          <p className="text-sm text-gray-400">
-            After-hours TTFT comparison will be available when per-transition time-of-day analysis is implemented.
+          <p className="text-sm text-gray-300">
+            {Math.round(metrics.afterHours.afterHoursRate * 100)}% of transitions happen after hours,{' '}
+            {Math.round(metrics.afterHours.weekendRate * 100)}% on weekends
           </p>
+          <div className="grid grid-cols-3 gap-4 mt-3">
+            <div className="p-3 bg-gray-800/50 rounded">
+              <p className="text-xs text-gray-500">After-Hours Rate</p>
+              <p className={`text-xl font-bold ${
+                metrics.afterHours.afterHoursRate > 0.2 ? 'text-red-400'
+                  : metrics.afterHours.afterHoursRate > 0.1 ? 'text-yellow-400'
+                    : 'text-green-400'
+              }`}>
+                {Math.round(metrics.afterHours.afterHoursRate * 100)}%
+              </p>
+            </div>
+            <div className="p-3 bg-gray-800/50 rounded">
+              <p className="text-xs text-gray-500">Weekend Rate</p>
+              <p className="text-xl font-bold text-gray-200">
+                {Math.round(metrics.afterHours.weekendRate * 100)}%
+              </p>
+            </div>
+            <div className="p-3 bg-gray-800/50 rounded">
+              <p className="text-xs text-gray-500">After-Hours Transitions</p>
+              <p className="text-xl font-bold text-gray-200">
+                {metrics.afterHours.afterHoursTransitions} / {metrics.afterHours.totalTransitions}
+              </p>
+            </div>
+          </div>
         </div>
       )}
     </div>

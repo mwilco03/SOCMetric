@@ -189,15 +189,42 @@ export const IncidentsChapter: React.FC<IncidentsChapterProps> = ({ viewMode }) 
         </div>
       </div>
 
-      {viewMode === 'lead' && (
-        <div className="bg-soc-card border border-soc-border rounded-lg p-4">
-          <h3 className="text-sm font-medium text-gray-300 mb-3">Incident Timeline</h3>
-          <p className="text-sm text-gray-400">
-            Gantt-style timeline showing incident concurrency would appear here.
-            Multiple concurrent incidents visible as overlapping bars.
-          </p>
-        </div>
-      )}
+      {viewMode === 'lead' && impact && impact.windows.length > 0 && (() => {
+        const windows = impact.windows;
+        const allDates = windows.flatMap((w) => [new Date(w.startDate).getTime(), new Date(w.endDate).getTime()]);
+        const minTime = Math.min(...allDates);
+        const maxTime = Math.max(...allDates);
+        const range = maxTime - minTime || 1;
+
+        return (
+          <div className="bg-soc-card border border-soc-border rounded-lg p-4">
+            <h3 className="text-sm font-medium text-gray-300 mb-3">Incident Timeline</h3>
+            <div className="space-y-2">
+              {windows.map((w) => {
+                const startPct = ((new Date(w.startDate).getTime() - minTime) / range) * 100;
+                const widthPct = Math.max(2, ((new Date(w.endDate).getTime() - new Date(w.startDate).getTime()) / range) * 100);
+                return (
+                  <div key={w.incidentKey} className="flex items-center gap-3">
+                    <span className="text-xs font-mono text-gray-400 w-24 shrink-0">{w.incidentKey}</span>
+                    <div className="flex-1 h-6 bg-gray-800/50 rounded relative">
+                      <div
+                        className="absolute h-full bg-red-500/40 border border-red-500/60 rounded"
+                        style={{ left: `${startPct}%`, width: `${widthPct}%` }}
+                        title={`${w.startDate} to ${w.endDate} (${w.durationDays}d)`}
+                      />
+                    </div>
+                    <span className="text-xs text-gray-500 w-16 text-right shrink-0">{w.durationDays}d</span>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="flex justify-between mt-2 text-xs text-gray-500">
+              <span>{new Date(minTime).toLocaleDateString()}</span>
+              <span>{new Date(maxTime).toLocaleDateString()}</span>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 };

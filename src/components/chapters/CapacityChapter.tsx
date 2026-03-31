@@ -5,6 +5,7 @@ import { Heatmap } from '../charts/Heatmap';
 import { ScatterPlot } from '../charts/ScatterPlot';
 import { LoadingState } from '../shared/LoadingState';
 import { useMetrics } from '../../hooks/useMetrics';
+import { linearRegression } from '../../utils/statistics';
 import type { ViewMode } from '../../api/types';
 
 interface CapacityChapterProps {
@@ -177,7 +178,13 @@ export const CapacityChapter: React.FC<CapacityChapterProps> = ({ viewMode }) =>
       {metrics.velocityUnderLoad.length > 0 && (
         <ScatterPlot
           title="Velocity Under Load"
-          headline="Each point = one day. Declining slope = capacity ceiling."
+          headline={(() => {
+            const points = metrics.velocityUnderLoad.map((p) => ({ x: p.queueDepth, y: p.closeRate }));
+            if (points.length < 2) return 'Insufficient data for trend analysis';
+            const reg = linearRegression(points);
+            const trend = reg.slope > 0.05 ? 'rises' : reg.slope < -0.05 ? 'falls' : 'holds steady';
+            return `Close rate ${trend} as queue grows (slope: ${reg.slope.toFixed(2)}, R²: ${reg.r2.toFixed(2)})`;
+          })()}
           data={metrics.velocityUnderLoad.map((p) => ({
             x: p.queueDepth,
             y: p.closeRate,

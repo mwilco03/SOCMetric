@@ -56,7 +56,6 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete }) => {
         credentials: config,
         projects: {
           selectedKeys: selectedProjects,
-          irProjectKey: undefined,
         },
         statusMappings: {},
         ttftAnchors: {},
@@ -74,7 +73,7 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete }) => {
           ],
         },
         preferences: {
-          viewMode: 'lead',
+          viewMode: selectedProjects.length === 1 ? 'analyst' : 'lead',
           defaultDateRange: 14,
         },
       };

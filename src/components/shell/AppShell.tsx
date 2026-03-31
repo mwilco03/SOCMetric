@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import { ViewModeToggle } from './ViewModeToggle';
 import { ChapterNav } from './ChapterNav';
 import { DateRangePicker } from '../shared/DateRangePicker';
@@ -7,6 +7,8 @@ import { ExportButton } from '../shared/ExportButton';
 import { DimensionFilterBar } from './DimensionFilterBar';
 import { RightDrawer } from '../panels/RightDrawer';
 import { useWindowSize } from '../../hooks/useWindowSize';
+import { useMetrics } from '../../hooks/useMetrics';
+import { useDashboardStore } from '../../store/dashboardStore';
 import type { ViewMode } from '../../api/types';
 
 interface AppShellProps {
@@ -26,6 +28,16 @@ export const AppShell: React.FC<AppShellProps> = ({
 }) => {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const { isNarrow } = useWindowSize();
+  const metrics = useMetrics();
+  const lastRefreshed = useDashboardStore((s) => s.lastRefreshed);
+
+  const formatAgo = (date: Date | null) => {
+    if (!date) return null;
+    const mins = Math.round((Date.now() - date.getTime()) / 60000);
+    if (mins < 1) return 'just now';
+    if (mins < 60) return `${mins}m ago`;
+    return `${Math.round(mins / 60)}h ago`;
+  };
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   // Auto-collapse on narrow windows
@@ -83,7 +95,20 @@ export const AppShell: React.FC<AppShellProps> = ({
       {/* Main Content */}
       <main className="flex-1 flex flex-col overflow-hidden min-w-0">
         <header className="h-16 bg-gray-900 border-b border-gray-800 flex items-center justify-between px-6 shrink-0">
-          <DateRangePicker />
+          <div className="flex items-center gap-3">
+            <DateRangePicker />
+            {metrics.isLoading && (
+              <div className="flex items-center gap-1.5 text-kpi-blue">
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                <span className="text-xs">Loading...</span>
+              </div>
+            )}
+            {!metrics.isLoading && lastRefreshed && (
+              <span className="text-xs text-gray-500">
+                Updated {formatAgo(lastRefreshed)}
+              </span>
+            )}
+          </div>
           <div className="flex items-center gap-3">
             <ExportButton
               data={[]}

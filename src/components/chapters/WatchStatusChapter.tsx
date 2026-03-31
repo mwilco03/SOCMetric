@@ -76,13 +76,96 @@ export const WatchStatusChapter: React.FC<WatchStatusChapterProps> = ({ viewMode
         </div>
       )}
 
-      {/* Content based on view mode */}
-      {viewMode === 'analyst' && (
-        <div className="bg-soc-card border border-soc-border rounded-lg p-6">
-          <h3 className="text-lg font-medium text-gray-100 mb-4">Your Queue</h3>
-          <p className="text-gray-400">Assigned tickets and priorities would appear here.</p>
-        </div>
-      )}
+      {/* Needs Attention — open tickets by priority */}
+      {viewMode === 'analyst' && (() => {
+        const openTickets = (metrics.projectIssues ?? []).filter(
+          (i) => !i.fields.resolutiondate,
+        );
+        const byPriority = new Map<string, number>();
+        for (const t of openTickets) {
+          const p = t.fields.priority?.name ?? 'None';
+          byPriority.set(p, (byPriority.get(p) ?? 0) + 1);
+        }
+        const priorityOrder = ['Highest', 'High', 'Medium', 'Low', 'Lowest', 'None'];
+        const sorted = [...byPriority.entries()].sort(
+          (a, b) => priorityOrder.indexOf(a[0]) - priorityOrder.indexOf(b[0]),
+        );
+        const top10 = openTickets
+          .sort((a, b) => {
+            const pa = priorityOrder.indexOf(a.fields.priority?.name ?? 'None');
+            const pb = priorityOrder.indexOf(b.fields.priority?.name ?? 'None');
+            return pa - pb;
+          })
+          .slice(0, 10);
+        const stalledCount = metrics.stalledTickets.length;
+
+        return (
+          <div className="bg-soc-card border border-soc-border rounded-lg p-6">
+            <h3 className="text-lg font-medium text-gray-100 mb-4">Needs Attention</h3>
+
+            {stalledCount > 0 && (
+              <div className="mb-4 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded">
+                <span className="text-sm font-medium text-yellow-400">
+                  {stalledCount} stalled ticket{stalledCount !== 1 ? 's' : ''}
+                </span>
+                <span className="text-sm text-gray-400 ml-2">
+                  — no activity in 48+ working hours
+                </span>
+              </div>
+            )}
+
+            {sorted.length > 0 ? (
+              <div className="mb-4">
+                <h4 className="text-sm font-medium text-gray-400 mb-2">Open by Priority</h4>
+                <div className="flex flex-wrap gap-3">
+                  {sorted.map(([priority, count]) => (
+                    <div key={priority} className="flex items-center gap-2 text-sm">
+                      <span className={`px-2 py-0.5 rounded text-xs ${
+                        priority === 'Highest' ? 'text-red-400 bg-red-500/10'
+                          : priority === 'High' ? 'text-orange-400 bg-orange-500/10'
+                            : priority === 'Medium' ? 'text-yellow-400 bg-yellow-500/10'
+                              : priority === 'Low' ? 'text-green-400 bg-green-500/10'
+                                : 'text-gray-400 bg-gray-500/10'
+                      }`}>
+                        {priority}
+                      </span>
+                      <span className="text-gray-300">{count}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <p className="text-sm text-gray-400 mb-4">No open tickets in queue.</p>
+            )}
+
+            {top10.length > 0 && (
+              <div>
+                <h4 className="text-sm font-medium text-gray-400 mb-2">Top 10 by Priority</h4>
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-gray-700">
+                      <th className="text-left py-1 px-2 text-xs font-medium text-gray-500">Key</th>
+                      <th className="text-left py-1 px-2 text-xs font-medium text-gray-500">Summary</th>
+                      <th className="text-left py-1 px-2 text-xs font-medium text-gray-500">Priority</th>
+                      <th className="text-left py-1 px-2 text-xs font-medium text-gray-500">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {top10.map((t) => (
+                      <tr key={t.id} className="border-b border-gray-800">
+                        <td className="py-1 px-2 text-sm font-mono text-gray-300">{t.key}</td>
+                        <td className="py-1 px-2 text-sm text-gray-300 truncate max-w-xs">{t.fields.summary}</td>
+                        <td className="py-1 px-2 text-sm text-gray-400">{t.fields.priority?.name ?? 'None'}</td>
+                        <td className="py-1 px-2 text-sm text-gray-400">{t.fields.status.name}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
       {viewMode === 'executive' && (
         <div className="bg-soc-card border border-soc-border rounded-lg p-6">

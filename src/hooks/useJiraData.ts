@@ -39,6 +39,7 @@ export function useIssues() {
   const jiraConfig = useDashboardStore((s) => s.jiraConfig);
   const projectKeys = useDashboardStore((s) => s.selectedProjectKeys);
   const dateRange = useDashboardStore((s) => s.dateRange);
+  const setLastRefreshed = useDashboardStore((s) => s.setLastRefreshed);
 
   return useQuery({
     queryKey: [QUERY_KEYS.issues, projectKeys, dateRange.start.toISOString(), dateRange.end.toISOString()],
@@ -51,6 +52,7 @@ export function useIssues() {
         const result = await client.getAllIssues(jql);
         allIssues.push(...result);
       }
+      setLastRefreshed(new Date());
       return allIssues;
     },
     enabled: !!jiraConfig && projectKeys.length > 0,

@@ -17,6 +17,12 @@ export const ProjectionsChapter: React.FC<ProjectionsChapterProps> = ({ viewMode
   const [scenarios, setScenarios] = useState<ScenarioInput[]>([]);
   const metrics = useMetrics();
 
+  // Baseline projection (no scenarios) for comparison
+  const baselineProjection = useMemo(() => {
+    if (!metrics.headline || metrics.timeSeries.length < 3) return metrics.projection;
+    return projectForward(metrics.timeSeries, metrics.headline.queueDepth, horizon, []);
+  }, [metrics.timeSeries, metrics.headline, horizon, metrics.projection]);
+
   // Recompute projection when horizon or scenarios change
   const projection = useMemo(() => {
     if (!metrics.headline || metrics.timeSeries.length < 3) return metrics.projection;
@@ -188,6 +194,52 @@ export const ProjectionsChapter: React.FC<ProjectionsChapterProps> = ({ viewMode
               </button>
             )}
           </div>
+
+          {/* Scenario Impact Summary */}
+          {scenarios.length > 0 && baselineProjection && projection && (() => {
+            const baseEnd = baselineProjection.projected;
+            const scenEnd = projection.projected;
+            if (baseEnd.length === 0 || scenEnd.length === 0) return null;
+            const baseQueueEnd = baseEnd[baseEnd.length - 1].queueDepth;
+            const scenQueueEnd = scenEnd[scenEnd.length - 1].queueDepth;
+            const delta = Math.round(baseQueueEnd - scenQueueEnd);
+            const scenarioLabels = scenarios.map((s) => s.label).join(', ');
+            return (
+              <div className={`mt-4 p-3 rounded border ${
+                delta > 0
+                  ? 'bg-green-500/10 border-green-500/30'
+                  : delta < 0
+                    ? 'bg-red-500/10 border-red-500/30'
+                    : 'bg-gray-500/10 border-gray-500/30'
+              }`}>
+                <div className="grid grid-cols-3 gap-4 mb-2">
+                  <div>
+                    <p className="text-xs text-gray-500">Baseline queue at day {horizon}</p>
+                    <p className="text-lg font-bold text-gray-200">{Math.round(baseQueueEnd)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500">With scenarios</p>
+                    <p className="text-lg font-bold text-gray-200">{Math.round(scenQueueEnd)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500">Delta</p>
+                    <p className={`text-lg font-bold ${
+                      delta > 0 ? 'text-green-400' : delta < 0 ? 'text-red-400' : 'text-gray-400'
+                    }`}>
+                      {delta > 0 ? '-' : '+'}{Math.abs(delta)} tickets
+                    </p>
+                  </div>
+                </div>
+                <p className="text-sm text-gray-300">
+                  {scenarioLabels} {delta > 0
+                    ? `reduces projected queue by ~${delta} tickets at day ${horizon}`
+                    : delta < 0
+                      ? `increases projected queue by ~${Math.abs(delta)} tickets at day ${horizon}`
+                      : `has no projected impact on queue depth at day ${horizon}`}
+                </p>
+              </div>
+            );
+          })()}
         </div>
       )}
     </div>

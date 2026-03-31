@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import type { JiraIssue } from '../../api/types';
 import { formatDate } from '../../utils/formatting';
-import { useDashboardStore } from '../../store/dashboardStore';
-import { usePanel } from '../panels/PanelContext';
 
 interface TicketTableProps {
   tickets: JiraIssue[];
@@ -21,8 +19,6 @@ export const TicketTable: React.FC<TicketTableProps> = ({
   tickets,
   maxRows = 10,
 }) => {
-  const jiraConfig = useDashboardStore((s) => s.jiraConfig);
-  const { openTicketDetail } = usePanel();
   const [visibleCount, setVisibleCount] = useState(maxRows);
   const displayTickets = tickets.slice(0, visibleCount);
   const hasMore = visibleCount < tickets.length;
@@ -51,18 +47,12 @@ export const TicketTable: React.FC<TicketTableProps> = ({
           {displayTickets.map((ticket) => (
             <tr
               key={ticket.id}
-              className="border-b border-gray-800 hover:bg-gray-800/50 transition-colors cursor-pointer"
-              onClick={() => openTicketDetail(ticket)}
+              className="border-b border-gray-800 hover:bg-gray-800/50 transition-colors"
             >
               <td className="py-2 px-3">
-                <a
-                  href={`https://${jiraConfig?.domain ?? 'jira'}/browse/${ticket.key}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm font-mono text-kpi-blue hover:underline"
-                >
+                <span className="text-sm font-mono text-gray-300">
                   {ticket.key}
-                </a>
+                </span>
               </td>
               <td className="py-2 px-3">
                 <span className="text-sm text-gray-300 truncate max-w-xs block">

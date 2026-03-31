@@ -14,7 +14,7 @@ import { SetupWizard } from './components/discovery-ui/SetupWizard';
 import { VaultUnlock } from './components/vault/VaultUnlock';
 import { VaultManager } from './vault/vaultManager';
 import { useDashboardStore } from './store/dashboardStore';
-import { PanelProvider, SlideOutPanel, BottomSheet } from './components/panels';
+import { PanelProvider, SlideOutPanel } from './components/panels';
 
 import type { VaultPayload } from './vault/vaultManager';
 
@@ -56,7 +56,6 @@ function DashboardContent() {
         {renderChapter()}
       </AppShell>
       <SlideOutPanel />
-      <BottomSheet />
     </PanelProvider>
   );
 }

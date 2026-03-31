@@ -170,14 +170,36 @@ export const PatternsChapter: React.FC<PatternsChapterProps> = ({ viewMode }) =>
         </div>
       </div>
 
-      {viewMode === 'analyst' && (
-        <div className="bg-soc-card border border-soc-border rounded-lg p-4">
-          <h3 className="text-sm font-medium text-gray-300 mb-3">Your Pattern Matches</h3>
-          <p className="text-sm text-gray-400">
-            Patterns most frequently touched by you would appear here with opt-in assignee data.
-          </p>
-        </div>
-      )}
+      {viewMode === 'analyst' && (() => {
+        const topClusters = clusters.slice(0, 5);
+        return (
+          <div className="bg-soc-card border border-soc-border rounded-lg p-4">
+            <h3 className="text-sm font-medium text-gray-300 mb-3">Top Clusters by Volume</h3>
+            {topClusters.length > 0 ? (
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-gray-700">
+                    <th className="text-left py-2 px-3 text-xs font-medium text-gray-500">Cluster</th>
+                    <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">Tickets</th>
+                    <th className="text-right py-2 px-3 text-xs font-medium text-gray-500">Recurrence</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {topClusters.map((c) => (
+                    <tr key={c.id} className="border-b border-gray-800">
+                      <td className="py-2 px-3 text-sm text-gray-300 truncate max-w-xs">{c.normalizedTitle}</td>
+                      <td className="py-2 px-3 text-sm text-gray-400 text-right">{c.totalCount}</td>
+                      <td className="py-2 px-3 text-sm text-gray-400 text-right">{Math.round(c.recurrenceRate * 100)}%</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <p className="text-sm text-gray-400">No clusters detected in the selected data.</p>
+            )}
+          </div>
+        );
+      })()}
     </div>
   );
 };

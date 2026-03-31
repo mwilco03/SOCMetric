@@ -38,6 +38,7 @@ export interface DashboardState {
   issues: JiraIssue[];
   isLoading: boolean;
   error: string | null;
+  lastRefreshed: Date | null;
   
   // Configuration
   statusMappings: Record<string, Record<string, 'queue' | 'active' | 'done'>>;
@@ -63,6 +64,7 @@ export interface DashboardState {
   setIssues: (issues: JiraIssue[]) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
+  setLastRefreshed: (date: Date) => void;
   setStatusMapping: (projectKey: string, status: string, classification: 'queue' | 'active' | 'done') => void;
   addLedgerEvent: (event: LedgerEvent) => void;
   removeLedgerEvent: (id: string) => void;
@@ -102,6 +104,7 @@ export const useDashboardStore = create<DashboardState>()(
       issues: [],
       isLoading: false,
       error: null,
+      lastRefreshed: null,
       statusMappings: {},
       ttftAnchors: {},
       workSchedule: defaultSchedule,
@@ -126,6 +129,7 @@ export const useDashboardStore = create<DashboardState>()(
       setIssues: (issues) => set({ issues }),
       setLoading: (loading) => set({ isLoading: loading }),
       setError: (error) => set({ error }),
+      setLastRefreshed: (date) => set({ lastRefreshed: date }),
       setStatusMapping: (projectKey, status, classification) =>
         set((state) => ({
           statusMappings: {
