@@ -1,12 +1,40 @@
-/** Shared application constants */
+/** Shared application constants — no magic numbers, no hardcoded literals */
+
+// HTTP status codes
+export const HTTP_STATUS_BAD_REQUEST = 400;
+export const HTTP_STATUS_UNAUTHORIZED = 401;
+export const HTTP_STATUS_FORBIDDEN = 403;
+export const HTTP_STATUS_RATE_LIMITED = 429;
 
 // HTTP
 export const HTTP_TIMEOUT_MS = 30_000;
+export const MEDIA_TYPE_JSON = 'application/json';
+export const HEADER_CONTENT_TYPE = 'content-type';
+export const ERROR_TRUNCATE_LENGTH = 500;
 
 // Jira API
 export const JIRA_PAGE_SIZE = 100;
+export const JIRA_PROJECTS_PAGE_SIZE = 50;
 export const JIRA_MAX_ISSUES = 10_000;
 export const JIRA_RATE_LIMIT_DELAY_MS = 200;
+
+// Jira endpoints
+export const JIRA_ENDPOINT_MYSELF = '/myself';
+export const JIRA_ENDPOINT_PROJECT_SEARCH = '/project/search';
+export const JIRA_ENDPOINT_SEARCH = '/search/jql';
+
+// Jira fields requested in search
+export const JIRA_SEARCH_FIELDS = [
+  'summary', 'created', 'updated', 'resolutiondate',
+  'status', 'issuetype', 'priority', 'assignee',
+  'reporter', 'labels', 'components',
+] as const;
+
+// Jira expand options
+export const JIRA_EXPAND_DEFAULT = 'changelog';
+
+// Domain validation
+export const JIRA_DOMAIN_PATTERN = /^[\w-]+\.atlassian\.net$/;
 
 // Working hours
 export const MAX_WORKING_DAYS_CAP = 400;
@@ -17,9 +45,6 @@ export const DEFAULT_DATE_RANGE_DAYS = 14;
 // Vault
 export const PBKDF2_ITERATIONS = 600_000;
 export const MIN_PASSPHRASE_LENGTH = 12;
-
-// Domain validation
-export const JIRA_DOMAIN_PATTERN = /^[\w-]+\.atlassian\.net$/;
 
 // Staffing signal thresholds
 export const QUEUE_PRESSURE_GROWTH_FACTOR = 1.2;
@@ -46,6 +71,8 @@ export const CLUSTER_RECURRENCE_CRITICAL_RATE = 0.5;
 export const CLUSTER_RECURRENCE_REQUIRED_RATE = 0.3;
 
 // KPI thresholds
+export const KPI_DELTA_THRESHOLD = 5;
+export const KPI_STATUS_RED_THRESHOLD = 20;
 export const TTFT_RED_HOURS = 8;
 export const TTFT_YELLOW_HOURS = 4;
 export const VELOCITY_RED_THRESHOLD = -5;

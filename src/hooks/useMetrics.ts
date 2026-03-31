@@ -28,6 +28,7 @@ import { detectAfterHoursWork } from '../metrics/afterHours';
 import type { AfterHoursStats } from '../metrics/afterHours';
 
 import { percentile, computeRollingBaseline } from '../utils/statistics';
+import { KPI_DELTA_THRESHOLD, KPI_STATUS_RED_THRESHOLD } from '../constants';
 import type { JiraIssue } from '../api/types';
 
 import type { KPIData, KPITooltip } from '../components/kpi/KPICard';
@@ -40,7 +41,7 @@ function buildKPI(
   opts?: { invertDelta?: boolean; insight?: string; baseline?: { mean: number; stdDev: number }; tooltip?: KPITooltip },
 ): KPIData {
   const delta = prev !== 0 ? ((value - prev) / Math.abs(prev)) * 100 : 0;
-  const direction: 'up' | 'down' | 'flat' = delta > 5 ? 'up' : delta < -5 ? 'down' : 'flat';
+  const direction: 'up' | 'down' | 'flat' = delta > KPI_DELTA_THRESHOLD ? 'up' : delta < -KPI_DELTA_THRESHOLD ? 'down' : 'flat';
   const isGood = opts?.invertDelta ? delta > 0 : delta < 0;
 
   let status: 'green' | 'yellow' | 'red' | 'gray' = 'gray';
@@ -50,8 +51,8 @@ function buildKPI(
     else if (sigma > 1) status = isGood ? 'green' : 'yellow';
   } else {
     const absDelta = Math.abs(delta);
-    if (absDelta > 20) status = isGood ? 'green' : 'red';
-    else if (absDelta > 5) status = isGood ? 'green' : 'yellow';
+    if (absDelta > KPI_STATUS_RED_THRESHOLD) status = isGood ? 'green' : 'red';
+    else if (absDelta > KPI_DELTA_THRESHOLD) status = isGood ? 'green' : 'yellow';
   }
 
   return {
@@ -266,7 +267,7 @@ export function useMetrics() {
       irIssues,
     };
     } catch (e) {
-      console.error('Metrics computation failed:', e);
+      // Metrics computation failed — error surfaced in return value
       return {
         isLoading: false, error: e instanceof Error ? e.message : 'Metrics computation failed', isEmpty: true,
         headline: null, timeSeries: [], staffing: null, recurrence: null,

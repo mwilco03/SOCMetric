@@ -1,6 +1,7 @@
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { createJiraClient } from '../api/jiraClient';
 import { useDashboardStore } from '../store/dashboardStore';
+import { toISODate } from '../utils/dateUtils';
 import type { JiraConfig, JiraIssue } from '../api/types';
 
 const QUERY_KEYS = {
@@ -48,9 +49,7 @@ export function useIssues() {
       const client = createJiraClient(jiraConfig);
       const allIssues: JiraIssue[] = [];
       for (const key of projectKeys) {
-        const startDate = dateRange.start.toISOString().split('T')[0];
-        const endDate = dateRange.end.toISOString().split('T')[0];
-        const jql = `project = ${key} AND created >= "${startDate}" AND created <= "${endDate}" ORDER BY created DESC`;
+        const jql = `project = ${key} AND created >= "${toISODate(dateRange.start)}" AND created <= "${toISODate(dateRange.end)}" ORDER BY created DESC`;
         const result = await client.getAllIssues(jql);
         allIssues.push(...result);
       }

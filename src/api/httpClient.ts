@@ -1,6 +1,6 @@
 /** HTTP client adapter - works in both browser and Tauri contexts */
 
-import { HTTP_TIMEOUT_MS } from '../constants';
+import { HTTP_TIMEOUT_MS, HEADER_CONTENT_TYPE, MEDIA_TYPE_JSON, ERROR_TRUNCATE_LENGTH } from '../constants';
 
 interface RequestOptions {
   method?: string;
@@ -17,15 +17,15 @@ interface HttpResponse {
 
 async function parseResponse(response: Response): Promise<{ data: unknown; headers: Record<string, string> }> {
   let data: unknown;
-  const contentType = response.headers.get('content-type') || '';
-  if (contentType.includes('application/json')) {
+  const contentType = response.headers.get(HEADER_CONTENT_TYPE) || '';
+  if (contentType.includes(MEDIA_TYPE_JSON)) {
     data = await response.json();
   } else {
     const text = await response.text();
     try {
       data = JSON.parse(text);
     } catch {
-      data = { message: text.slice(0, 500) };
+      data = { message: text.slice(0, ERROR_TRUNCATE_LENGTH) };
     }
   }
   return { data, headers: Object.fromEntries(response.headers.entries()) };
@@ -33,52 +33,16 @@ async function parseResponse(response: Response): Promise<{ data: unknown; heade
 
 async function tauriFetch(url: string, options: RequestOptions = {}): Promise<HttpResponse> {
   const { fetch } = await import('@tauri-apps/plugin-http');
-
-  // Method A: pass body as string with explicit headers
-  const responseA = await fetch(url, {
+  const response = await fetch(url, {
     method: options.method || 'GET',
     headers: options.headers || {},
     body: options.body || undefined,
   });
-
-  const resultA = await parseResponse(responseA);
-  if (responseA.status !== 400 || !options.body) {
-    return { status: responseA.status, ...resultA };
-  }
-
-  // Method A got 400 on a POST with body — retry with Blob/Request
-  const reqInit: RequestInit = {
-    method: options.method || 'GET',
-    headers: options.headers || {},
-  };
-  if (options.body) {
-    reqInit.body = new Blob([options.body], { type: 'application/json' });
-  }
-  const request = new Request(url, reqInit);
-  const responseB = await fetch(request);
-  const resultB = await parseResponse(responseB);
-
-  if (responseB.status === 400) {
-    // Both methods failed — return Method B's error with detail about both attempts
-    const bodyA = resultA.data as Record<string, unknown> | null;
-    const bodyB = resultB.data as Record<string, unknown> | null;
-    return {
-      status: 400,
-      data: {
-        errorMessages: [
-          `Both request methods returned 400.`,
-          `Method A (string body): ${JSON.stringify(bodyA).slice(0, 300)}`,
-          `Method B (Blob body): ${JSON.stringify(bodyB).slice(0, 300)}`,
-        ],
-      },
-      headers: resultB.headers,
-    };
-  }
-
-  return { status: responseB.status, ...resultB };
+  const { data, headers } = await parseResponse(response);
+  return { status: response.status, data, headers };
 }
 
-async function browserFetch(url: string, options: RequestOptions = {}): Promise<HttpResponse> {
+async function nativeFetch(url: string, options: RequestOptions = {}): Promise<HttpResponse> {
   const controller = new AbortController();
   const timeout = options.timeout || HTTP_TIMEOUT_MS;
   const timer = setTimeout(() => controller.abort(), timeout);
@@ -90,7 +54,6 @@ async function browserFetch(url: string, options: RequestOptions = {}): Promise<
       body: options.body || undefined,
       signal: controller.signal,
     });
-
     const { data, headers } = await parseResponse(response);
     return { status: response.status, data, headers };
   } finally {
@@ -103,10 +66,10 @@ export async function httpRequest(url: string, options: RequestOptions = {}): Pr
     return await tauriFetch(url, options);
   } catch (tauriError) {
     if (
-      tauriError instanceof TypeError &&
-      String(tauriError).includes('Failed to fetch dynamically imported module')
+      tauriError instanceof TypeError ||
+      String(tauriError).includes('not a function')
     ) {
-      return browserFetch(url, options);
+      return nativeFetch(url, options);
     }
     throw tauriError;
   }
