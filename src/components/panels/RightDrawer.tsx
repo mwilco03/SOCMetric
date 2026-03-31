@@ -145,16 +145,19 @@ export const RightDrawer: React.FC<RightDrawerProps> = ({ isOpen, onClose }) => 
 
           {/* IR Project */}
           <div>
-            <h3 className="text-sm font-medium text-gray-300 mb-3">IR Project Key</h3>
-            <input
-              type="text"
+            <h3 className="text-sm font-medium text-gray-300 mb-3">IR Project</h3>
+            <select
               value={irProjectKey ?? ''}
               onChange={(e) => setIrProject(e.target.value)}
-              placeholder="e.g., IR"
               className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm text-gray-200"
-            />
+            >
+              <option value="">None — no incident tracking</option>
+              {selectedProjectKeys.map((key) => (
+                <option key={key} value={key}>{key}</option>
+              ))}
+            </select>
             <p className="text-xs text-gray-500 mt-1">
-              Enables incident tracking and cross-project impact analysis.
+              Which project contains incident response tickets.
             </p>
           </div>
 
