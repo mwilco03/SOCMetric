@@ -35,24 +35,18 @@ async function tauriFetch(url: string, options: RequestOptions = {}): Promise<Ht
   const { fetch } = await import('@tauri-apps/plugin-http');
 
   // Method A: pass body as string with explicit headers
-  try {
-    const response = await fetch(url, {
-      method: options.method || 'GET',
-      headers: options.headers || {},
-      body: options.body || undefined,
-    });
+  const responseA = await fetch(url, {
+    method: options.method || 'GET',
+    headers: options.headers || {},
+    body: options.body || undefined,
+  });
 
-    const { data, headers } = await parseResponse(response);
-    if (response.status !== 400) {
-      return { status: response.status, data, headers };
-    }
-    // 400 might be body format issue — try method B
-    console.log('[httpClient] Method A got 400, retrying with Request object');
-  } catch (e) {
-    console.log('[httpClient] Method A failed, trying Method B:', e);
+  const resultA = await parseResponse(responseA);
+  if (responseA.status !== 400 || !options.body) {
+    return { status: responseA.status, ...resultA };
   }
 
-  // Method B: construct a proper Request object
+  // Method A got 400 on a POST with body — retry with Blob/Request
   const reqInit: RequestInit = {
     method: options.method || 'GET',
     headers: options.headers || {},
@@ -61,9 +55,27 @@ async function tauriFetch(url: string, options: RequestOptions = {}): Promise<Ht
     reqInit.body = new Blob([options.body], { type: 'application/json' });
   }
   const request = new Request(url, reqInit);
-  const response = await fetch(request);
-  const { data, headers } = await parseResponse(response);
-  return { status: response.status, data, headers };
+  const responseB = await fetch(request);
+  const resultB = await parseResponse(responseB);
+
+  if (responseB.status === 400) {
+    // Both methods failed — return Method B's error with detail about both attempts
+    const bodyA = resultA.data as Record<string, unknown> | null;
+    const bodyB = resultB.data as Record<string, unknown> | null;
+    return {
+      status: 400,
+      data: {
+        errorMessages: [
+          `Both request methods returned 400.`,
+          `Method A (string body): ${JSON.stringify(bodyA).slice(0, 300)}`,
+          `Method B (Blob body): ${JSON.stringify(bodyB).slice(0, 300)}`,
+        ],
+      },
+      headers: resultB.headers,
+    };
+  }
+
+  return { status: responseB.status, ...resultB };
 }
 
 async function browserFetch(url: string, options: RequestOptions = {}): Promise<HttpResponse> {
