@@ -34,7 +34,15 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete }) => {
       setProjects(projects);
       setStep('projects');
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Connection failed');
+      let msg = 'Connection failed';
+      if (e instanceof Error) {
+        if (e.message.includes('Invalid Jira domain')) msg = e.message;
+        else if (e.message.includes('Invalid Jira credentials')) msg = 'Invalid email or API token. Check your credentials.';
+        else if (e.message.includes('Insufficient permissions')) msg = 'API token lacks permissions. Ensure it has read access.';
+        else if (e.message.includes('Failed to fetch') || e.message.includes('NetworkError')) msg = 'Network error — check your internet connection and domain.';
+        else msg = e.message;
+      }
+      setError(msg);
     } finally {
       setIsLoading(false);
     }

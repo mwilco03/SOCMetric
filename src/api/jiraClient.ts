@@ -23,10 +23,16 @@ export class JiraClient {
   private headers: Record<string, string>;
 
   constructor(config: JiraConfig) {
-    if (!JIRA_DOMAIN_PATTERN.test(config.domain)) {
-      throw new Error('Invalid Jira domain — must be *.atlassian.net');
+    // Normalize domain: strip https://, trailing slashes
+    const domain = config.domain
+      .replace(/^https?:\/\//, '')
+      .replace(/\/+$/, '')
+      .trim();
+
+    if (!JIRA_DOMAIN_PATTERN.test(domain)) {
+      throw new Error(`Invalid Jira domain "${domain}" — must be yourorg.atlassian.net`);
     }
-    this.baseUrl = `https://${config.domain}/rest/api/3`;
+    this.baseUrl = `https://${domain}/rest/api/3`;
     const auth = btoa(`${config.email}:${config.apiToken}`);
     this.headers = {
       Authorization: `Basic ${auth}`,
