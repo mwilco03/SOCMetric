@@ -21,6 +21,7 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete }) => {
   const [projects, setProjects] = useState<JiraProject[]>([]);
   const [selectedProjects, setSelectedProjects] = useState<string[]>([]);
   const [passphrase, setPassphrase] = useState('');
+  const [projectSearch, setProjectSearch] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -147,9 +148,24 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete }) => {
 
         {step === 'projects' && (
           <div className="space-y-4">
-            <p className="text-sm text-gray-400">Select projects to analyze:</p>
-            <div className="max-h-48 overflow-y-auto space-y-2">
-              {projects.map((project) => (
+            <p className="text-sm text-gray-400">
+              Select projects to analyze ({projects.length} found):
+            </p>
+            <input
+              type="text"
+              value={projectSearch}
+              onChange={(e) => setProjectSearch(e.target.value)}
+              placeholder="Search projects..."
+              className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-gray-200 text-sm"
+            />
+            <div className="max-h-64 overflow-y-auto space-y-2">
+              {projects
+                .filter((p) => {
+                  if (!projectSearch) return true;
+                  const q = projectSearch.toLowerCase();
+                  return p.name.toLowerCase().includes(q) || p.key.toLowerCase().includes(q);
+                })
+                .map((project) => (
                 <label
                   key={project.id}
                   className="flex items-center gap-3 p-2 bg-gray-800/50 rounded cursor-pointer hover:bg-gray-800"

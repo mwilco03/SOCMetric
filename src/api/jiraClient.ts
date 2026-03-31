@@ -64,8 +64,24 @@ export class JiraClient {
   }
 
   async getProjects(): Promise<JiraProject[]> {
-    const data = await this.request<{ values: Array<{ id: string; key: string; name: string }> }>('/project/search');
-    return data.values.map((p) => ({ id: p.id, key: p.key, name: p.name }));
+    const allProjects: JiraProject[] = [];
+    let startAt = 0;
+    const maxResults = 50;
+
+    while (true) {
+      const data = await this.request<{
+        values: Array<{ id: string; key: string; name: string }>;
+        total: number;
+        isLast?: boolean;
+      }>(`/project/search?startAt=${startAt}&maxResults=${maxResults}`);
+
+      allProjects.push(...data.values.map((p) => ({ id: p.id, key: p.key, name: p.name })));
+
+      if (data.isLast || allProjects.length >= data.total || data.values.length < maxResults) break;
+      startAt += maxResults;
+    }
+
+    return allProjects.sort((a, b) => a.name.localeCompare(b.name));
   }
 
   async getProjectStatuses(projectKey: string): Promise<JiraStatus[]> {
