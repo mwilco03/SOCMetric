@@ -20,7 +20,7 @@ async function tauriFetch(url: string, options: RequestOptions = {}): Promise<Ht
   const response = await fetch(url, {
     method: options.method || 'GET',
     headers: options.headers || {},
-    body: options.body ? JSON.parse(options.body) : undefined,
+    body: options.body || undefined,
   });
 
   // Handle non-JSON responses gracefully
