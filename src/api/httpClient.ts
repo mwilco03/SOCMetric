@@ -15,15 +15,7 @@ interface HttpResponse {
   headers: Record<string, string>;
 }
 
-async function tauriFetch(url: string, options: RequestOptions = {}): Promise<HttpResponse> {
-  const { fetch } = await import('@tauri-apps/plugin-http');
-  const response = await fetch(url, {
-    method: options.method || 'GET',
-    headers: options.headers || {},
-    body: options.body || undefined,
-  });
-
-  // Handle non-JSON responses gracefully
+async function parseResponse(response: Response): Promise<{ data: unknown; headers: Record<string, string> }> {
   let data: unknown;
   const contentType = response.headers.get('content-type') || '';
   if (contentType.includes('application/json')) {
@@ -33,15 +25,45 @@ async function tauriFetch(url: string, options: RequestOptions = {}): Promise<Ht
     try {
       data = JSON.parse(text);
     } catch {
-      data = { message: text.slice(0, 200) };
+      data = { message: text.slice(0, 500) };
     }
   }
+  return { data, headers: Object.fromEntries(response.headers.entries()) };
+}
 
-  return {
-    status: response.status,
-    data,
-    headers: Object.fromEntries(response.headers.entries()),
+async function tauriFetch(url: string, options: RequestOptions = {}): Promise<HttpResponse> {
+  const { fetch } = await import('@tauri-apps/plugin-http');
+
+  // Method A: pass body as string with explicit headers
+  try {
+    const response = await fetch(url, {
+      method: options.method || 'GET',
+      headers: options.headers || {},
+      body: options.body || undefined,
+    });
+
+    const { data, headers } = await parseResponse(response);
+    if (response.status !== 400) {
+      return { status: response.status, data, headers };
+    }
+    // 400 might be body format issue — try method B
+    console.log('[httpClient] Method A got 400, retrying with Request object');
+  } catch (e) {
+    console.log('[httpClient] Method A failed, trying Method B:', e);
+  }
+
+  // Method B: construct a proper Request object
+  const reqInit: RequestInit = {
+    method: options.method || 'GET',
+    headers: options.headers || {},
   };
+  if (options.body) {
+    reqInit.body = new Blob([options.body], { type: 'application/json' });
+  }
+  const request = new Request(url, reqInit);
+  const response = await fetch(request);
+  const { data, headers } = await parseResponse(response);
+  return { status: response.status, data, headers };
 }
 
 async function browserFetch(url: string, options: RequestOptions = {}): Promise<HttpResponse> {
@@ -57,43 +79,23 @@ async function browserFetch(url: string, options: RequestOptions = {}): Promise<
       signal: controller.signal,
     });
 
-    let data: unknown;
-    const contentType = response.headers.get('content-type') || '';
-    if (contentType.includes('application/json')) {
-      data = await response.json();
-    } else {
-      const text = await response.text();
-      try {
-        data = JSON.parse(text);
-      } catch {
-        data = { message: text.slice(0, 200) };
-      }
-    }
-
-    return {
-      status: response.status,
-      data,
-      headers: Object.fromEntries(response.headers.entries()),
-    };
+    const { data, headers } = await parseResponse(response);
+    return { status: response.status, data, headers };
   } finally {
     clearTimeout(timer);
   }
 }
 
 export async function httpRequest(url: string, options: RequestOptions = {}): Promise<HttpResponse> {
-  // Try Tauri HTTP plugin first — works in production Tauri builds
-  // __TAURI__ may not exist in Tauri v2, so try the import directly
   try {
     return await tauriFetch(url, options);
   } catch (tauriError) {
-    // If Tauri plugin not available (running in browser), fall back
     if (
       tauriError instanceof TypeError &&
       String(tauriError).includes('Failed to fetch dynamically imported module')
     ) {
       return browserFetch(url, options);
     }
-    // Re-throw actual network/API errors
     throw tauriError;
   }
 }
