@@ -48,7 +48,9 @@ export function useIssues() {
       const client = createJiraClient(jiraConfig);
       const allIssues: JiraIssue[] = [];
       for (const key of projectKeys) {
-        const jql = `project = "${key}" AND created >= "${dateRange.start.toISOString().split('T')[0]}" AND created <= "${dateRange.end.toISOString().split('T')[0]}" ORDER BY created DESC`;
+        const startDate = dateRange.start.toISOString().split('T')[0];
+        const endDate = dateRange.end.toISOString().split('T')[0];
+        const jql = `project = ${key} AND created >= "${startDate}" AND created <= "${endDate}" ORDER BY created DESC`;
         const result = await client.getAllIssues(jql);
         allIssues.push(...result);
       }

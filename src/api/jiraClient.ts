@@ -53,7 +53,12 @@ export class JiraClient {
     if (response.status === 401) throw new Error('Invalid Jira credentials');
     if (response.status === 403) throw new Error('Insufficient permissions');
     if (response.status === 429) throw new Error('Rate limited by Jira - please wait');
-    if (response.status >= 400) throw new Error(`Jira API error: ${response.status}`);
+    if (response.status >= 400) {
+      const body = response.data as Record<string, unknown> | null;
+      const messages = (body?.errorMessages as string[]) ?? [];
+      const detail = messages.length > 0 ? messages.join('; ') : JSON.stringify(body).slice(0, 200);
+      throw new Error(`Jira API error ${response.status}: ${detail}`);
+    }
 
     return response.data as T;
   }
@@ -112,7 +117,7 @@ export class JiraClient {
         jql,
         startAt,
         maxResults,
-        expand,
+        expand: expand.join(','),
         fields: [
           'summary', 'created', 'updated', 'resolutiondate',
           'status', 'issuetype', 'priority', 'assignee',
