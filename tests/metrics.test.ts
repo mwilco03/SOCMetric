@@ -19,24 +19,25 @@ const testSchedule: WorkSchedule = {
 
 describe('Working Hours', () => {
   it('calculates working hours within same day', () => {
-    const start = new Date('2024-01-15T10:00:00'); // Monday 10am
-    const end = new Date('2024-01-15T14:00:00');   // Monday 2pm
+    // Use explicit EST timestamps so results are consistent across timezones
+    const start = new Date('2024-01-15T15:00:00Z'); // Monday 10am EST
+    const end = new Date('2024-01-15T19:00:00Z');   // Monday 2pm EST
     const hours = calculateWorkingHours(start, end, testSchedule);
     expect(hours).toBe(4);
   });
 
   it('calculates working hours across multiple days', () => {
-    const start = new Date('2024-01-15T10:00:00'); // Monday 10am
-    const end = new Date('2024-01-16T11:00:00');   // Tuesday 11am
+    const start = new Date('2024-01-15T15:00:00Z'); // Monday 10am EST
+    const end = new Date('2024-01-16T16:00:00Z');   // Tuesday 11am EST
     const hours = calculateWorkingHours(start, end, testSchedule);
-    expect(hours).toBe(9); // 6 hours Monday + 3 hours Tuesday
+    expect(hours).toBe(9); // 7 hours Monday (10am-5pm) + 2 hours Tuesday (9am-11am)
   });
 
   it('excludes weekends', () => {
-    const start = new Date('2024-01-12T10:00:00'); // Friday 10am
-    const end = new Date('2024-01-15T10:00:00');   // Monday 10am
+    const start = new Date('2024-01-12T15:00:00Z'); // Friday 10am EST
+    const end = new Date('2024-01-15T15:00:00Z');   // Monday 10am EST
     const hours = calculateWorkingHours(start, end, testSchedule);
-    expect(hours).toBe(8); // Friday only, weekend excluded
+    expect(hours).toBe(8); // Friday 10am-5pm = 7h + Monday 9am-10am = 1h
   });
 });
 
