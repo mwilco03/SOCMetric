@@ -129,6 +129,7 @@ export class JiraClient {
           'status', 'issuetype', 'priority', 'assignee',
           'reporter', 'labels', 'components',
         ],
+        validateQuery: 'warn',
       },
     });
     return { issues: data.issues, total: data.total };
