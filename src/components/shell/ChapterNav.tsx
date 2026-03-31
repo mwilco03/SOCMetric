@@ -5,7 +5,6 @@ import {
   BarChart3,
   Activity,
   Search,
-  AlertTriangle,
   TrendingUp,
   GitCompare,
   Calendar,
@@ -31,7 +30,8 @@ const chapters: Chapter[] = [
   { id: 'speed', title: 'Response Speed', icon: <Zap className="w-4 h-4" />, visibleTo: ['analyst', 'lead'] },
   { id: 'capacity', title: 'Capacity', icon: <BarChart3 className="w-4 h-4" />, visibleTo: ['lead', 'executive'] },
   { id: 'patterns', title: 'Patterns', icon: <Search className="w-4 h-4" />, visibleTo: ['analyst', 'lead'] },
-  { id: 'incidents', title: 'Incidents', icon: <AlertTriangle className="w-4 h-4" />, visibleTo: ['lead'] },
+  // Incidents chapter hidden — IR project concept removed. Re-enable when incident detection reworked.
+  // { id: 'incidents', title: 'Incidents', icon: <AlertTriangle className="w-4 h-4" />, visibleTo: ['lead'] },
   { id: 'projections', title: 'Projections', icon: <TrendingUp className="w-4 h-4" />, visibleTo: ['executive'] },
   { id: 'compare', title: 'Compare', icon: <GitCompare className="w-4 h-4" />, visibleTo: ['executive'] },
 ];
