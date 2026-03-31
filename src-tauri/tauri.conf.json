@@ -1,0 +1,36 @@
+{
+  "$schema": "https://raw.githubusercontent.com/nicbarker/tauri-conf-schema/main/schema/tauri.conf.schema.json",
+  "productName": "SOC Dashboard",
+  "version": "1.1.0",
+  "identifier": "com.soc.dashboard",
+  "build": {
+    "devUrl": "http://localhost:5173",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "SOC Productivity Dashboard",
+        "width": 1440,
+        "height": 900,
+        "minWidth": 1024,
+        "minHeight": 768,
+        "resizable": true,
+        "fullscreen": false
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; script-src 'self'; connect-src 'self' https://*.atlassian.net; style-src 'self'; img-src 'self' data:"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ]
+  }
+}
