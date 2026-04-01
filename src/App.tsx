@@ -11,12 +11,10 @@ import { ProjectionsChapter } from './components/chapters/ProjectionsChapter';
 import { CompareChapter } from './components/chapters/CompareChapter';
 import { ContextLedgerChapter } from './components/chapters/ContextLedgerChapter';
 import { SetupWizard } from './components/discovery-ui/SetupWizard';
-import { VaultUnlock } from './components/vault/VaultUnlock';
-import { VaultManager } from './vault/vaultManager';
 import { useDashboardStore } from './store/dashboardStore';
 import { PanelProvider, SlideOutPanel } from './components/panels';
-
-import type { VaultPayload } from './vault/vaultManager';
+import { useCredentials } from './hooks/useJiraData';
+import { invoke } from '@tauri-apps/api/core';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -61,43 +59,29 @@ function DashboardContent() {
 }
 
 function AppRouter() {
-  const { appPhase, setAppPhase, setJiraConfig, setWorkSchedule } = useDashboardStore();
+  const { appPhase, setAppPhase, setProjectKey } = useDashboardStore();
+  const { data: credential, isLoading: credLoading } = useCredentials();
 
   useEffect(() => {
-    if (VaultManager.vaultExists()) {
-      setAppPhase('unlock');
+    if (credLoading) return;
+
+    if (credential) {
+      // Has credentials — check if project is configured
+      invoke<string | null>('get_setting', { key: 'project_key' }).then((pk) => {
+        if (pk) {
+          setProjectKey(pk);
+          setAppPhase('dashboard');
+        } else {
+          setAppPhase('setup');
+        }
+      }).catch(() => setAppPhase('setup'));
     } else {
       setAppPhase('setup');
     }
-  }, [setAppPhase]);
-
-  const handleVaultUnlock = (payload: VaultPayload | null) => {
-    if (!payload) return;
-    setJiraConfig({
-      domain: payload.credentials.domain,
-      email: payload.credentials.email,
-      apiToken: payload.credentials.apiToken,
-    });
-    if (payload.workSchedule) {
-      setWorkSchedule({
-        timezone: payload.workSchedule.timezone,
-        shifts: payload.workSchedule.shifts.map(s => ({
-          ...s,
-          timezone: s.timezone || payload.workSchedule.timezone,
-        })),
-      });
-    }
-    setAppPhase('dashboard');
-  };
+  }, [credential, credLoading, setAppPhase, setProjectKey]);
 
   const handleSetupComplete = () => {
-    setAppPhase('unlock');
-  };
-
-  const handleVaultReset = () => {
-    queryClient.clear();
-    setJiraConfig(null);
-    setAppPhase('setup');
+    setAppPhase('dashboard');
   };
 
   switch (appPhase) {
@@ -109,8 +93,6 @@ function AppRouter() {
       );
     case 'setup':
       return <SetupWizard onComplete={handleSetupComplete} />;
-    case 'unlock':
-      return <VaultUnlock onUnlock={handleVaultUnlock} onReset={handleVaultReset} />;
     case 'dashboard':
       return <DashboardContent />;
     default:
@@ -127,4 +109,3 @@ function App() {
 }
 
 export default App;
-

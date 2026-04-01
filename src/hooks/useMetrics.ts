@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useDashboardStore } from '../store/dashboardStore';
-import { useIssues } from './useJiraData';
+import { useTickets } from './useJiraData';
 import { calculateHeadlineMetrics, calculateTimeSeries, calculateTTFT } from '../metrics/headlineMetrics';
 import { assessStaffing, calculatePrioritySeparationIndex } from '../metrics/staffingModel';
 import { calculateRecurrenceStats } from '../patterns/recurrenceEngine';
@@ -29,9 +29,71 @@ import type { AfterHoursStats } from '../metrics/afterHours';
 
 import { percentile, computeRollingBaseline } from '../utils/statistics';
 import { KPI_DELTA_THRESHOLD, KPI_STATUS_RED_THRESHOLD } from '../constants';
-import type { JiraIssue } from '../api/types';
+import type { JiraIssue, TicketRow } from '../types';
 
 import type { KPIData, KPITooltip } from '../components/kpi/KPICard';
+
+// --- TicketRow → JiraIssue adapter ---
+// Converts flat Rust TicketRow to nested JiraIssue shape so metric engines work unchanged.
+
+function ticketRowToJiraIssue(row: TicketRow): JiraIssue {
+  // Parse changelog_json back into JiraIssue changelog shape
+  let changelog: JiraIssue['changelog'] | undefined;
+  if (row.changelog_json) {
+    try {
+      const entries: Array<{ created: string; items: Array<{ fromString?: string; toString?: string }> }> =
+        JSON.parse(row.changelog_json);
+      changelog = {
+        histories: entries.map((entry, idx) => ({
+          id: String(idx),
+          created: entry.created,
+          author: { display_name: '', email: '' },
+          items: (entry.items || []).map((item) => ({
+            field: 'status',
+            fromString: item.fromString ?? '',
+            toString: item.toString ?? '',
+          })),
+        })),
+        total: entries.length,
+      };
+    } catch {
+      // Malformed changelog — skip
+    }
+  }
+
+  return {
+    id: row.id,
+    key: row.key,
+    fields: {
+      summary: row.summary,
+      created: row.created_at,
+      updated: row.updated_at,
+      resolutiondate: row.resolved_at ?? undefined,
+      status: {
+        id: '',
+        name: row.status_name,
+        statusCategory: {
+          id: 0,
+          key: row.status_category_key,
+          name: '',
+        },
+      },
+      issuetype: { id: '', name: row.issue_type },
+      priority: row.priority ? { id: '', name: row.priority } : undefined,
+      assignee: row.assignee ? { display_name: row.assignee, email: '' } : undefined,
+      reporter: { display_name: row.reporter ?? '', email: '' },
+      labels: row.labels,
+      components: row.components.map((name) => ({ id: '', name })),
+    },
+    changelog,
+  };
+}
+
+function adaptTickets(rows: TicketRow[]): JiraIssue[] {
+  return rows.map(ticketRowToJiraIssue);
+}
+
+// --- KPI builder ---
 
 function buildKPI(
   label: string,
@@ -77,17 +139,20 @@ function splitHalf(issues: JiraIssue[], dateRange: { start: Date; end: Date }) {
 
 export function useMetrics() {
   const {
-    issues: storeIssues,
     statusMappings,
     workSchedule,
     dateRange,
-    selectedProjectKeys,
-    irProjectKey,
+    projectKey,
     dimensionFilters,
   } = useDashboardStore();
 
-  const { data: fetchedIssues, isLoading, error } = useIssues();
-  const issues = fetchedIssues ?? storeIssues ?? [];
+  const { data: ticketRows, isLoading, error } = useTickets();
+
+  // Adapt TicketRow[] → JiraIssue[]
+  const issues = useMemo(
+    () => (ticketRows ? adaptTickets(ticketRows) : []),
+    [ticketRows],
+  );
 
   return useMemo(() => {
     if (issues.length === 0) {
@@ -113,10 +178,12 @@ export function useMetrics() {
     }
 
     try {
+    const selectedProjectKeys = projectKey ? [projectKey] : [];
+
     // Federal holiday exclusions
     const holidayExclusions = getHolidayExclusions(dateRange);
 
-    // Merge status mappings across selected projects
+    // Status mappings for the active project
     const flatMapping: Record<string, 'queue' | 'active' | 'done'> = {};
     for (const key of selectedProjectKeys) {
       const mapping = statusMappings[key];
@@ -127,12 +194,8 @@ export function useMetrics() {
       }
     }
 
-    const irIssues = irProjectKey
-      ? issues.filter((i) => i.key.startsWith(irProjectKey + '-'))
-      : [];
-    const unfilteredProjectIssues = issues.filter(
-      (i) => selectedProjectKeys.some((k) => i.key.startsWith(k + '-')),
-    );
+    const irIssues: JiraIssue[] = [];
+    const unfilteredProjectIssues = issues;
     const projectIssues = filterByDimensions(unfilteredProjectIssues, dimensionFilters);
     const availableDimensions = extractDimensions(unfilteredProjectIssues);
 
@@ -200,7 +263,7 @@ export function useMetrics() {
     const watchKPIs: KPIData[] = [
       buildKPI('Queue Depth', headline.queueDepth, String(headline.queueDepth), firstHeadline.queueDepth, { insight: `${headline.queueDepth} tickets in non-Done statuses`, baseline: queueBaseline, tooltip: { headline: 'Count of tickets not in a Done-class status', detail: 'Tickets in any status classified as "queue" or "active" in your status mapping. Does not include resolved/closed tickets.', formula: 'COUNT(issues WHERE status_class != "done")', sampleSize: projectIssues.length } }),
       buildKPI('Net Velocity', headline.netVelocity, `${headline.netVelocity.toFixed(1)}/day`, firstHeadline.netVelocity, { invertDelta: true, insight: headline.netVelocity >= 0 ? 'Queue draining' : 'Queue filling faster than draining', tooltip: { headline: 'Average daily close rate minus intake rate', detail: 'Positive = queue shrinking. Negative = queue growing. Computed as average (closed - created) per day over the selected date range.', formula: 'AVG(daily_closed - daily_created)', sampleSize: timeSeries.length } }),
-      buildKPI('TTFT P85', headline.ttftP85, `${headline.ttftP85.toFixed(1)}h`, firstHeadline.ttftP85, { insight: '85th percentile time to first touch', tooltip: { headline: 'Time from ticket creation to first status change into an Active-class status', detail: 'Measured in working hours only (excludes nights, weekends, holidays). P85 means 85% of tickets were touched faster than this value.', formula: 'PERCENTILE(working_hours(created → first_active_transition), 85)', sampleSize: ttfts.length } }),
+      buildKPI('Response Time P85', headline.ttftP85, `${headline.ttftP85.toFixed(1)}h`, firstHeadline.ttftP85, { insight: '85th percentile time to first touch', tooltip: { headline: 'Time from ticket creation to first status change into an Active-class status', detail: 'Measured in working hours only (excludes nights, weekends, holidays). P85 means 85% of tickets were touched faster than this value.', formula: 'PERCENTILE(working_hours(created → first_active_transition), 85)', sampleSize: ttfts.length } }),
       buildKPI('Active Incidents', headline.activeIncidentCount, String(headline.activeIncidentCount), 0, { insight: headline.activeIncidentCount > 0 ? `Oldest: ${headline.oldestIncidentAge.toFixed(1)}h` : 'No active incidents' }),
     ];
 
@@ -215,8 +278,8 @@ export function useMetrics() {
     // Speed KPIs
     const psi = calculatePrioritySeparationIndex(projectIssues, flatMapping, workSchedule);
     const speedKPIs: KPIData[] = [
-      buildKPI('TTFT P85', ttftP85, `${ttftP85.toFixed(1)}h`, firstHeadline.ttftP85, { insight: 'Working hours only' }),
-      buildKPI('TTFT P50', ttftP50, `${ttftP50.toFixed(1)}h`, 0, { insight: 'Median response time' }),
+      buildKPI('Response Time P85', ttftP85, `${ttftP85.toFixed(1)}h`, firstHeadline.ttftP85, { insight: 'Working hours only' }),
+      buildKPI('Response Time P50', ttftP50, `${ttftP50.toFixed(1)}h`, 0, { insight: 'Median response time' }),
       buildKPI('Priority Separation', psi.index, psi.index.toFixed(2), 0, { insight: psi.isReliable ? 'High priority touched faster' : 'Insufficient data' }),
     ];
 
@@ -267,7 +330,6 @@ export function useMetrics() {
       irIssues,
     };
     } catch (e) {
-      // Metrics computation failed — error surfaced in return value
       return {
         isLoading: false, error: e instanceof Error ? e.message : 'Metrics computation failed', isEmpty: true,
         headline: null, timeSeries: [], staffing: null, recurrence: null,
@@ -288,5 +350,5 @@ export function useMetrics() {
         kpis: { watch: [], flow: [], speed: [], capacity: [] },
       };
     }
-  }, [issues, statusMappings, workSchedule, dateRange, selectedProjectKeys, irProjectKey, dimensionFilters, isLoading, error]);
+  }, [issues, statusMappings, workSchedule, dateRange, projectKey, dimensionFilters, isLoading, error]);
 }

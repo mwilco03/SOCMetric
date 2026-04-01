@@ -2,7 +2,7 @@ import React from 'react';
 import { KPICard } from '../kpi/KPICard';
 import { LoadingState } from '../shared/LoadingState';
 import { useMetrics } from '../../hooks/useMetrics';
-import type { ViewMode } from '../../api/types';
+import type { ViewMode } from '../../types';
 
 interface WatchStatusChapterProps {
   viewMode: ViewMode;

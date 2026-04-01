@@ -1,6 +1,6 @@
 /** After-Hours & Weekend Work Detection */
 
-import type { JiraIssue } from '../api/types';
+import type { JiraIssue } from '../types';
 import type { WorkSchedule } from './workingHours';
 import { isWithinWorkingHours } from './workingHours';
 

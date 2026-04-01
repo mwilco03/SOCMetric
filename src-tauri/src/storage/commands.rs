@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use tauri::State;
-use crate::constants::{RESET_TIER_SETTINGS, RESET_TIER_EVERYTHING};
+use crate::constants::{RESET_TIER_SETTINGS, RESET_TIER_EVERYTHING, VALID_CLASSIFICATIONS};
 use crate::error::AppError;
 use crate::models::credential::{Credential, sanitize_domain};
 use crate::models::settings::LabelConfig;
@@ -53,6 +53,9 @@ pub async fn get_status_mappings(db: State<'_, Database>, project_key: String) -
 
 #[tauri::command]
 pub async fn set_status_mapping(db: State<'_, Database>, project_key: String, status_name: String, classification: String) -> Result<(), AppError> {
+    if !VALID_CLASSIFICATIONS.contains(&classification.as_str()) {
+        return Err(AppError::Validation(format!("Invalid classification \"{}\". Must be one of: {}", classification, VALID_CLASSIFICATIONS.join(", "))));
+    }
     db.with_conn(|conn| queries::set_status_mapping(conn, &project_key, &status_name, &classification))
 }
 

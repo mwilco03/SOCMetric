@@ -1,6 +1,6 @@
 /** Dimension Engine — cross-dimension extraction and filtering */
 
-import type { JiraIssue } from '../api/types';
+import type { JiraIssue } from '../types';
 
 export type DimensionKey = 'priority' | 'label' | 'component' | 'issueType' | 'status';
 

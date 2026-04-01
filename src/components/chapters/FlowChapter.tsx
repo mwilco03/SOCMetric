@@ -6,7 +6,7 @@ import { LoadingState } from '../shared/LoadingState';
 import { useMetrics } from '../../hooks/useMetrics';
 import { calculateTTFT } from '../../metrics/headlineMetrics';
 import { percentile } from '../../utils/statistics';
-import type { ViewMode } from '../../api/types';
+import type { ViewMode } from '../../types';
 
 interface FlowChapterProps {
   viewMode: ViewMode;

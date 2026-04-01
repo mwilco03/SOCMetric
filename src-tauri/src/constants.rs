@@ -48,6 +48,7 @@ pub const CLASS_QUEUE: &str = "queue";
 pub const CLASS_ACTIVE: &str = "active";
 pub const CLASS_DONE: &str = "done";
 pub const CLASS_BLOCKED: &str = "blocked";
+pub const VALID_CLASSIFICATIONS: &[&str] = &[CLASS_QUEUE, CLASS_ACTIVE, CLASS_DONE, CLASS_BLOCKED];
 
 // Confidence levels
 pub const CONFIDENCE_HIGH: &str = "high";

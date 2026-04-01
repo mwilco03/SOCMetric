@@ -6,7 +6,7 @@ import { useMetrics } from '../../hooks/useMetrics';
 import { calculateTTFT } from '../../metrics/headlineMetrics';
 import { detectSIEMPattern } from '../../normalization/entityNormalizer';
 import { percentile } from '../../utils/statistics';
-import type { ViewMode } from '../../api/types';
+import type { ViewMode } from '../../types';
 
 interface ResponseSpeedChapterProps {
   viewMode: ViewMode;

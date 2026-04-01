@@ -4,7 +4,7 @@ import { differenceInDays } from 'date-fns';
 import { normalizeTitle } from '../normalization/entityNormalizer';
 import { calculateWorkingHours } from '../metrics/workingHours';
 import type { WorkSchedule } from '../metrics/workingHours';
-import type { JiraIssue } from '../api/types';
+import type { JiraIssue } from '../types';
 
 export interface RecurrenceConfig {
   rapidThresholdHours: number;

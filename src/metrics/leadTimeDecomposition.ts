@@ -1,6 +1,6 @@
 /** Lead Time Decomposition - Queue Wait / Active Work / Post-Active Wait */
 
-import type { JiraIssue } from '../api/types';
+import type { JiraIssue } from '../types';
 import type { WorkSchedule } from './workingHours';
 import { calculateWorkingMinutes } from './workingHours';
 import { percentile } from '../utils/statistics';

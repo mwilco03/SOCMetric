@@ -3,11 +3,21 @@ use regex::Regex;
 use crate::constants::JIRA_DOMAIN_REGEX;
 use crate::error::AppError;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct Credential {
     pub domain: String,
     pub email: String,
     pub api_token: String,
+}
+
+impl std::fmt::Debug for Credential {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Credential")
+            .field("domain", &self.domain)
+            .field("email", &self.email)
+            .field("api_token", &"[REDACTED]")
+            .finish()
+    }
 }
 
 /// Sanitize and validate a Jira domain — shared by client and commands

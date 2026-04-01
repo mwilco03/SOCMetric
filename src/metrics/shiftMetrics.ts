@@ -1,6 +1,6 @@
 /** Shift Metrics — Rollover Rate & Velocity Under Load (optimized) */
 
-import type { JiraIssue } from '../api/types';
+import type { JiraIssue } from '../types';
 import type { WorkSchedule } from './workingHours';
 import { getDateRangeArray, toISODate } from '../utils/dateUtils';
 

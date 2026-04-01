@@ -1,6 +1,6 @@
 /** Cluster Analysis — title normalization grouping, work-hour ranking, automation tiers */
 
-import type { JiraIssue } from '../api/types';
+import type { JiraIssue } from '../types';
 import type { WorkSchedule } from './workingHours';
 import { calculateWorkingHours } from './workingHours';
 import { normalizeTitle, detectSIEMPattern } from '../normalization/entityNormalizer';

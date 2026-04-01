@@ -6,7 +6,7 @@ import { ScatterPlot } from '../charts/ScatterPlot';
 import { LoadingState } from '../shared/LoadingState';
 import { useMetrics } from '../../hooks/useMetrics';
 import { linearRegression } from '../../utils/statistics';
-import type { ViewMode } from '../../api/types';
+import type { ViewMode } from '../../types';
 
 interface CapacityChapterProps {
   viewMode: ViewMode;

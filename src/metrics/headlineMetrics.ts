@@ -1,6 +1,6 @@
 /** Headline Metrics - Tier 1 KPIs */
 
-import type { JiraIssue } from '../api/types';
+import type { JiraIssue } from '../types';
 import type { WorkSchedule } from './workingHours';
 import { calculateWorkingHours } from './workingHours';
 import { percentile } from '../utils/statistics';

@@ -3,7 +3,7 @@ import { KPICard, type KPIData } from '../kpi/KPICard';
 import { BarChart } from '../charts/BarChart';
 import { LoadingState } from '../shared/LoadingState';
 import { useMetrics } from '../../hooks/useMetrics';
-import type { ViewMode } from '../../api/types';
+import type { ViewMode } from '../../types';
 import type { AutomationTier } from '../../metrics/clusterAnalysis';
 
 interface PatternsChapterProps {

@@ -4,7 +4,7 @@ import { useMetrics } from '../../hooks/useMetrics';
 import { useDashboardStore } from '../../store/dashboardStore';
 import { calculateTTFT } from '../../metrics/headlineMetrics';
 import { percentile } from '../../utils/statistics';
-import type { ViewMode } from '../../api/types';
+import type { ViewMode } from '../../types';
 
 interface CompareChapterProps {
   viewMode: ViewMode;
@@ -12,14 +12,15 @@ interface CompareChapterProps {
 
 export const CompareChapter: React.FC<CompareChapterProps> = ({ viewMode: _viewMode }) => {
   const metrics = useMetrics();
-  const { selectedProjectKeys, workSchedule } = useDashboardStore();
+  const { projectKey, workSchedule } = useDashboardStore();
 
   if (metrics.isLoading) return <LoadingState message="Loading metrics..." />;
   if (metrics.error) return <div className="p-6 text-red-400">Error: {metrics.error}</div>;
-  if (metrics.isEmpty) return <div className="p-6 text-gray-400">No data. Select projects and date range.</div>;
+  if (metrics.isEmpty) return <div className="p-6 text-gray-400">No data. Select a project and date range.</div>;
 
   const allIssues = metrics.projectIssues ?? [];
   const flatMapping = metrics.flatMapping ?? {};
+  const selectedProjectKeys = projectKey ? [projectKey] : [];
 
   // Build per-project comparison rows
   const comparisonRows = selectedProjectKeys.map((key) => {

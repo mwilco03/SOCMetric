@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { X, Settings, Plus, Trash2, RotateCcw, RefreshCw } from 'lucide-react';
+import { invoke } from '@tauri-apps/api/core';
 import { useDashboardStore } from '../../store/dashboardStore';
-import { createJiraClient } from '../../api/jiraClient';
-import { VaultManager } from '../../vault/vaultManager';
-import type { JiraProject } from '../../api/types';
+import type { JiraProject } from '../../types';
 import type { Shift } from '../../metrics/workingHours';
 
 interface RightDrawerProps {
@@ -25,48 +24,57 @@ const ALL_DAYS = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
 
 export const RightDrawer: React.FC<RightDrawerProps> = ({ isOpen, onClose, onRefreshData }) => {
   const {
-    jiraConfig,
+    projectKey,
     workSchedule,
-    selectedProjectKeys,
-    selectProject,
-    deselectProject,
+    setProjectKey,
     setWorkSchedule,
     setAppPhase,
-    setJiraConfig,
   } = useDashboardStore();
 
   const [availableProjects, setAvailableProjects] = useState<JiraProject[]>([]);
   const [projectSearch, setProjectSearch] = useState('');
-  const [showAddProject, setShowAddProject] = useState(false);
+  const [showChangeProject, setShowChangeProject] = useState(false);
   const [loadingProjects, setLoadingProjects] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [resetTier, setResetTier] = useState<'settings' | 'everything'>('settings');
   const [editingShift, setEditingShift] = useState<Shift | null>(null);
   const [showAddShift, setShowAddShift] = useState(false);
 
   useEffect(() => {
-    if (!showAddProject || !jiraConfig) return;
+    if (!showChangeProject) return;
     setLoadingProjects(true);
-    const client = createJiraClient(jiraConfig);
-    client.getProjects()
+    invoke<JiraProject[]>('get_projects')
       .then(setAvailableProjects)
       .catch(() => setAvailableProjects([]))
       .finally(() => setLoadingProjects(false));
-  }, [showAddProject, jiraConfig]);
+  }, [showChangeProject]);
 
   if (!isOpen) return null;
 
-  const handleReset = () => {
-    VaultManager.clearVault();
-    setJiraConfig(null);
-    setAppPhase('setup');
+  const handleReset = async () => {
+    try {
+      await invoke('reset_app', { tier: resetTier });
+    } catch {
+      // Best effort
+    }
+    if (resetTier === 'everything') {
+      setProjectKey(null);
+      setAppPhase('setup');
+    }
     onClose();
   };
 
-  const unselectedProjects = availableProjects.filter(
-    (p) => !selectedProjectKeys.includes(p.key),
-  );
+  const handleSwitchProject = async (key: string) => {
+    try {
+      await invoke('set_setting', { key: 'project_key', value: key });
+      setProjectKey(key);
+      setShowChangeProject(false);
+    } catch {
+      // Best effort
+    }
+  };
 
-  const filteredProjects = unselectedProjects.filter((p) => {
+  const filteredProjects = availableProjects.filter((p) => {
     if (!projectSearch) return true;
     const q = projectSearch.toLowerCase();
     return p.name.toLowerCase().includes(q) || p.key.toLowerCase().includes(q);
@@ -108,9 +116,9 @@ export const RightDrawer: React.FC<RightDrawerProps> = ({ isOpen, onClose, onRef
             {onRefreshData && (
               <button
                 onClick={onRefreshData}
-                aria-label="Refresh data from Jira"
+                aria-label="Sync data from Jira"
                 className="p-1.5 text-gray-400 hover:text-kpi-blue transition-colors"
-                title="Refresh data from Jira"
+                title="Sync data from Jira"
               >
                 <RefreshCw className="w-4 h-4" />
               </button>
@@ -122,41 +130,22 @@ export const RightDrawer: React.FC<RightDrawerProps> = ({ isOpen, onClose, onRef
         </div>
 
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
-          {/* Projects — these are ALL your queues */}
+          {/* Active Project */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <h3 className="text-sm font-medium text-gray-300">Your Queues</h3>
+              <h3 className="text-sm font-medium text-gray-300">Active Queue</h3>
               <button
-                onClick={() => setShowAddProject(!showAddProject)}
-                className="flex items-center gap-1 text-xs text-kpi-blue hover:text-blue-400 transition-colors"
+                onClick={() => setShowChangeProject(!showChangeProject)}
+                className="text-xs text-kpi-blue hover:text-blue-400 transition-colors"
               >
-                <Plus className="w-3 h-3" />
-                Add queue
+                Change
               </button>
             </div>
-            <p className="text-xs text-gray-500 mb-3">
-              All Jira projects you work. Metrics combine all queues.
-            </p>
-
-            <div className="space-y-1">
-              {selectedProjectKeys.map((key) => (
-                <div key={key} className="flex items-center justify-between px-3 py-2 bg-gray-800/50 rounded">
-                  <span className="text-sm text-gray-200">{key}</span>
-                  <button
-                    onClick={() => deselectProject(key)}
-                    className="p-1 text-gray-500 hover:text-red-400 transition-colors"
-                    aria-label={`Remove ${key}`}
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              ))}
-              {selectedProjectKeys.length === 0 && (
-                <p className="text-xs text-yellow-400 py-2">No queues selected — add at least one to see data</p>
-              )}
+            <div className="px-3 py-2 bg-gray-800/50 rounded">
+              <span className="text-sm text-gray-200">{projectKey ?? 'None'}</span>
             </div>
 
-            {showAddProject && (
+            {showChangeProject && (
               <div className="mt-3 p-3 bg-gray-800/50 rounded space-y-2">
                 <input
                   type="text"
@@ -172,18 +161,13 @@ export const RightDrawer: React.FC<RightDrawerProps> = ({ isOpen, onClose, onRef
                     {filteredProjects.map((p) => (
                       <button
                         key={p.id}
-                        onClick={() => { selectProject(p.key); setProjectSearch(''); }}
+                        onClick={() => handleSwitchProject(p.key)}
                         className="w-full text-left px-2 py-1.5 text-sm text-gray-300 hover:bg-gray-700 rounded flex justify-between"
                       >
                         <span>{p.name}</span>
                         <span className="text-xs text-gray-500">{p.key}</span>
                       </button>
                     ))}
-                    {filteredProjects.length === 0 && !loadingProjects && (
-                      <p className="text-xs text-gray-500 py-1">
-                        {unselectedProjects.length === 0 ? 'All projects added' : 'No matches'}
-                      </p>
-                    )}
                   </div>
                 )}
               </div>
@@ -339,8 +323,24 @@ export const RightDrawer: React.FC<RightDrawerProps> = ({ isOpen, onClose, onRef
             {showResetConfirm ? (
               <div className="p-3 bg-red-500/10 border border-red-500/30 rounded space-y-3">
                 <p className="text-sm text-red-400">
-                  Clears encrypted vault and returns to setup. You'll re-enter Jira credentials.
+                  {resetTier === 'everything'
+                    ? 'Clears all data and credentials. Returns to setup wizard.'
+                    : 'Clears settings, status mappings, and annotations. Keeps tickets and credentials.'}
                 </p>
+                <div className="flex gap-2 mb-2">
+                  <button
+                    onClick={() => setResetTier('settings')}
+                    className={`px-2 py-1 text-xs rounded ${resetTier === 'settings' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' : 'bg-gray-800 text-gray-500'}`}
+                  >
+                    Settings only
+                  </button>
+                  <button
+                    onClick={() => setResetTier('everything')}
+                    className={`px-2 py-1 text-xs rounded ${resetTier === 'everything' ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 'bg-gray-800 text-gray-500'}`}
+                  >
+                    Everything
+                  </button>
+                </div>
                 <div className="flex gap-2">
                   <button onClick={handleReset} className="px-3 py-1.5 text-sm bg-red-600 text-white rounded hover:bg-red-700 transition-colors">
                     Reset
@@ -356,7 +356,7 @@ export const RightDrawer: React.FC<RightDrawerProps> = ({ isOpen, onClose, onRef
                 className="flex items-center gap-2 text-sm text-gray-500 hover:text-red-400 transition-colors"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
-                Reset vault &amp; reconfigure
+                Reset app
               </button>
             )}
           </div>

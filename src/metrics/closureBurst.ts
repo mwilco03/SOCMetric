@@ -1,6 +1,6 @@
 /** Closure Burst Detection — flags batch-close events */
 
-import type { JiraIssue } from '../api/types';
+import type { JiraIssue } from '../types';
 import { BURST_THRESHOLD_COUNT, BURST_WINDOW_MINUTES } from '../constants';
 
 export interface ClosureBurst {

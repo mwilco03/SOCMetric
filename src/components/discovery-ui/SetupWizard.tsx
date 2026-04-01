@@ -1,27 +1,26 @@
 import React, { useState } from 'react';
-import { createJiraClient } from '../../api/jiraClient';
-import { encryptVault } from '../../vault/encryption';
-import { VAULT_KEY } from '../../vault/vaultManager';
-import { MIN_PASSPHRASE_LENGTH } from '../../constants';
-import type { JiraConfig, JiraProject } from '../../api/types';
+import { invoke } from '@tauri-apps/api/core';
+import { useDashboardStore } from '../../store/dashboardStore';
+import type { JiraProject, DiscoveredMapping } from '../../types';
 
 interface SetupWizardProps {
   onComplete: () => void;
 }
 
-type Step = 'credentials' | 'projects' | 'schedule' | 'passphrase';
+type Step = 'credentials' | 'projects' | 'statuses';
 
 export const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete }) => {
+  const { setProjectKey, setStatusMapping } = useDashboardStore();
+
   const [step, setStep] = useState<Step>('credentials');
-  const [config, setConfig] = useState<JiraConfig>({
-    domain: '',
-    email: '',
-    apiToken: '',
-  });
+  const [domain, setDomain] = useState('');
+  const [email, setEmail] = useState('');
+  const [apiToken, setApiToken] = useState('');
   const [projects, setProjects] = useState<JiraProject[]>([]);
-  const [selectedProjects, setSelectedProjects] = useState<string[]>([]);
-  const [passphrase, setPassphrase] = useState('');
+  const [selectedProject, setSelectedProject] = useState<string | null>(null);
   const [projectSearch, setProjectSearch] = useState('');
+  const [discoveredMappings, setDiscoveredMappings] = useState<DiscoveredMapping[]>([]);
+  const [mappings, setMappings] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -29,63 +28,87 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete }) => {
     setIsLoading(true);
     setError(null);
     try {
-      const client = createJiraClient(config);
-      await client.testConnection();
-      const projects = await client.getProjects();
-      setProjects(projects);
+      await invoke('test_connection', { domain, email, apiToken });
+      await invoke('set_credentials', { domain, email, apiToken });
+      const projectList = await invoke<JiraProject[]>('get_projects');
+      setProjects(projectList);
       setStep('projects');
     } catch (e) {
-      let msg = 'Connection failed';
-      if (e instanceof Error) {
-        if (e.message.includes('Invalid Jira domain')) msg = e.message;
-        else if (e.message.includes('Invalid Jira credentials')) msg = 'Invalid email or API token. Check your credentials.';
-        else if (e.message.includes('Insufficient permissions')) msg = 'API token lacks permissions. Ensure it has read access.';
-        else if (e.message.includes('Failed to fetch') || e.message.includes('NetworkError')) msg = 'Network error — check your internet connection and domain.';
-        else msg = e.message;
-      }
-      setError(msg);
+      setError(e instanceof Error ? e.message : String(e));
     } finally {
       setIsLoading(false);
     }
   };
 
-  const saveVault = async () => {
+  const selectProjectAndDiscover = async (projectKey: string) => {
+    setSelectedProject(projectKey);
     setIsLoading(true);
+    setError(null);
     try {
-      const vault = {
-        credentials: config,
-        projects: {
-          selectedKeys: selectedProjects,
-        },
-        statusMappings: {},
-        ttftAnchors: {},
-        workSchedule: {
-          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-          shifts: [
-            {
-              name: 'Day',
-              timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-              startHour: 9,
-              endHour: 17,
-              workDays: ['MON', 'TUE', 'WED', 'THU', 'FRI'],
-              baseHeadcount: 1,
-            },
-          ],
-        },
-        preferences: {
-          viewMode: selectedProjects.length === 1 ? 'analyst' : 'lead',
-          defaultDateRange: 14,
-        },
-      };
-
-      const encrypted = await encryptVault(vault, passphrase);
-      localStorage.setItem(VAULT_KEY, JSON.stringify(encrypted));
-      onComplete();
+      const discovered = await invoke<DiscoveredMapping[]>('discover_statuses', { projectKey });
+      setDiscoveredMappings(discovered);
+      const autoMappings: Record<string, string> = {};
+      for (const d of discovered) {
+        autoMappings[d.status_name] = d.classification;
+      }
+      setMappings(autoMappings);
+      setStep('statuses');
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to save vault');
+      setError(e instanceof Error ? e.message : String(e));
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const completeSetup = async () => {
+    if (!selectedProject) return;
+    setIsLoading(true);
+    setError(null);
+    try {
+      // Store project key in SQLite settings
+      await invoke('set_setting', { key: 'project_key', value: selectedProject });
+
+      // Store status mappings in SQLite
+      await invoke('bulk_set_status_mappings', {
+        projectKey: selectedProject,
+        mappings,
+      });
+
+      // Update local store
+      setProjectKey(selectedProject);
+      for (const [status, classification] of Object.entries(mappings)) {
+        setStatusMapping(selectedProject, status, classification as 'queue' | 'active' | 'done');
+      }
+
+      // Trigger initial 30-day sync
+      const end = new Date();
+      const start = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+      const fmt = (d: Date) => d.toISOString().slice(0, 10);
+      await invoke('sync_project', {
+        projectKey: selectedProject,
+        startDate: fmt(start),
+        endDate: fmt(end),
+      });
+
+      onComplete();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const CLASSIFICATIONS = [
+    { value: 'queue', label: 'Queue', color: 'bg-blue-500/20 text-blue-400 border-blue-500/30' },
+    { value: 'active', label: 'Active', color: 'bg-green-500/20 text-green-400 border-green-500/30' },
+    { value: 'done', label: 'Done', color: 'bg-gray-500/20 text-gray-400 border-gray-500/30' },
+    { value: 'blocked', label: 'Blocked', color: 'bg-red-500/20 text-red-400 border-red-500/30' },
+  ];
+
+  const CONFIDENCE_BADGE: Record<string, string> = {
+    high: 'text-green-400',
+    medium: 'text-yellow-400',
+    low: 'text-gray-500',
   };
 
   return (
@@ -93,7 +116,7 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete }) => {
       <div className="w-full max-w-md bg-soc-card border border-soc-border rounded-lg p-6">
         <h1 className="text-xl font-semibold text-gray-100 mb-2">SOC Dashboard Setup</h1>
         <p className="text-sm text-gray-400 mb-6">
-          Configure your Jira connection and security settings.
+          Connect to Jira and configure your queue.
         </p>
 
         {error && (
@@ -108,8 +131,8 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete }) => {
               <label className="block text-sm text-gray-400 mb-1">Jira Domain</label>
               <input
                 type="text"
-                value={config.domain}
-                onChange={(e) => setConfig({ ...config, domain: e.target.value })}
+                value={domain}
+                onChange={(e) => setDomain(e.target.value)}
                 placeholder="your-domain.atlassian.net"
                 className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-gray-200"
               />
@@ -118,8 +141,8 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete }) => {
               <label className="block text-sm text-gray-400 mb-1">Email</label>
               <input
                 type="email"
-                value={config.email}
-                onChange={(e) => setConfig({ ...config, email: e.target.value })}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-gray-200"
               />
             </div>
@@ -127,8 +150,8 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete }) => {
               <label className="block text-sm text-gray-400 mb-1">API Token</label>
               <input
                 type="password"
-                value={config.apiToken}
-                onChange={(e) => setConfig({ ...config, apiToken: e.target.value })}
+                value={apiToken}
+                onChange={(e) => setApiToken(e.target.value)}
                 className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-gray-200"
               />
               <p className="text-xs text-gray-500 mt-1">
@@ -137,7 +160,7 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete }) => {
             </div>
             <button
               onClick={testCredentials}
-              disabled={isLoading || !config.domain || !config.email || !config.apiToken}
+              disabled={isLoading || !domain || !email || !apiToken}
               className="w-full py-2 bg-kpi-blue text-white rounded hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {isLoading ? 'Connecting...' : 'Test Connection'}
@@ -148,7 +171,7 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete }) => {
         {step === 'projects' && (
           <div className="space-y-4">
             <p className="text-sm text-gray-400">
-              Select projects to analyze ({projects.length} found):
+              Select your primary queue ({projects.length} projects found):
             </p>
             <input
               type="text"
@@ -165,72 +188,85 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete }) => {
                   return p.name.toLowerCase().includes(q) || p.key.toLowerCase().includes(q);
                 })
                 .map((project) => (
-                <label
+                <button
                   key={project.id}
-                  className="flex items-center gap-3 p-2 bg-gray-800/50 rounded cursor-pointer hover:bg-gray-800"
+                  onClick={() => selectProjectAndDiscover(project.key)}
+                  disabled={isLoading}
+                  className={`w-full flex items-center gap-3 p-2 rounded cursor-pointer hover:bg-gray-800 text-left ${
+                    selectedProject === project.key ? 'bg-gray-800 border border-kpi-blue' : 'bg-gray-800/50'
+                  }`}
                 >
-                  <input
-                    type="checkbox"
-                    checked={selectedProjects.includes(project.key)}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        setSelectedProjects([...selectedProjects, project.key]);
-                      } else {
-                        setSelectedProjects(selectedProjects.filter((k) => k !== project.key));
-                      }
-                    }}
-                    className="w-4 h-4 rounded border-gray-600"
-                  />
                   <div>
                     <span className="text-sm text-gray-200">{project.name}</span>
                     <span className="text-xs text-gray-500 ml-2">({project.key})</span>
                   </div>
-                </label>
+                </button>
               ))}
             </div>
-            <button
-              onClick={() => setStep('passphrase')}
-              disabled={selectedProjects.length === 0}
-              className="w-full py-2 bg-kpi-blue text-white rounded hover:bg-blue-600 disabled:opacity-50 transition-colors"
-            >
-              Continue
-            </button>
           </div>
         )}
 
-        {step === 'passphrase' && (
+        {step === 'statuses' && selectedProject && (
           <div className="space-y-4">
             <div>
-              <label className="block text-sm text-gray-400 mb-1">Vault Passphrase</label>
-              <input
-                type="password"
-                value={passphrase}
-                onChange={(e) => setPassphrase(e.target.value)}
-                className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-gray-200"
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                This encrypts your credentials. Min {MIN_PASSPHRASE_LENGTH} characters. Cannot be recovered if lost.
+              <h3 className="text-sm font-medium text-gray-200">
+                Classify statuses for {selectedProject}
+              </h3>
+              <p className="text-xs text-gray-400 mt-1">
+                Auto-detected from Jira. Review and adjust.
               </p>
             </div>
+
+            <div className="max-h-64 overflow-y-auto space-y-2">
+              {discoveredMappings.map((d) => (
+                <div
+                  key={d.status_name}
+                  className="flex items-center justify-between p-2 bg-gray-800/50 rounded"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-200">{d.status_name}</span>
+                    <span className={`text-xs ${CONFIDENCE_BADGE[d.confidence] ?? 'text-gray-500'}`}>
+                      {d.confidence}
+                    </span>
+                  </div>
+                  <div className="flex gap-1">
+                    {CLASSIFICATIONS.map((c) => (
+                      <button
+                        key={c.value}
+                        onClick={() => setMappings((prev) => ({ ...prev, [d.status_name]: c.value }))}
+                        className={`px-2 py-1 text-xs rounded transition-colors ${
+                          mappings[d.status_name] === c.value
+                            ? `${c.color} border`
+                            : 'bg-gray-800 text-gray-500 hover:text-gray-300'
+                        }`}
+                      >
+                        {c.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+
             <button
-              onClick={saveVault}
-              disabled={isLoading || passphrase.length < MIN_PASSPHRASE_LENGTH}
+              onClick={completeSetup}
+              disabled={isLoading}
               className="w-full py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 transition-colors"
             >
-              {isLoading ? 'Saving...' : 'Complete Setup'}
+              {isLoading ? 'Setting up...' : 'Complete Setup'}
             </button>
           </div>
         )}
 
         <div className="mt-6 pt-4 border-t border-gray-700">
           <div className="flex gap-1">
-            {(['credentials', 'projects', 'passphrase'] as Step[]).map((s, _i) => (
+            {(['credentials', 'projects', 'statuses'] as Step[]).map((s) => (
               <div
                 key={s}
                 className={`h-1 flex-1 rounded ${
                   step === s ||
                   (step === 'projects' && s === 'credentials') ||
-                  (step === 'passphrase' && (s === 'credentials' || s === 'projects'))
+                  (step === 'statuses' && (s === 'credentials' || s === 'projects'))
                     ? 'bg-kpi-blue'
                     : 'bg-gray-700'
                 }`}
@@ -242,5 +278,3 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete }) => {
     </div>
   );
 };
-
-

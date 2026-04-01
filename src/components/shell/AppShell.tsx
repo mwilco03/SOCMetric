@@ -8,8 +8,7 @@ import { DimensionFilterBar } from './DimensionFilterBar';
 import { RightDrawer } from '../panels/RightDrawer';
 import { useWindowSize } from '../../hooks/useWindowSize';
 import { useMetrics } from '../../hooks/useMetrics';
-import { useDashboardStore } from '../../store/dashboardStore';
-import type { ViewMode } from '../../api/types';
+import type { ViewMode } from '../../types';
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -29,7 +28,7 @@ export const AppShell: React.FC<AppShellProps> = ({
   const [settingsOpen, setSettingsOpen] = useState(false);
   const { isNarrow } = useWindowSize();
   const metrics = useMetrics();
-  const lastRefreshed = useDashboardStore((s) => s.lastRefreshed);
+  const lastRefreshed: Date | null = null; // TODO: derive from sync state
 
   const formatAgo = (date: Date | null) => {
     if (!date) return null;

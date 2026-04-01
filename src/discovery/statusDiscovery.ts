@@ -1,6 +1,6 @@
 /** Status Discovery — auto-detect classifications from Jira statusCategory */
 
-import type { JiraStatus } from '../api/types';
+import type { JiraStatus } from '../types';
 
 export interface DiscoveredMapping {
   status: string;
@@ -21,7 +21,7 @@ function matchesAny(name: string, patterns: string[]): boolean {
 
 export function discoverStatusMappings(statuses: JiraStatus[]): DiscoveredMapping[] {
   return statuses.map((status) => {
-    const categoryKey = status.statusCategory.key;
+    const categoryKey = status.category_key;
     const name = status.name;
 
     // Start from Jira's own category
@@ -32,7 +32,7 @@ export function discoverStatusMappings(statuses: JiraStatus[]): DiscoveredMappin
     if (categoryKey === 'done') {
       classification = 'done';
       confidence = 'high';
-      reason = `Jira category: ${status.statusCategory.name}`;
+      reason = `Jira category: ${status.category_name}`;
     } else if (categoryKey === 'indeterminate') {
       // indeterminate = "in progress" in Jira — but some are actually queue
       if (matchesAny(name, QUEUE_PATTERNS)) {
@@ -42,7 +42,7 @@ export function discoverStatusMappings(statuses: JiraStatus[]): DiscoveredMappin
       } else {
         classification = 'active';
         confidence = 'high';
-        reason = `Jira category: ${status.statusCategory.name}`;
+        reason = `Jira category: ${status.category_name}`;
       }
     } else {
       // 'new' or 'undefined' category = queue
@@ -57,7 +57,7 @@ export function discoverStatusMappings(statuses: JiraStatus[]): DiscoveredMappin
       } else {
         classification = 'queue';
         confidence = 'high';
-        reason = `Jira category: ${status.statusCategory.name}`;
+        reason = `Jira category: ${status.category_name}`;
       }
     }
 

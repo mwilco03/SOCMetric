@@ -6,6 +6,11 @@ use tokio::time::{sleep, Duration};
 use crate::constants::*;
 use crate::error::AppError;
 use crate::jira::client::{JiraClient, JiraIssueRaw};
+
+/// Escape a value for safe interpolation into JQL strings
+fn escape_jql(val: &str) -> String {
+    val.replace('\\', "\\\\").replace('"', "\\\"")
+}
 use crate::models::ticket::TicketRow;
 use crate::storage::db::Database;
 use crate::storage::queries;
@@ -43,8 +48,9 @@ fn extract_ticket(raw: &JiraIssueRaw, project_key: &str) -> TicketRow {
             Some(entries) => {
                 let status_changes: Vec<serde_json::Value> = entries.iter().filter_map(|entry| {
                     let items = entry.get("items").and_then(|i| i.as_array())?;
-                    let status_items: Vec<&serde_json::Value> = items.iter()
+                    let status_items: Vec<serde_json::Value> = items.iter()
                         .filter(|item| item.get("field").and_then(|f| f.as_str()) == Some("status"))
+                        .cloned()
                         .collect();
                     if status_items.is_empty() { return None; }
                     Some(serde_json::json!({
@@ -89,8 +95,8 @@ pub async fn sync_project(
 ) -> Result<SyncComplete, AppError> {
     // Phase 1: Fetch fields only (fast) — ascending
     let jql_asc = format!(
-        "project = {} AND updated >= \"{}\" AND updated <= \"{}\" ORDER BY updated ASC",
-        project_key, start_date, end_date
+        "project = \"{}\" AND updated >= \"{}\" AND updated <= \"{}\" ORDER BY updated ASC",
+        escape_jql(project_key), escape_jql(start_date), escape_jql(end_date)
     );
 
     let mut total_fetched: u32 = 0;
@@ -128,8 +134,8 @@ pub async fn sync_project(
 
     // Phase 2: Backfill changelogs for tickets that don't have them
     let jql_changelog = format!(
-        "project = {} AND updated >= \"{}\" AND updated <= \"{}\" ORDER BY updated ASC",
-        project_key, start_date, end_date
+        "project = \"{}\" AND updated >= \"{}\" AND updated <= \"{}\" ORDER BY updated ASC",
+        escape_jql(project_key), escape_jql(start_date), escape_jql(end_date)
     );
 
     let mut changelog_token: Option<String> = None;

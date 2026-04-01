@@ -1,6 +1,6 @@
 /** Incident Impact — IR window detection, queue cost, surge detection & absorption */
 
-import type { JiraIssue } from '../api/types';
+import type { JiraIssue } from '../types';
 import type { WorkSchedule } from './workingHours';
 import type { TimeSeriesPoint } from './headlineMetrics';
 import { calculateTTFT } from './headlineMetrics';

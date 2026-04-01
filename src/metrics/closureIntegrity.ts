@@ -1,6 +1,6 @@
 /** Closure Integrity Classification Pipeline */
 
-import type { JiraIssue } from '../api/types';
+import type { JiraIssue } from '../types';
 import type { WorkSchedule } from './workingHours';
 import { calculateWorkingMinutes } from './workingHours';
 

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { ViewMode, JiraIssue, JiraProject, JiraConfig } from '../api/types';
+import type { ViewMode } from '../types';
 import type { WorkSchedule } from '../metrics/workingHours';
 import type { DimensionFilter } from '../dimensions/dimensionEngine';
 import { DEFAULT_DATE_RANGE_DAYS } from '../constants';
@@ -23,48 +23,33 @@ export interface LedgerEvent {
 
 export interface DashboardState {
   // App Phase
-  appPhase: 'loading' | 'setup' | 'unlock' | 'dashboard';
-  jiraConfig: JiraConfig | null;
+  appPhase: 'loading' | 'setup' | 'dashboard';
+
+  // Project (single project, stored in SQLite via Rust)
+  projectKey: string | null;
 
   // View State
   viewMode: ViewMode;
   activeChapter: string;
   dateRange: DateRange;
-  
-  // Data State
-  projects: JiraProject[];
-  selectedProjectKeys: string[];
-  irProjectKey?: string;
-  issues: JiraIssue[];
-  isLoading: boolean;
-  error: string | null;
-  lastRefreshed: Date | null;
-  
-  // Configuration
+
+  // Configuration (persisted locally for UI)
   statusMappings: Record<string, Record<string, 'queue' | 'active' | 'done'>>;
   ttftAnchors: Record<string, { method: string; targetStatus?: string }>;
   workSchedule: WorkSchedule;
   ledgerEvents: LedgerEvent[];
-  
+
   // Filters
   selectedLabels: string[];
   selectedPriorities: string[];
   dimensionFilters: DimensionFilter[];
 
   // Actions
-  setAppPhase: (phase: 'loading' | 'setup' | 'unlock' | 'dashboard') => void;
-  setJiraConfig: (config: JiraConfig | null) => void;
+  setAppPhase: (phase: 'loading' | 'setup' | 'dashboard') => void;
+  setProjectKey: (key: string | null) => void;
   setViewMode: (mode: ViewMode) => void;
   setActiveChapter: (chapter: string) => void;
   setDateRange: (range: DateRange) => void;
-  setProjects: (projects: JiraProject[]) => void;
-  selectProject: (key: string) => void;
-  deselectProject: (key: string) => void;
-  setIrProject: (key: string) => void;
-  setIssues: (issues: JiraIssue[]) => void;
-  setLoading: (loading: boolean) => void;
-  setError: (error: string | null) => void;
-  setLastRefreshed: (date: Date) => void;
   setStatusMapping: (projectKey: string, status: string, classification: 'queue' | 'active' | 'done') => void;
   addLedgerEvent: (event: LedgerEvent) => void;
   removeLedgerEvent: (id: string) => void;
@@ -90,21 +75,15 @@ const defaultSchedule: WorkSchedule = {
 
 export const useDashboardStore = create<DashboardState>()(
   persist(
-    (set, _get) => ({
+    (set) => ({
       appPhase: 'loading',
-      jiraConfig: null,
+      projectKey: null,
       viewMode: 'lead',
       activeChapter: 'watch',
       dateRange: {
         start: new Date(Date.now() - DEFAULT_DATE_RANGE_DAYS * 24 * 60 * 60 * 1000),
         end: new Date(),
       },
-      projects: [],
-      selectedProjectKeys: [],
-      issues: [],
-      isLoading: false,
-      error: null,
-      lastRefreshed: null,
       statusMappings: {},
       ttftAnchors: {},
       workSchedule: defaultSchedule,
@@ -114,22 +93,10 @@ export const useDashboardStore = create<DashboardState>()(
       dimensionFilters: [],
 
       setAppPhase: (phase) => set({ appPhase: phase }),
-      setJiraConfig: (config) => set({ jiraConfig: config }),
+      setProjectKey: (key) => set({ projectKey: key }),
       setViewMode: (mode) => set({ viewMode: mode }),
       setActiveChapter: (chapter) => set({ activeChapter: chapter }),
       setDateRange: (range) => set({ dateRange: range }),
-      setProjects: (projects) => set({ projects }),
-      selectProject: (key) => set((state) => ({
-        selectedProjectKeys: [...state.selectedProjectKeys, key],
-      })),
-      deselectProject: (key) => set((state) => ({
-        selectedProjectKeys: state.selectedProjectKeys.filter((k) => k !== key),
-      })),
-      setIrProject: (key) => set({ irProjectKey: key }),
-      setIssues: (issues) => set({ issues }),
-      setLoading: (loading) => set({ isLoading: loading }),
-      setError: (error) => set({ error }),
-      setLastRefreshed: (date) => set({ lastRefreshed: date }),
       setStatusMapping: (projectKey, status, classification) =>
         set((state) => ({
           statusMappings: {
@@ -153,11 +120,11 @@ export const useDashboardStore = create<DashboardState>()(
     }),
     {
       name: 'soc-dashboard-storage',
-      version: 1,
+      version: 2,
       partialize: (state) => ({
         viewMode: state.viewMode,
         activeChapter: state.activeChapter,
-        selectedProjectKeys: state.selectedProjectKeys,
+        projectKey: state.projectKey,
         statusMappings: state.statusMappings,
         ttftAnchors: state.ttftAnchors,
         workSchedule: state.workSchedule,
@@ -165,13 +132,11 @@ export const useDashboardStore = create<DashboardState>()(
         dimensionFilters: state.dimensionFilters,
       }),
       migrate: (persisted, version) => {
-        if (version === 0) {
-          return persisted as Record<string, unknown>;
+        if (version < 2) {
+          return { ...(persisted as Record<string, unknown>), projectKey: null };
         }
         return persisted as Record<string, unknown>;
       },
     }
   )
 );
-
-

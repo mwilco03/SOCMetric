@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
-import type { JiraIssue } from '../../api/types';
+import type { JiraIssue } from '../../types';
 
 interface SlideOutState {
   isOpen: boolean;

@@ -4,7 +4,7 @@ import { LoadingState } from '../shared/LoadingState';
 import { useMetrics } from '../../hooks/useMetrics';
 import { projectForward } from '../../staffing/projectionEngine';
 import type { ScenarioInput } from '../../staffing/projectionEngine';
-import type { ViewMode } from '../../api/types';
+import type { ViewMode } from '../../types';
 
 interface ProjectionsChapterProps {
   viewMode: ViewMode;

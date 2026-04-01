@@ -1,7 +1,7 @@
 import React from 'react';
 import { LoadingState } from '../shared/LoadingState';
 import { useMetrics } from '../../hooks/useMetrics';
-import type { ViewMode } from '../../api/types';
+import type { ViewMode } from '../../types';
 
 interface IncidentsChapterProps {
   viewMode: ViewMode;

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import type { JiraStatus } from '../../api/types';
+import type { JiraStatus } from '../../types';
 import { useDashboardStore } from '../../store/dashboardStore';
 import { discoverStatusMappings } from '../../discovery/statusDiscovery';
 
