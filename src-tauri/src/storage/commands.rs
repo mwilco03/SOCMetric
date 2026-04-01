@@ -1,8 +1,9 @@
 use std::collections::HashMap;
 use tauri::State;
+use crate::constants::{RESET_TIER_SETTINGS, RESET_TIER_EVERYTHING};
 use crate::error::AppError;
-use crate::models::credential::Credential;
-use crate::models::settings::{LabelConfig, SyncState};
+use crate::models::credential::{Credential, sanitize_domain};
+use crate::models::settings::LabelConfig;
 use crate::storage::db::Database;
 use crate::storage::keyring_store;
 use crate::storage::queries;
@@ -16,13 +17,7 @@ pub async fn get_credentials() -> Result<Option<Credential>, AppError> {
 
 #[tauri::command]
 pub async fn set_credentials(domain: String, email: String, api_token: String) -> Result<(), AppError> {
-    let domain = domain
-        .trim()
-        .replace("https://", "")
-        .replace("http://", "")
-        .trim_end_matches('/')
-        .to_string();
-
+    let domain = sanitize_domain(&domain)?;
     let cred = Credential { domain, email, api_token };
     keyring_store::store_credentials(&cred)
 }
@@ -100,10 +95,10 @@ pub async fn delete_day_annotation(db: State<'_, Database>, date: String) -> Res
 #[tauri::command]
 pub async fn reset_app(db: State<'_, Database>, tier: String) -> Result<(), AppError> {
     match tier.as_str() {
-        "settings" => {
+        RESET_TIER_SETTINGS => {
             db.with_conn(|conn| queries::delete_all_settings(conn))?;
         }
-        "everything" => {
+        RESET_TIER_EVERYTHING => {
             db.with_conn(|conn| queries::reset_everything(conn))?;
             keyring_store::delete_credentials()?;
         }
