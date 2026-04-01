@@ -1,7 +1,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/nicbarker/tauri-conf-schema/main/schema/tauri.conf.schema.json",
   "productName": "SOC Dashboard",
-  "version": "1.1.0",
+  "version": "2.0.0",
   "identifier": "com.soc.dashboard",
   "build": {
     "beforeBuildCommand": "npm run build",
@@ -22,7 +22,7 @@
       }
     ],
     "security": {
-      "csp": "default-src 'self'; script-src 'self'; connect-src 'self' https://*.atlassian.net; style-src 'self'; img-src 'self' data:"
+      "csp": "default-src 'self'; script-src 'self'; connect-src 'self'; style-src 'self'; img-src 'self' data:"
     }
   },
   "bundle": {
