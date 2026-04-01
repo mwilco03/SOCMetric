@@ -33,7 +33,7 @@ export function useProjects() {
 export function useProjectStatuses(projectKey: string) {
   return useQuery({
     queryKey: QUERY_KEYS.projectStatuses(projectKey),
-    queryFn: () => invoke<JiraStatus[]>('get_project_statuses', { projectKey }),
+    queryFn: () => invoke<JiraStatus[]>('get_project_statuses', { project_key: projectKey }),
     enabled: !!projectKey,
   });
 }
@@ -46,9 +46,9 @@ export function useTickets() {
     queryKey: [QUERY_KEYS.tickets, projectKey, toISODate(dateRange.start), toISODate(dateRange.end)],
     queryFn: () =>
       invoke<TicketRow[]>('get_tickets', {
-        projectKey: projectKey!,
-        startDate: toISODate(dateRange.start),
-        endDate: toISODate(dateRange.end),
+        project_key: projectKey!,
+        start_date: toISODate(dateRange.start),
+        end_date: toISODate(dateRange.end),
       }),
     enabled: !!projectKey,
   });
@@ -59,7 +59,7 @@ export function useOpenTickets() {
 
   return useQuery({
     queryKey: [QUERY_KEYS.openTickets, projectKey],
-    queryFn: () => invoke<TicketRow[]>('get_open_tickets', { projectKey: projectKey! }),
+    queryFn: () => invoke<TicketRow[]>('get_open_tickets', { project_key: projectKey! }),
     enabled: !!projectKey,
   });
 }
@@ -69,7 +69,7 @@ export function useSyncState() {
 
   return useQuery({
     queryKey: [QUERY_KEYS.syncState, projectKey],
-    queryFn: () => invoke<SyncState | null>('get_sync_state', { projectKey: projectKey! }),
+    queryFn: () => invoke<SyncState | null>('get_sync_state', { project_key: projectKey! }),
     enabled: !!projectKey,
   });
 }
@@ -80,7 +80,7 @@ export function useTestConnection() {
       invoke<JiraUser>('test_connection', {
         domain: args.domain,
         email: args.email,
-        apiToken: args.apiToken,
+        api_token: args.apiToken,
       }),
   });
 }
@@ -92,7 +92,7 @@ export function useSetCredentials() {
       invoke<void>('set_credentials', {
         domain: args.domain,
         email: args.email,
-        apiToken: args.apiToken,
+        api_token: args.apiToken,
       }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.credentials] }),
   });
@@ -101,7 +101,7 @@ export function useSetCredentials() {
 export function useDiscoverStatuses() {
   return useMutation({
     mutationFn: (projectKey: string) =>
-      invoke<DiscoveredMapping[]>('discover_statuses', { projectKey }),
+      invoke<DiscoveredMapping[]>('discover_statuses', { project_key: projectKey }),
   });
 }
 
@@ -110,7 +110,11 @@ export function useSyncProject() {
 
   return useMutation({
     mutationFn: (args: { projectKey: string; startDate: string; endDate: string }) =>
-      invoke<SyncComplete>('sync_project', args),
+      invoke<SyncComplete>('sync_project', {
+        project_key: args.projectKey,
+        start_date: args.startDate,
+        end_date: args.endDate,
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.tickets] });
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.openTickets] });

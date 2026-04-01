@@ -28,8 +28,8 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete }) => {
     setIsLoading(true);
     setError(null);
     try {
-      await invoke('test_connection', { domain, email, apiToken });
-      await invoke('set_credentials', { domain, email, apiToken });
+      await invoke('test_connection', { domain, email, api_token: apiToken });
+      await invoke('set_credentials', { domain, email, api_token: apiToken });
       const projectList = await invoke<JiraProject[]>('get_projects');
       setProjects(projectList);
       setStep('projects');
@@ -45,7 +45,7 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete }) => {
     setIsLoading(true);
     setError(null);
     try {
-      const discovered = await invoke<DiscoveredMapping[]>('discover_statuses', { projectKey });
+      const discovered = await invoke<DiscoveredMapping[]>('discover_statuses', { project_key: projectKey });
       setDiscoveredMappings(discovered);
       const autoMappings: Record<string, string> = {};
       for (const d of discovered) {
@@ -70,7 +70,7 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete }) => {
 
       // Store status mappings in SQLite
       await invoke('bulk_set_status_mappings', {
-        projectKey: selectedProject,
+        project_key: selectedProject,
         mappings,
       });
 
@@ -85,9 +85,9 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete }) => {
       const start = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
       const fmt = (d: Date) => d.toISOString().slice(0, 10);
       await invoke('sync_project', {
-        projectKey: selectedProject,
-        startDate: fmt(start),
-        endDate: fmt(end),
+        project_key: selectedProject,
+        start_date: fmt(start),
+        end_date: fmt(end),
       });
 
       onComplete();
