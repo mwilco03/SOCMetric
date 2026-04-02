@@ -28,9 +28,9 @@ export function useIdleSync() {
         const end = new Date();
         const start = new Date(Date.now() - IDLE_SYNC_LOOKBACK_DAYS * 24 * 60 * 60 * 1000);
         await invoke('sync_project', {
-          project_key: projectKey,
-          start_date: toISODate(start),
-          end_date: toISODate(end),
+          projectKey: projectKey,
+          startDate: toISODate(start),
+          endDate: toISODate(end),
         });
         queryClient.invalidateQueries({ queryKey: ['tickets'] });
         queryClient.invalidateQueries({ queryKey: ['openTickets'] });

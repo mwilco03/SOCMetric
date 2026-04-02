@@ -47,6 +47,6 @@ cargo check            # type check (fails without GTK deps on some hosts)
 - No secrets in code or git — credentials in OS keychain via `keyring` crate
 - Conventional commits: `type(scope): description`
 - `StatusClassification` = `'queue' | 'active' | 'done' | 'blocked'` — use the type, don't inline
-- All Tauri invoke args use snake_case to match Rust param names
+- All Tauri invoke arg keys use camelCase (Tauri v2 `#[tauri::command]` applies `serde(rename_all = "camelCase")` to the generated args struct)
 - Date formatting: use `toISODate()` from `utils/dateUtils.ts`, never inline `.toISOString().slice(0,10)`
 - React paint only — all data ops in Rust, zero HTTP from webview
