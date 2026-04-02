@@ -1,6 +1,6 @@
 /** Closure Integrity Classification Pipeline */
 
-import type { JiraIssue } from '../types';
+import type { JiraIssue, StatusClassification } from '../types';
 import type { WorkSchedule } from './workingHours';
 import { calculateWorkingMinutes } from './workingHours';
 
@@ -27,7 +27,7 @@ const DEFAULT_CONFIG = {
 export function classifyClosure(
   issue: JiraIssue,
   schedule: WorkSchedule,
-  statusMapping: Record<string, 'queue' | 'active' | 'done'>,
+  statusMapping: Record<string, StatusClassification>,
   config = DEFAULT_CONFIG
 ): ClosureClassification {
   const changelog = issue.changelog?.histories || [];
@@ -86,8 +86,8 @@ export function classifyClosure(
         activeWorkMinutes += activeMinutes;
       }
 
-      // Track churn (active -> queue -> active again)
-      if (fromClass === 'active' && toClass === 'queue') {
+      // Track churn (active -> queue/blocked -> active again)
+      if (fromClass === 'active' && (toClass === 'queue' || toClass === 'blocked')) {
         inActiveState = false;
       } else if (toClass === 'active') {
         if (hasBeenActive) {

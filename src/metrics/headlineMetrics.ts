@@ -1,6 +1,6 @@
 /** Headline Metrics - Tier 1 KPIs */
 
-import type { JiraIssue } from '../types';
+import type { JiraIssue, StatusClassification } from '../types';
 import type { WorkSchedule } from './workingHours';
 import { calculateWorkingHours } from './workingHours';
 import { percentile } from '../utils/statistics';
@@ -22,7 +22,7 @@ export interface TimeSeriesPoint {
 
 export function calculateTTFT(
   issue: JiraIssue,
-  statusMapping: Record<string, 'queue' | 'active' | 'done'>,
+  statusMapping: Record<string, StatusClassification>,
   schedule: WorkSchedule
 ): number | null {
   const created = new Date(issue.fields.created);
@@ -35,7 +35,7 @@ export function calculateTTFT(
         const fromClass = statusMapping[item.fromString] || 'queue';
         const toClass = statusMapping[item.toString] || 'queue';
         
-        if (fromClass === 'queue' && toClass === 'active') {
+        if ((fromClass === 'queue' || fromClass === 'blocked') && toClass === 'active') {
           const firstTouch = new Date(history.created);
           return calculateWorkingHours(created, firstTouch, schedule);
         }
@@ -49,7 +49,7 @@ export function calculateTTFT(
 export function calculateHeadlineMetrics(
   issues: JiraIssue[],
   irIssues: JiraIssue[],
-  statusMapping: Record<string, 'queue' | 'active' | 'done'>,
+  statusMapping: Record<string, StatusClassification>,
   schedule: WorkSchedule,
   _dateRange: { start: Date; end: Date }
 ): HeadlineMetrics {

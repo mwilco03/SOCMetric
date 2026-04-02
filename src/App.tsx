@@ -6,14 +6,17 @@ import { FlowChapter } from './components/chapters/FlowChapter';
 import { ResponseSpeedChapter } from './components/chapters/ResponseSpeedChapter';
 import { CapacityChapter } from './components/chapters/CapacityChapter';
 import { PatternsChapter } from './components/chapters/PatternsChapter';
-import { IncidentsChapter } from './components/chapters/IncidentsChapter';
+
 import { ProjectionsChapter } from './components/chapters/ProjectionsChapter';
 import { CompareChapter } from './components/chapters/CompareChapter';
 import { ContextLedgerChapter } from './components/chapters/ContextLedgerChapter';
+import { CalendarChapter } from './components/chapters/CalendarChapter';
 import { SetupWizard } from './components/discovery-ui/SetupWizard';
 import { useDashboardStore } from './store/dashboardStore';
 import { PanelProvider, SlideOutPanel } from './components/panels';
+import { SyncProgressOverlay } from './components/shared/SyncProgressOverlay';
 import { useCredentials } from './hooks/useJiraData';
+import { useIdleSync } from './hooks/useIdleSync';
 import { invoke } from '@tauri-apps/api/core';
 
 const queryClient = new QueryClient({
@@ -27,16 +30,18 @@ const queryClient = new QueryClient({
 
 function DashboardContent() {
   const { viewMode, activeChapter, setViewMode, setActiveChapter } = useDashboardStore();
+  useIdleSync();
 
   const renderChapter = () => {
     switch (activeChapter) {
+      case 'calendar': return <CalendarChapter />;
       case 'watch': return <WatchStatusChapter viewMode={viewMode} />;
       case 'ledger': return <ContextLedgerChapter />;
       case 'flow': return <FlowChapter viewMode={viewMode} />;
       case 'speed': return <ResponseSpeedChapter viewMode={viewMode} />;
       case 'capacity': return <CapacityChapter viewMode={viewMode} />;
       case 'patterns': return <PatternsChapter viewMode={viewMode} />;
-      case 'incidents': return <IncidentsChapter viewMode={viewMode} />;
+
       case 'projections': return <ProjectionsChapter viewMode={viewMode} />;
       case 'compare': return <CompareChapter viewMode={viewMode} />;
       default: return <WatchStatusChapter viewMode={viewMode} />;
@@ -54,6 +59,7 @@ function DashboardContent() {
         {renderChapter()}
       </AppShell>
       <SlideOutPanel />
+      <SyncProgressOverlay />
     </PanelProvider>
   );
 }

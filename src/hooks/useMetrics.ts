@@ -29,7 +29,7 @@ import type { AfterHoursStats } from '../metrics/afterHours';
 
 import { percentile, computeRollingBaseline } from '../utils/statistics';
 import { KPI_DELTA_THRESHOLD, KPI_STATUS_RED_THRESHOLD } from '../constants';
-import type { JiraIssue, TicketRow } from '../types';
+import type { JiraIssue, TicketRow, StatusClassification } from '../types';
 
 import type { KPIData, KPITooltip } from '../components/kpi/KPICard';
 
@@ -184,12 +184,12 @@ export function useMetrics() {
     const holidayExclusions = getHolidayExclusions(dateRange);
 
     // Status mappings for the active project
-    const flatMapping: Record<string, 'queue' | 'active' | 'done'> = {};
+    const flatMapping: Record<string, StatusClassification> = {};
     for (const key of selectedProjectKeys) {
       const mapping = statusMappings[key];
       if (mapping) {
         for (const [status, classification] of Object.entries(mapping)) {
-          flatMapping[status] = classification as 'queue' | 'active' | 'done';
+          flatMapping[status] = classification as StatusClassification;
         }
       }
     }

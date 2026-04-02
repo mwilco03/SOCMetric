@@ -1,6 +1,6 @@
 /** Cluster Analysis — title normalization grouping, work-hour ranking, automation tiers */
 
-import type { JiraIssue } from '../types';
+import type { JiraIssue, StatusClassification } from '../types';
 import type { WorkSchedule } from './workingHours';
 import { calculateWorkingHours } from './workingHours';
 import { normalizeTitle, detectSIEMPattern } from '../normalization/entityNormalizer';
@@ -29,7 +29,7 @@ export interface TicketCluster {
 export function buildClusters(
   issues: JiraIssue[],
   schedule: WorkSchedule,
-  _statusMapping: Record<string, 'queue' | 'active' | 'done'>,
+  _statusMapping: Record<string, StatusClassification>,
   recurrenceConfig: RecurrenceConfig = DEFAULT_RECURRENCE_CONFIG,
 ): TicketCluster[] {
   // Group by normalized title

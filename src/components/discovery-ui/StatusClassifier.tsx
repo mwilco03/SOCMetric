@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import type { JiraStatus } from '../../types';
+import type { JiraStatus, StatusClassification } from '../../types';
 import { useDashboardStore } from '../../store/dashboardStore';
 import { discoverStatusMappings } from '../../discovery/statusDiscovery';
 
@@ -9,12 +9,11 @@ interface StatusClassifierProps {
   onComplete: () => void;
 }
 
-type Classification = 'queue' | 'active' | 'done';
-
-const CLASSIFICATIONS: { value: Classification; label: string; description: string }[] = [
+const CLASSIFICATIONS: { value: StatusClassification; label: string; description: string }[] = [
   { value: 'queue', label: 'Queue', description: 'Waiting to be worked' },
   { value: 'active', label: 'Active', description: 'Currently being worked' },
   { value: 'done', label: 'Done', description: 'Completed/Closed' },
+  { value: 'blocked', label: 'Blocked', description: 'Blocked / on hold' },
 ];
 
 const CONFIDENCE_BADGE: Record<string, string> = {
@@ -29,12 +28,12 @@ export const StatusClassifier: React.FC<StatusClassifierProps> = ({
   onComplete,
 }) => {
   const { statusMappings, setStatusMapping } = useDashboardStore();
-  const [currentMappings, setCurrentMappings] = useState<Record<string, Classification>>({});
+  const [currentMappings, setCurrentMappings] = useState<Record<string, StatusClassification>>({});
 
   // Auto-discover on mount
   useEffect(() => {
     const discovered = discoverStatusMappings(statuses);
-    const autoMappings: Record<string, Classification> = {};
+    const autoMappings: Record<string, StatusClassification> = {};
     for (const d of discovered) {
       autoMappings[d.status] = d.suggestedClassification;
       setStatusMapping(projectKey, d.status, d.suggestedClassification);
@@ -45,7 +44,7 @@ export const StatusClassifier: React.FC<StatusClassifierProps> = ({
   const discovered = discoverStatusMappings(statuses);
   const discoveryMap = new Map(discovered.map((d) => [d.status, d]));
 
-  const handleClassify = (statusName: string, classification: Classification) => {
+  const handleClassify = (statusName: string, classification: StatusClassification) => {
     setCurrentMappings((prev) => ({ ...prev, [statusName]: classification }));
     setStatusMapping(projectKey, statusName, classification);
   };

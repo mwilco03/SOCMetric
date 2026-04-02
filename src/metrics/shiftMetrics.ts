@@ -1,6 +1,6 @@
 /** Shift Metrics — Rollover Rate & Velocity Under Load (optimized) */
 
-import type { JiraIssue } from '../types';
+import type { JiraIssue, StatusClassification } from '../types';
 import type { WorkSchedule } from './workingHours';
 import { getDateRangeArray, toISODate } from '../utils/dateUtils';
 
@@ -26,7 +26,7 @@ export interface VelocityPoint {
 export function calculateRolloverByShift(
   issues: JiraIssue[],
   schedule: WorkSchedule,
-  _statusMapping: Record<string, 'queue' | 'active' | 'done'>,
+  _statusMapping: Record<string, StatusClassification>,
   dateRange: { start: Date; end: Date },
 ): RolloverSummary {
   const days = getDateRangeArray(dateRange.start, dateRange.end).map(toISODate);

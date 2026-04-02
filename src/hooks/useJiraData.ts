@@ -127,12 +127,29 @@ export function useSyncProgress() {
   const [progress, setProgress] = useState<SyncProgress | null>(null);
 
   useEffect(() => {
-    let unlisten: (() => void) | undefined;
-    listen<SyncProgress>('sync:progress', (event) => {
-      setProgress(event.payload);
-    }).then((fn) => { unlisten = fn; });
+    let cancelled = false;
+    let unlistenProgress: (() => void) | undefined;
+    let unlistenComplete: (() => void) | undefined;
 
-    return () => { unlisten?.(); };
+    listen<SyncProgress>('sync:progress', (event) => {
+      if (!cancelled) setProgress(event.payload);
+    }).then((fn) => {
+      if (cancelled) fn();
+      else unlistenProgress = fn;
+    });
+
+    listen<SyncComplete>('sync:complete', () => {
+      if (!cancelled) setProgress(null);
+    }).then((fn) => {
+      if (cancelled) fn();
+      else unlistenComplete = fn;
+    });
+
+    return () => {
+      cancelled = true;
+      unlistenProgress?.();
+      unlistenComplete?.();
+    };
   }, []);
 
   return progress;

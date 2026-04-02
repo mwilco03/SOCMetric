@@ -8,6 +8,7 @@ import {
   TrendingUp,
   GitCompare,
   Calendar,
+  CalendarDays,
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -80,6 +81,7 @@ export const ChapterNav: React.FC<ChapterNavProps> = ({
           </span>
         )}
         <nav className="mt-2 space-y-1">
+          {navButton('calendar', <CalendarDays className="w-4 h-4" />, 'Calendar')}
           {navButton('ledger', <Calendar className="w-4 h-4" />, 'Context Ledger')}
         </nav>
       </div>

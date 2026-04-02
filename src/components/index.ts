@@ -12,10 +12,11 @@ export { FlowChapter } from './chapters/FlowChapter';
 export { ResponseSpeedChapter } from './chapters/ResponseSpeedChapter';
 export { CapacityChapter } from './chapters/CapacityChapter';
 export { PatternsChapter } from './chapters/PatternsChapter';
-export { IncidentsChapter } from './chapters/IncidentsChapter';
+
 export { ProjectionsChapter } from './chapters/ProjectionsChapter';
 export { CompareChapter } from './chapters/CompareChapter';
 export { ContextLedgerChapter } from './chapters/ContextLedgerChapter';
+export { CalendarChapter } from './chapters/CalendarChapter';
 
 // Charts
 export { LineChart } from './charts/LineChart';

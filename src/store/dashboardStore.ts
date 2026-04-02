@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { ViewMode } from '../types';
+import type { ViewMode, StatusClassification } from '../types';
 import type { WorkSchedule } from '../metrics/workingHours';
 import type { DimensionFilter } from '../dimensions/dimensionEngine';
 import { DEFAULT_DATE_RANGE_DAYS } from '../constants';
@@ -34,7 +34,7 @@ export interface DashboardState {
   dateRange: DateRange;
 
   // Configuration (persisted locally for UI)
-  statusMappings: Record<string, Record<string, 'queue' | 'active' | 'done'>>;
+  statusMappings: Record<string, Record<string, StatusClassification>>;
   ttftAnchors: Record<string, { method: string; targetStatus?: string }>;
   workSchedule: WorkSchedule;
   ledgerEvents: LedgerEvent[];
@@ -50,7 +50,7 @@ export interface DashboardState {
   setViewMode: (mode: ViewMode) => void;
   setActiveChapter: (chapter: string) => void;
   setDateRange: (range: DateRange) => void;
-  setStatusMapping: (projectKey: string, status: string, classification: 'queue' | 'active' | 'done') => void;
+  setStatusMapping: (projectKey: string, status: string, classification: StatusClassification) => void;
   addLedgerEvent: (event: LedgerEvent) => void;
   removeLedgerEvent: (id: string) => void;
   setWorkSchedule: (schedule: WorkSchedule) => void;
@@ -120,7 +120,7 @@ export const useDashboardStore = create<DashboardState>()(
     }),
     {
       name: 'soc-dashboard-storage',
-      version: 2,
+      version: 3,
       partialize: (state) => ({
         viewMode: state.viewMode,
         activeChapter: state.activeChapter,
@@ -132,10 +132,14 @@ export const useDashboardStore = create<DashboardState>()(
         dimensionFilters: state.dimensionFilters,
       }),
       migrate: (persisted, version) => {
+        const state = persisted as Record<string, unknown>;
         if (version < 2) {
-          return { ...(persisted as Record<string, unknown>), projectKey: null };
+          return { ...state, projectKey: null, activeChapter: 'watch' };
         }
-        return persisted as Record<string, unknown>;
+        if (version < 3) {
+          return { ...state, activeChapter: 'watch' };
+        }
+        return state;
       },
     }
   )

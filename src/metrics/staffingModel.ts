@@ -1,6 +1,6 @@
 /** Staffing Assessment Model */
 
-import type { JiraIssue } from '../types';
+import type { JiraIssue, StatusClassification } from '../types';
 import type { WorkSchedule } from './workingHours';
 import type { TimeSeriesPoint } from './headlineMetrics';
 import { calculateTTFT } from './headlineMetrics';
@@ -36,7 +36,7 @@ export interface StaffingAssessment {
 
 export function calculatePrioritySeparationIndex(
   issues: JiraIssue[],
-  statusMapping: Record<string, 'queue' | 'active' | 'done'>,
+  statusMapping: Record<string, StatusClassification>,
   schedule: WorkSchedule
 ): { index: number; isReliable: boolean } {
   const byPriority = new Map<string, number[]>();
@@ -73,7 +73,7 @@ export function calculatePrioritySeparationIndex(
 export function assessStaffing(
   issues: JiraIssue[],
   irIssues: JiraIssue[],
-  statusMapping: Record<string, 'queue' | 'active' | 'done'>,
+  statusMapping: Record<string, StatusClassification>,
   schedule: WorkSchedule,
   dateRange: { start: Date; end: Date },
   timeSeries?: TimeSeriesPoint[],

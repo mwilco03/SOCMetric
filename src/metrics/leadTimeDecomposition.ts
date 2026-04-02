@@ -1,6 +1,6 @@
 /** Lead Time Decomposition - Queue Wait / Active Work / Post-Active Wait */
 
-import type { JiraIssue } from '../types';
+import type { JiraIssue, StatusClassification } from '../types';
 import type { WorkSchedule } from './workingHours';
 import { calculateWorkingMinutes } from './workingHours';
 import { percentile } from '../utils/statistics';
@@ -26,7 +26,7 @@ export interface LeadTimeAggregate {
 
 export function decomposeLeadTime(
   issue: JiraIssue,
-  statusMapping: Record<string, 'queue' | 'active' | 'done'>,
+  statusMapping: Record<string, StatusClassification>,
   schedule: WorkSchedule,
 ): LeadTimeBreakdown {
   const created = new Date(issue.fields.created);
@@ -40,7 +40,7 @@ export function decomposeLeadTime(
   // Sort transitions chronologically
   const transitions: Array<{
     time: Date;
-    toClass: 'queue' | 'active' | 'done';
+    toClass: StatusClassification;
   }> = [];
 
   for (const history of changelog) {
@@ -70,14 +70,14 @@ export function decomposeLeadTime(
   let queueWaitMinutes = 0;
   let activeWorkMinutes = 0;
   let postActiveWaitMinutes = 0;
-  let currentPhase: 'queue' | 'active' | 'done' = 'queue';
+  let currentPhase: StatusClassification = 'queue';
   let hasBeenActive = false;
   let segmentStart = created;
 
   for (const transition of transitions) {
     const segmentMinutes = calculateWorkingMinutes(segmentStart, transition.time, schedule);
 
-    if (currentPhase === 'queue') {
+    if (currentPhase === 'queue' || currentPhase === 'blocked') {
       if (hasBeenActive) {
         postActiveWaitMinutes += segmentMinutes;
       } else {
@@ -98,7 +98,7 @@ export function decomposeLeadTime(
     const finalMinutes = calculateWorkingMinutes(segmentStart, closed, schedule);
     if (currentPhase === 'active') {
       activeWorkMinutes += finalMinutes;
-    } else if (currentPhase === 'queue') {
+    } else if (currentPhase === 'queue' || currentPhase === 'blocked') {
       if (hasBeenActive) {
         postActiveWaitMinutes += finalMinutes;
       } else {

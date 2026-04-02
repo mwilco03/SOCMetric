@@ -1,6 +1,6 @@
 /** Incident Impact — IR window detection, queue cost, surge detection & absorption */
 
-import type { JiraIssue } from '../types';
+import type { JiraIssue, StatusClassification } from '../types';
 import type { WorkSchedule } from './workingHours';
 import type { TimeSeriesPoint } from './headlineMetrics';
 import { calculateTTFT } from './headlineMetrics';
@@ -68,7 +68,7 @@ export function calculateIncidentCosts(
   windows: IncidentWindow[],
   projectIssues: JiraIssue[],
   timeSeries: TimeSeriesPoint[],
-  statusMapping: Record<string, 'queue' | 'active' | 'done'>,
+  statusMapping: Record<string, StatusClassification>,
   schedule: WorkSchedule,
 ): IncidentImpactSummary {
   if (windows.length === 0 || timeSeries.length === 0) {

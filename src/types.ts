@@ -85,7 +85,7 @@ export interface LabelConfig {
 
 export type ViewMode = 'analyst' | 'lead' | 'executive';
 
-export type StatusClassification = 'queue' | 'active' | 'done';
+export type StatusClassification = 'queue' | 'active' | 'done' | 'blocked';
 
 export interface StatusMapping {
   [statusName: string]: StatusClassification;

@@ -1,10 +1,10 @@
 /** Status Discovery — auto-detect classifications from Jira statusCategory */
 
-import type { JiraStatus } from '../types';
+import type { JiraStatus, StatusClassification } from '../types';
 
 export interface DiscoveredMapping {
   status: string;
-  suggestedClassification: 'queue' | 'active' | 'done';
+  suggestedClassification: StatusClassification;
   confidence: 'high' | 'medium' | 'low';
   reason: string;
 }
@@ -25,7 +25,7 @@ export function discoverStatusMappings(statuses: JiraStatus[]): DiscoveredMappin
     const name = status.name;
 
     // Start from Jira's own category
-    let classification: 'queue' | 'active' | 'done';
+    let classification: StatusClassification;
     let confidence: 'high' | 'medium' | 'low';
     let reason: string;
 

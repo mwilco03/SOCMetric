@@ -1,13 +1,17 @@
-import React, { useState } from 'react';
-import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
+import { ChevronLeft, ChevronRight, Loader2, ClipboardCopy, Check, RefreshCw } from 'lucide-react';
 import { ViewModeToggle } from './ViewModeToggle';
 import { ChapterNav } from './ChapterNav';
 import { DateRangePicker } from '../shared/DateRangePicker';
-import { ExportButton } from '../shared/ExportButton';
 import { DimensionFilterBar } from './DimensionFilterBar';
 import { RightDrawer } from '../panels/RightDrawer';
 import { useWindowSize } from '../../hooks/useWindowSize';
 import { useMetrics } from '../../hooks/useMetrics';
+import { useSyncState, useSyncProject } from '../../hooks/useJiraData';
+import { useDashboardStore } from '../../store/dashboardStore';
+import { copySummaryToClipboard } from '../../utils/copySummary';
+import { toISODate } from '../../utils/dateUtils';
+import { DEFAULT_DATE_RANGE_DAYS } from '../../constants';
 import type { ViewMode } from '../../types';
 
 interface AppShellProps {
@@ -18,6 +22,8 @@ interface AppShellProps {
   onChapterChange: (chapter: string) => void;
 }
 
+const COPY_FEEDBACK_MS = 2000;
+
 export const AppShell: React.FC<AppShellProps> = ({
   children,
   viewMode,
@@ -26,9 +32,20 @@ export const AppShell: React.FC<AppShellProps> = ({
   onChapterChange,
 }) => {
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const copiedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { isNarrow } = useWindowSize();
   const metrics = useMetrics();
-  const lastRefreshed: Date | null = null; // TODO: derive from sync state
+  const { projectKey, dateRange } = useDashboardStore();
+  const { data: syncState } = useSyncState();
+  const syncProject = useSyncProject();
+
+  // Clean up copied timer on unmount
+  useEffect(() => {
+    return () => { if (copiedTimer.current) clearTimeout(copiedTimer.current); };
+  }, []);
+
+  const lastSyncAt = syncState?.last_sync_at ? new Date(syncState.last_sync_at) : null;
 
   const formatAgo = (date: Date | null) => {
     if (!date) return null;
@@ -37,9 +54,36 @@ export const AppShell: React.FC<AppShellProps> = ({
     if (mins < 60) return `${mins}m ago`;
     return `${Math.round(mins / 60)}h ago`;
   };
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
-  // Auto-collapse on narrow windows
+  const handleCopySummary = useCallback(async () => {
+    try {
+      await copySummaryToClipboard({
+        projectKey,
+        dateRange,
+        kpis: metrics.kpis,
+        stalledCount: metrics.stalledTickets.length,
+        insights: metrics.insights ?? [],
+      });
+      setCopied(true);
+      if (copiedTimer.current) clearTimeout(copiedTimer.current);
+      copiedTimer.current = setTimeout(() => setCopied(false), COPY_FEEDBACK_MS);
+    } catch {
+      // clipboard write failed
+    }
+  }, [projectKey, dateRange, metrics.kpis, metrics.stalledTickets, metrics.insights]);
+
+  const handleManualSync = useCallback(() => {
+    if (!projectKey || syncProject.isPending) return;
+    const end = new Date();
+    const start = new Date(Date.now() - DEFAULT_DATE_RANGE_DAYS * 24 * 60 * 60 * 1000);
+    syncProject.mutate({
+      projectKey,
+      startDate: toISODate(start),
+      endDate: toISODate(end),
+    });
+  }, [projectKey, syncProject]);
+
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const collapsed = sidebarCollapsed || isNarrow;
 
   return (
@@ -84,8 +128,8 @@ export const AppShell: React.FC<AppShellProps> = ({
         {!collapsed && (
           <div className="p-4 border-t border-gray-800">
             <div className="text-xs text-gray-500">
-              <p>v1.1.0</p>
-              <p className="mt-1">Client-side encrypted</p>
+              <p>v2.2.0</p>
+              <p className="mt-1">OS keychain secured</p>
             </div>
           </div>
         )}
@@ -96,24 +140,39 @@ export const AppShell: React.FC<AppShellProps> = ({
         <header className="h-16 bg-gray-900 border-b border-gray-800 flex items-center justify-between px-6 shrink-0">
           <div className="flex items-center gap-3">
             <DateRangePicker />
-            {metrics.isLoading && (
+            {(metrics.isLoading || syncProject.isPending) && (
               <div className="flex items-center gap-1.5 text-kpi-blue">
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                <span className="text-xs">Loading...</span>
+                <span className="text-xs">{syncProject.isPending ? 'Syncing...' : 'Loading...'}</span>
               </div>
             )}
-            {!metrics.isLoading && lastRefreshed && (
-              <span className="text-xs text-gray-500">
-                Updated {formatAgo(lastRefreshed)}
+            {!metrics.isLoading && !syncProject.isPending && lastSyncAt && (
+              <span className={`text-xs ${
+                Date.now() - lastSyncAt.getTime() > 30 * 60 * 1000 ? 'text-yellow-500' : 'text-gray-500'
+              }`}>
+                Synced {formatAgo(lastSyncAt)}
               </span>
             )}
           </div>
-          <div className="flex items-center gap-3">
-            <ExportButton
-              data={[]}
-              filename="soc-metrics.csv"
-              label="Export"
-            />
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleManualSync}
+              disabled={!projectKey || syncProject.isPending}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-400 hover:text-gray-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              title="Sync data from Jira"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${syncProject.isPending ? 'animate-spin' : ''}`} />
+              Sync
+            </button>
+            <button
+              onClick={handleCopySummary}
+              disabled={metrics.isEmpty}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-400 hover:text-gray-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              title="Copy summary to clipboard"
+            >
+              {copied ? <Check className="w-3.5 h-3.5 text-green-400" /> : <ClipboardCopy className="w-3.5 h-3.5" />}
+              {copied ? 'Copied' : 'Summary'}
+            </button>
             <button
               onClick={() => setSettingsOpen(true)}
               className="px-3 py-1.5 text-sm text-gray-400 hover:text-gray-200 transition-colors"
@@ -130,7 +189,11 @@ export const AppShell: React.FC<AppShellProps> = ({
         </div>
       </main>
 
-      <RightDrawer isOpen={settingsOpen} onClose={() => setSettingsOpen(false)} />
+      <RightDrawer
+        isOpen={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        onRefreshData={handleManualSync}
+      />
     </div>
   );
 };

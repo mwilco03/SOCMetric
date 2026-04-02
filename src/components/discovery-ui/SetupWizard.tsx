@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { useDashboardStore } from '../../store/dashboardStore';
-import type { JiraProject, DiscoveredMapping } from '../../types';
+import { toISODate } from '../../utils/dateUtils';
+import { INITIAL_SYNC_DAYS } from '../../constants';
+import type { JiraProject, DiscoveredMapping, StatusClassification } from '../../types';
 
 interface SetupWizardProps {
   onComplete: () => void;
@@ -77,17 +79,16 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete }) => {
       // Update local store
       setProjectKey(selectedProject);
       for (const [status, classification] of Object.entries(mappings)) {
-        setStatusMapping(selectedProject, status, classification as 'queue' | 'active' | 'done');
+        setStatusMapping(selectedProject, status, classification as StatusClassification);
       }
 
-      // Trigger initial 30-day sync
+      // Trigger initial sync
       const end = new Date();
-      const start = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-      const fmt = (d: Date) => d.toISOString().slice(0, 10);
+      const start = new Date(Date.now() - INITIAL_SYNC_DAYS * 24 * 60 * 60 * 1000);
       await invoke('sync_project', {
         project_key: selectedProject,
-        start_date: fmt(start),
-        end_date: fmt(end),
+        start_date: toISODate(start),
+        end_date: toISODate(end),
       });
 
       onComplete();

@@ -88,6 +88,22 @@ export const AFTER_HOURS_BURNOUT_THRESHOLD = 0.15;
 export const CHART_HEIGHT_DEFAULT = 280;
 export const CHART_HEIGHT_TALL = 320;
 
+// Sync
+export const INITIAL_SYNC_DAYS = 30;
+export const IDLE_SYNC_LOOKBACK_DAYS = 365;
+export const IDLE_TIMEOUT_MS = 5 * 60 * 1000;
+export const ACTIVITY_THROTTLE_MS = 2_000;
+
+// Calendar
+export const CLUSTER_NAME_MAX_LENGTH = 60;
+export const CLUSTER_KEYS_PREVIEW_COUNT = 8;
+export const MAX_VISIBLE_LABELS = 5;
+export const ANNOTATION_MAX_LENGTH = 200;
+
+// UI feedback
+export const COPY_FEEDBACK_MS = 2_000;
+export const STALE_SYNC_THRESHOLD_MS = 30 * 60 * 1000;
+
 // Responsive breakpoints (desktop only — no mobile)
 export const BREAKPOINT_NARROW = 1024;
 export const BREAKPOINT_WIDE = 1280;

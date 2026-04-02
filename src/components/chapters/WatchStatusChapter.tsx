@@ -167,28 +167,31 @@ export const WatchStatusChapter: React.FC<WatchStatusChapterProps> = ({ viewMode
         );
       })()}
 
-      {viewMode === 'executive' && (
-        <div className="bg-soc-card border border-soc-border rounded-lg p-6">
-          <h3 className="text-lg font-medium text-gray-100 mb-4">Assessment</h3>
-          {metrics.staffing && (
-            <p className="text-gray-300 mb-4">
-              <strong className={
-                metrics.staffing.verdict === 'understaffed' ? 'text-red-400'
-                  : metrics.staffing.verdict === 'healthy' ? 'text-green-400'
-                    : 'text-yellow-400'
-              }>
-                {metrics.staffing.verdict.replace(/_/g, ' ').toUpperCase()}.
-              </strong>{' '}
-              {metrics.staffing.narrative}
-            </p>
-          )}
-          {(metrics.insights ?? []).length > 0 && (
-            <div className="space-y-2">
-              <h4 className="text-sm font-medium text-gray-400">Attention Items</h4>
-              {(metrics.insights ?? [])
-                .filter((i) => i.severity === 'critical' || i.severity === 'warning')
-                .slice(0, 6)
-                .map((insight) => (
+      {/* Assessment — visible to all view modes */}
+      {(() => {
+        const critical = (metrics.insights ?? []).filter(
+          (i) => i.severity === 'critical' || i.severity === 'warning',
+        );
+        if (!metrics.staffing && critical.length === 0) return null;
+        return (
+          <div className="bg-soc-card border border-soc-border rounded-lg p-6">
+            <h3 className="text-lg font-medium text-gray-100 mb-4">Assessment</h3>
+            {metrics.staffing && (
+              <p className="text-gray-300 mb-4">
+                <strong className={
+                  metrics.staffing.verdict === 'understaffed' ? 'text-red-400'
+                    : metrics.staffing.verdict === 'healthy' ? 'text-green-400'
+                      : 'text-yellow-400'
+                }>
+                  {metrics.staffing.verdict.replace(/_/g, ' ').toUpperCase()}.
+                </strong>{' '}
+                {metrics.staffing.narrative}
+              </p>
+            )}
+            {critical.length > 0 && (
+              <div className="space-y-2">
+                <h4 className="text-sm font-medium text-gray-400">Attention Items</h4>
+                {critical.slice(0, 6).map((insight) => (
                   <div key={insight.id} className="flex items-start gap-2 text-sm">
                     <span className={`mt-0.5 w-2 h-2 rounded-full shrink-0 ${
                       insight.severity === 'critical' ? 'bg-red-500' : 'bg-yellow-500'
@@ -196,10 +199,11 @@ export const WatchStatusChapter: React.FC<WatchStatusChapterProps> = ({ viewMode
                     <span className="text-gray-300">{insight.text}</span>
                   </div>
                 ))}
-            </div>
-          )}
-        </div>
-      )}
+              </div>
+            )}
+          </div>
+        );
+      })()}
     </div>
   );
 };

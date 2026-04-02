@@ -19,6 +19,7 @@ fn main() {
             let db = Database::open(&db_path)?;
             db.migrate()?;
             app.manage(db);
+            app.manage(sync::commands::SyncGuard::new());
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
