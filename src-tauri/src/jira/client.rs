@@ -16,6 +16,7 @@ pub struct JiraProject { pub id: String, pub key: String, pub name: String }
 pub struct JiraStatus { pub id: String, pub name: String, pub category_key: String, pub category_name: String }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct SearchResult { pub issues: Vec<JiraIssueRaw>, pub next_page_token: Option<String>, pub is_last: Option<bool> }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
