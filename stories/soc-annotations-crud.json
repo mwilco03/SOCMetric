@@ -1,0 +1,197 @@
+{
+  "schema_version": 18,
+  "standard_lib_version": 47,
+  "action_runtime_version": 6,
+  "name": "SOC: Annotations CRUD",
+  "description": "Day annotations. Body: {op, date?, annotation?}. date keys are YYYY-MM-DD.",
+  "guid": "9b7acf58a91efdfc914812a627194870",
+  "slug": "soc_annotations_crud",
+  "agents": [
+    {
+      "type": "Agents::WebhookAgent",
+      "name": "Webhook",
+      "disabled": false,
+      "description": "Body: {op, key?, value?, ...}. op in get|set|delete|bulk_set.",
+      "guid": "53e3f993342edd8a11bee117ffc4dc23",
+      "origin_story_identifier": "socmetric:tines-webapp:v1",
+      "options": {
+        "path": "5e6ff89aacd061703e09da4a91c4ddaa",
+        "secret": "b4acc7c661348e3d880fe9335fc208b3",
+        "verbs": "post"
+      },
+      "reporting": {
+        "time_saved_value": 0,
+        "time_saved_unit": "minutes"
+      },
+      "monitoring": {
+        "monitor_all_events": false,
+        "monitor_failures": false,
+        "monitor_no_events_emitted": null
+      },
+      "template": {
+        "created_from_template_guid": null,
+        "created_from_template_version": null,
+        "template_tags": []
+      },
+      "width": null,
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "schedule": null
+    },
+    {
+      "type": "Agents::EventTransformationAgent",
+      "name": "Route by op",
+      "disabled": false,
+      "description": null,
+      "guid": "09da44e58ddbce6752c49e588142dbe8",
+      "origin_story_identifier": "socmetric:tines-webapp:v1",
+      "options": {
+        "mode": "message_only",
+        "payload": {
+          "op": "<<op>>",
+          "current": "<<RESOURCE.soc_day_annotations>>",
+          "next_value": "<<CASE(true, op == 'set', MERGE(RESOURCE.soc_day_annotations, { (key): value }), op == 'delete', OMIT(RESOURCE.soc_day_annotations, key), op == 'bulk_set', MERGE(RESOURCE.soc_day_annotations, mappings), RESOURCE.soc_day_annotations)>>"
+        }
+      },
+      "reporting": {
+        "time_saved_value": 0,
+        "time_saved_unit": "minutes"
+      },
+      "monitoring": {
+        "monitor_all_events": false,
+        "monitor_failures": false,
+        "monitor_no_events_emitted": null
+      },
+      "template": {
+        "created_from_template_guid": null,
+        "created_from_template_version": null,
+        "template_tags": []
+      },
+      "width": null,
+      "position": {
+        "x": 0,
+        "y": 150
+      },
+      "schedule": null
+    },
+    {
+      "type": "Agents::HTTPRequestAgent",
+      "name": "Write back",
+      "disabled": false,
+      "description": "Only runs when op is set / delete / bulk_set. For op=get, the Trigger below bypasses this.",
+      "guid": "6930701fa24f2f86baf2d42e05493cf0",
+      "origin_story_identifier": "socmetric:tines-webapp:v1",
+      "options": {
+        "url": "<<RESOURCE_URL('soc_day_annotations')>>",
+        "method": "put",
+        "content_type": "application_json",
+        "payload": {
+          "value": "<<next_value>>"
+        }
+      },
+      "reporting": {
+        "time_saved_value": 0,
+        "time_saved_unit": "minutes"
+      },
+      "monitoring": {
+        "monitor_all_events": false,
+        "monitor_failures": false,
+        "monitor_no_events_emitted": null
+      },
+      "template": {
+        "created_from_template_guid": null,
+        "created_from_template_version": null,
+        "template_tags": []
+      },
+      "width": null,
+      "position": {
+        "x": 0,
+        "y": 300
+      },
+      "schedule": null
+    },
+    {
+      "type": "Agents::EventTransformationAgent",
+      "name": "Respond",
+      "disabled": false,
+      "description": null,
+      "guid": "9c6df482f3c61735946b70a1943ade2f",
+      "origin_story_identifier": "socmetric:tines-webapp:v1",
+      "options": {
+        "mode": "message_only",
+        "payload": {
+          "value": "<<IF(op == 'get', current, next_value)>>"
+        }
+      },
+      "reporting": {
+        "time_saved_value": 0,
+        "time_saved_unit": "minutes"
+      },
+      "monitoring": {
+        "monitor_all_events": false,
+        "monitor_failures": false,
+        "monitor_no_events_emitted": null
+      },
+      "template": {
+        "created_from_template_guid": null,
+        "created_from_template_version": null,
+        "template_tags": []
+      },
+      "width": null,
+      "position": {
+        "x": 0,
+        "y": 450
+      },
+      "schedule": null
+    }
+  ],
+  "diagram_notes": [],
+  "links": [
+    {
+      "source": 0,
+      "receiver": 1
+    },
+    {
+      "source": 1,
+      "receiver": 2
+    },
+    {
+      "source": 2,
+      "receiver": 3
+    }
+  ],
+  "diagram_layout": "{}",
+  "send_to_story_enabled": true,
+  "entry_agent_guid": "53e3f993342edd8a11bee117ffc4dc23",
+  "exit_agent_guids": [
+    "9c6df482f3c61735946b70a1943ade2f"
+  ],
+  "exit_agent_guid": "9c6df482f3c61735946b70a1943ade2f",
+  "api_entry_action_guids": [],
+  "api_exit_action_guids": [],
+  "keep_events_for": 604800,
+  "reporting_status": true,
+  "send_to_story_access": "team",
+  "story_library_metadata": {},
+  "parent_only_send_to_story": false,
+  "monitor_failures": false,
+  "send_to_stories": [],
+  "form": {},
+  "synchronous_webhooks_enabled": false,
+  "forms": [],
+  "pages": [],
+  "tags": [
+    "crud",
+    "socmetric"
+  ],
+  "time_saved_unit": "minutes",
+  "time_saved_value": 0,
+  "origin_story_identifier": "socmetric:tines-webapp:v1",
+  "integration_product": null,
+  "integration_vendor": null,
+  "exported_at": "2026-04-21T00:00:00Z",
+  "icon": null,
+  "integrations": []
+}

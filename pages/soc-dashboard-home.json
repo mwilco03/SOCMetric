@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "name": "SOC Dashboard Home",
+  "slug": "soc-dashboard-home",
+  "description": "Overview with headline KPIs and TTFT trend.",
+  "tags": [
+    "socmetric"
+  ],
+  "components": [
+    {
+      "id": "099fb995346f31c7",
+      "type": "markdown",
+      "title": null,
+      "body": "**SOCMetric** \u00b7 Last sync: `<<RESOURCE.soc_settings.last_sync_completed_at | relative_time>>` \u00b7 Status: `<<RESOURCE.soc_settings.last_sync_status>>`"
+    },
+    {
+      "id": "d72e5ee9b3678339",
+      "type": "markdown",
+      "title": null,
+      "body": "| [Home](/pages/soc-dashboard-home) | [Calendar](/pages/soc-calendar) | [Watch Status](/pages/soc-watch-status) | [Flow](/pages/soc-flow) | [Response Speed](/pages/soc-response-speed) | [Capacity](/pages/soc-capacity) | [Patterns](/pages/soc-patterns) | [Projections](/pages/soc-projections) | [Context Ledger](/pages/soc-context-ledger) | [Setup](/pages/soc-setup) |\n| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |\n"
+    },
+    {
+      "id": "63d721d24d2dde77",
+      "type": "markdown",
+      "title": null,
+      "visibility_formula": "<<RESOURCE.soc_settings.first_sync_completed_at == null>>",
+      "body": "> Setup is incomplete. Open the [Setup page](/pages/soc-setup) to configure the project, classify statuses, and run the first sync."
+    },
+    {
+      "id": "b637b17af08aced8",
+      "type": "metric_card",
+      "title": "Queue Depth",
+      "value_formula": "<<RESOURCE.soc_metrics_cache.headline.queue_depth>>",
+      "format": "integer"
+    },
+    {
+      "id": "61620957a1443c94",
+      "type": "metric_card",
+      "title": "Active Incidents",
+      "value_formula": "<<RESOURCE.soc_metrics_cache.headline.active_incident_count>>",
+      "format": "integer"
+    },
+    {
+      "id": "f7ab469d1dc79166",
+      "type": "metric_card",
+      "title": "TTFT P85 (hours)",
+      "value_formula": "<<RESOURCE.soc_metrics_cache.headline.ttft_p85_hours | round(1)>>",
+      "format": "decimal"
+    },
+    {
+      "id": "c90b440e841a6b82",
+      "type": "metric_card",
+      "title": "Net Velocity (7d)",
+      "value_formula": "<<RESOURCE.soc_metrics_cache.headline.net_velocity_7d | round(2)>>",
+      "format": "decimal"
+    },
+    {
+      "id": "97b2f1edf640580f",
+      "type": "metric_card",
+      "title": "Last Computed",
+      "value_formula": "<<RESOURCE.soc_metrics_cache.computed_at | relative_time>>",
+      "format": "text"
+    },
+    {
+      "id": "a9f7e97965d6cf79",
+      "type": "line_chart",
+      "title": "TTFT P85 Trend",
+      "data_formula": "<<RESOURCE.soc_metrics_cache.speed.response_time_trend>>",
+      "x_field": "date",
+      "y_field": "p85",
+      "y_label": "hours"
+    }
+  ],
+  "access": "tenant",
+  "exported_at": "2026-04-21T00:00:00Z"
+}

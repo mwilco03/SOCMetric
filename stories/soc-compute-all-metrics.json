@@ -1,0 +1,505 @@
+{
+  "schema_version": 18,
+  "standard_lib_version": 47,
+  "action_runtime_version": 6,
+  "name": "SOC: Compute all metrics",
+  "description": "Fan-out orchestrator. Reads tickets from soc_tickets_cache (handles sharded mode), broadcasts to each compute-* sub-story, merges results into soc_metrics_cache.",
+  "guid": "f058d7e00ee44940aa1e99a4296e02fe",
+  "slug": "soc_compute_all_metrics",
+  "agents": [
+    {
+      "type": "Agents::WebhookAgent",
+      "name": "Trigger",
+      "disabled": false,
+      "description": "Called by soc-jira-sync on successful sync, or manually from Setup.",
+      "guid": "0fd1c9a95cda0fe5be518b59b02c6a16",
+      "origin_story_identifier": "socmetric:tines-webapp:v1",
+      "options": {
+        "path": "e6c64caff18428b10ae948fcda135c85",
+        "secret": "6342989350b62629e90434115ecb9a8e",
+        "verbs": "post"
+      },
+      "reporting": {
+        "time_saved_value": 0,
+        "time_saved_unit": "minutes"
+      },
+      "monitoring": {
+        "monitor_all_events": false,
+        "monitor_failures": false,
+        "monitor_no_events_emitted": null
+      },
+      "template": {
+        "created_from_template_guid": null,
+        "created_from_template_version": null,
+        "template_tags": []
+      },
+      "width": null,
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "schedule": null
+    },
+    {
+      "type": "Agents::EventTransformationAgent",
+      "name": "Load inputs",
+      "disabled": false,
+      "description": null,
+      "guid": "dcdbdb5802c62b668e7864e066fd3cb1",
+      "origin_story_identifier": "socmetric:tines-webapp:v1",
+      "options": {
+        "mode": "message_only",
+        "payload": {
+          "tickets": "<<IF(RESOURCE.soc_tickets_cache.mode == 'inline', RESOURCE.soc_tickets_cache.tickets, FLATTEN(MAP_LAMBDA(RANGE(1, RESOURCE.soc_tickets_cache.shards + 1), i, RESOURCE_BY_NAME(CONCAT('soc_tickets_cache_shard_', PAD_LEFT(i, 3, '0'))).tickets)))>>",
+          "status_map": "<<RESOURCE.soc_status_map>>",
+          "label_config": "<<RESOURCE.soc_label_config>>",
+          "settings": "<<RESOURCE.soc_settings>>"
+        }
+      },
+      "reporting": {
+        "time_saved_value": 0,
+        "time_saved_unit": "minutes"
+      },
+      "monitoring": {
+        "monitor_all_events": false,
+        "monitor_failures": false,
+        "monitor_no_events_emitted": null
+      },
+      "template": {
+        "created_from_template_guid": null,
+        "created_from_template_version": null,
+        "template_tags": []
+      },
+      "width": null,
+      "position": {
+        "x": 0,
+        "y": 150
+      },
+      "schedule": null
+    },
+    {
+      "type": "Agents::SendToStoryAgent",
+      "name": "Fan out: headline",
+      "disabled": false,
+      "description": null,
+      "guid": "3dd551b6de82b1e4ca5518de3f054471",
+      "origin_story_identifier": "socmetric:tines-webapp:v1",
+      "options": {
+        "story_id": "<<STORY_ID('soc_compute_headline')>>",
+        "payload": {
+          "tickets": "<<tickets>>",
+          "status_map": "<<status_map>>"
+        }
+      },
+      "reporting": {
+        "time_saved_value": 0,
+        "time_saved_unit": "minutes"
+      },
+      "monitoring": {
+        "monitor_all_events": false,
+        "monitor_failures": false,
+        "monitor_no_events_emitted": null
+      },
+      "template": {
+        "created_from_template_guid": null,
+        "created_from_template_version": null,
+        "template_tags": []
+      },
+      "width": null,
+      "position": {
+        "x": -600,
+        "y": 300
+      },
+      "schedule": null
+    },
+    {
+      "type": "Agents::SendToStoryAgent",
+      "name": "Fan out: flow",
+      "disabled": false,
+      "description": null,
+      "guid": "7398900df6cae7851b963425aa73b66a",
+      "origin_story_identifier": "socmetric:tines-webapp:v1",
+      "options": {
+        "story_id": "<<STORY_ID('soc_compute_flow_lead_time')>>",
+        "payload": {
+          "tickets": "<<tickets>>",
+          "status_map": "<<status_map>>"
+        }
+      },
+      "reporting": {
+        "time_saved_value": 0,
+        "time_saved_unit": "minutes"
+      },
+      "monitoring": {
+        "monitor_all_events": false,
+        "monitor_failures": false,
+        "monitor_no_events_emitted": null
+      },
+      "template": {
+        "created_from_template_guid": null,
+        "created_from_template_version": null,
+        "template_tags": []
+      },
+      "width": null,
+      "position": {
+        "x": -400,
+        "y": 300
+      },
+      "schedule": null
+    },
+    {
+      "type": "Agents::SendToStoryAgent",
+      "name": "Fan out: speed",
+      "disabled": false,
+      "description": null,
+      "guid": "cbeea874f01039d0da64f2db464644a6",
+      "origin_story_identifier": "socmetric:tines-webapp:v1",
+      "options": {
+        "story_id": "<<STORY_ID('soc_compute_response_speed')>>",
+        "payload": {
+          "tickets": "<<tickets>>"
+        }
+      },
+      "reporting": {
+        "time_saved_value": 0,
+        "time_saved_unit": "minutes"
+      },
+      "monitoring": {
+        "monitor_all_events": false,
+        "monitor_failures": false,
+        "monitor_no_events_emitted": null
+      },
+      "template": {
+        "created_from_template_guid": null,
+        "created_from_template_version": null,
+        "template_tags": []
+      },
+      "width": null,
+      "position": {
+        "x": -200,
+        "y": 300
+      },
+      "schedule": null
+    },
+    {
+      "type": "Agents::SendToStoryAgent",
+      "name": "Fan out: capacity",
+      "disabled": false,
+      "description": null,
+      "guid": "6437bfbcccd0b702c336c5860e3f61d2",
+      "origin_story_identifier": "socmetric:tines-webapp:v1",
+      "options": {
+        "story_id": "<<STORY_ID('soc_compute_capacity_shift')>>",
+        "payload": {
+          "tickets": "<<tickets>>",
+          "business_hours": "<<settings.business_hours>>"
+        }
+      },
+      "reporting": {
+        "time_saved_value": 0,
+        "time_saved_unit": "minutes"
+      },
+      "monitoring": {
+        "monitor_all_events": false,
+        "monitor_failures": false,
+        "monitor_no_events_emitted": null
+      },
+      "template": {
+        "created_from_template_guid": null,
+        "created_from_template_version": null,
+        "template_tags": []
+      },
+      "width": null,
+      "position": {
+        "x": 0,
+        "y": 300
+      },
+      "schedule": null
+    },
+    {
+      "type": "Agents::SendToStoryAgent",
+      "name": "Fan out: patterns",
+      "disabled": false,
+      "description": null,
+      "guid": "dc4d0b4a161e9f41016f13d88c547add",
+      "origin_story_identifier": "socmetric:tines-webapp:v1",
+      "options": {
+        "story_id": "<<STORY_ID('soc_compute_patterns_recurrence')>>",
+        "payload": {
+          "tickets": "<<tickets>>",
+          "label_config": "<<label_config>>"
+        }
+      },
+      "reporting": {
+        "time_saved_value": 0,
+        "time_saved_unit": "minutes"
+      },
+      "monitoring": {
+        "monitor_all_events": false,
+        "monitor_failures": false,
+        "monitor_no_events_emitted": null
+      },
+      "template": {
+        "created_from_template_guid": null,
+        "created_from_template_version": null,
+        "template_tags": []
+      },
+      "width": null,
+      "position": {
+        "x": 200,
+        "y": 300
+      },
+      "schedule": null
+    },
+    {
+      "type": "Agents::SendToStoryAgent",
+      "name": "Fan out: projections",
+      "disabled": false,
+      "description": null,
+      "guid": "88f411370e89f61689e9c3d0892170ca",
+      "origin_story_identifier": "socmetric:tines-webapp:v1",
+      "options": {
+        "story_id": "<<STORY_ID('soc_compute_projections')>>",
+        "payload": {
+          "tickets": "<<tickets>>"
+        }
+      },
+      "reporting": {
+        "time_saved_value": 0,
+        "time_saved_unit": "minutes"
+      },
+      "monitoring": {
+        "monitor_all_events": false,
+        "monitor_failures": false,
+        "monitor_no_events_emitted": null
+      },
+      "template": {
+        "created_from_template_guid": null,
+        "created_from_template_version": null,
+        "template_tags": []
+      },
+      "width": null,
+      "position": {
+        "x": 400,
+        "y": 300
+      },
+      "schedule": null
+    },
+    {
+      "type": "Agents::SendToStoryAgent",
+      "name": "Fan out: calendar",
+      "disabled": false,
+      "description": null,
+      "guid": "6e8205a4bab1ade99833695cc708ecee",
+      "origin_story_identifier": "socmetric:tines-webapp:v1",
+      "options": {
+        "story_id": "<<STORY_ID('soc_compute_calendar_view')>>",
+        "payload": {
+          "tickets": "<<tickets>>",
+          "label_config": "<<label_config>>"
+        }
+      },
+      "reporting": {
+        "time_saved_value": 0,
+        "time_saved_unit": "minutes"
+      },
+      "monitoring": {
+        "monitor_all_events": false,
+        "monitor_failures": false,
+        "monitor_no_events_emitted": null
+      },
+      "template": {
+        "created_from_template_guid": null,
+        "created_from_template_version": null,
+        "template_tags": []
+      },
+      "width": null,
+      "position": {
+        "x": 600,
+        "y": 300
+      },
+      "schedule": null
+    },
+    {
+      "type": "Agents::EventTransformationAgent",
+      "name": "Merge results",
+      "disabled": false,
+      "description": null,
+      "guid": "1447906d8b57db4673bfc051a7d6829a",
+      "origin_story_identifier": "socmetric:tines-webapp:v1",
+      "options": {
+        "mode": "message_only",
+        "payload": {
+          "computed_at": "<<NOW()>>",
+          "project_key": "<<settings.project_key>>",
+          "date_range": {
+            "start": "<<DATE_SUBTRACT(NOW(), settings.date_range_days, 'days')>>",
+            "end": "<<NOW()>>"
+          },
+          "headline": "<<SUBSTORY_RESULT('soc_compute_headline').value>>",
+          "flow": "<<SUBSTORY_RESULT('soc_compute_flow_lead_time').value>>",
+          "speed": "<<SUBSTORY_RESULT('soc_compute_response_speed').value>>",
+          "capacity": "<<SUBSTORY_RESULT('soc_compute_capacity_shift').value>>",
+          "patterns": "<<SUBSTORY_RESULT('soc_compute_patterns_recurrence').value>>",
+          "projections": "<<SUBSTORY_RESULT('soc_compute_projections').value>>",
+          "calendar": "<<SUBSTORY_RESULT('soc_compute_calendar_view').value>>"
+        }
+      },
+      "reporting": {
+        "time_saved_value": 0,
+        "time_saved_unit": "minutes"
+      },
+      "monitoring": {
+        "monitor_all_events": false,
+        "monitor_failures": false,
+        "monitor_no_events_emitted": null
+      },
+      "template": {
+        "created_from_template_guid": null,
+        "created_from_template_version": null,
+        "template_tags": []
+      },
+      "width": null,
+      "position": {
+        "x": 0,
+        "y": 450
+      },
+      "schedule": null
+    },
+    {
+      "type": "Agents::HTTPRequestAgent",
+      "name": "Write metrics cache",
+      "disabled": false,
+      "description": null,
+      "guid": "9ce3ff42e702b4196811c0c94c03eba4",
+      "origin_story_identifier": "socmetric:tines-webapp:v1",
+      "options": {
+        "url": "<<RESOURCE_URL('soc_metrics_cache')>>",
+        "method": "put",
+        "content_type": "application_json",
+        "payload": {
+          "value": "<<.>>"
+        }
+      },
+      "reporting": {
+        "time_saved_value": 0,
+        "time_saved_unit": "minutes"
+      },
+      "monitoring": {
+        "monitor_all_events": false,
+        "monitor_failures": false,
+        "monitor_no_events_emitted": null
+      },
+      "template": {
+        "created_from_template_guid": null,
+        "created_from_template_version": null,
+        "template_tags": []
+      },
+      "width": null,
+      "position": {
+        "x": 0,
+        "y": 600
+      },
+      "schedule": null
+    }
+  ],
+  "diagram_notes": [],
+  "links": [
+    {
+      "source": 0,
+      "receiver": 1
+    },
+    {
+      "source": 1,
+      "receiver": 2
+    },
+    {
+      "source": 1,
+      "receiver": 3
+    },
+    {
+      "source": 1,
+      "receiver": 4
+    },
+    {
+      "source": 1,
+      "receiver": 5
+    },
+    {
+      "source": 1,
+      "receiver": 6
+    },
+    {
+      "source": 1,
+      "receiver": 7
+    },
+    {
+      "source": 1,
+      "receiver": 8
+    },
+    {
+      "source": 2,
+      "receiver": 9
+    },
+    {
+      "source": 3,
+      "receiver": 9
+    },
+    {
+      "source": 4,
+      "receiver": 9
+    },
+    {
+      "source": 5,
+      "receiver": 9
+    },
+    {
+      "source": 6,
+      "receiver": 9
+    },
+    {
+      "source": 7,
+      "receiver": 9
+    },
+    {
+      "source": 8,
+      "receiver": 9
+    },
+    {
+      "source": 9,
+      "receiver": 10
+    }
+  ],
+  "diagram_layout": "{}",
+  "send_to_story_enabled": true,
+  "entry_agent_guid": "0fd1c9a95cda0fe5be518b59b02c6a16",
+  "exit_agent_guids": [
+    "9ce3ff42e702b4196811c0c94c03eba4"
+  ],
+  "exit_agent_guid": "9ce3ff42e702b4196811c0c94c03eba4",
+  "api_entry_action_guids": [],
+  "api_exit_action_guids": [],
+  "keep_events_for": 604800,
+  "reporting_status": true,
+  "send_to_story_access": "team",
+  "story_library_metadata": {},
+  "parent_only_send_to_story": false,
+  "monitor_failures": false,
+  "send_to_stories": [],
+  "form": {},
+  "synchronous_webhooks_enabled": false,
+  "forms": [],
+  "pages": [],
+  "tags": [
+    "compute",
+    "socmetric"
+  ],
+  "time_saved_unit": "minutes",
+  "time_saved_value": 0,
+  "origin_story_identifier": "socmetric:tines-webapp:v1",
+  "integration_product": null,
+  "integration_vendor": null,
+  "exported_at": "2026-04-21T00:00:00Z",
+  "icon": null,
+  "integrations": []
+}

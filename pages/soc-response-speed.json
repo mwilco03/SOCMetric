@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "name": "Response Speed",
+  "slug": "soc-response-speed",
+  "description": "TTFT percentiles and closure burst detection.",
+  "tags": [
+    "socmetric"
+  ],
+  "components": [
+    {
+      "id": "099fb995346f31c7",
+      "type": "markdown",
+      "title": null,
+      "body": "**SOCMetric** \u00b7 Last sync: `<<RESOURCE.soc_settings.last_sync_completed_at | relative_time>>` \u00b7 Status: `<<RESOURCE.soc_settings.last_sync_status>>`"
+    },
+    {
+      "id": "d72e5ee9b3678339",
+      "type": "markdown",
+      "title": null,
+      "body": "| [Home](/pages/soc-dashboard-home) | [Calendar](/pages/soc-calendar) | [Watch Status](/pages/soc-watch-status) | [Flow](/pages/soc-flow) | [Response Speed](/pages/soc-response-speed) | [Capacity](/pages/soc-capacity) | [Patterns](/pages/soc-patterns) | [Projections](/pages/soc-projections) | [Context Ledger](/pages/soc-context-ledger) | [Setup](/pages/soc-setup) |\n| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |\n"
+    },
+    {
+      "id": "63d721d24d2dde77",
+      "type": "markdown",
+      "title": null,
+      "visibility_formula": "<<RESOURCE.soc_settings.first_sync_completed_at == null>>",
+      "body": "> Setup is incomplete. Open the [Setup page](/pages/soc-setup) to configure the project, classify statuses, and run the first sync."
+    },
+    {
+      "id": "7c92cf1eee8d99cc",
+      "type": "metric_card",
+      "title": "TTFT P50",
+      "value_formula": "<<RESOURCE.soc_metrics_cache.speed.ttft_percentiles.p50 | round(1)>>"
+    },
+    {
+      "id": "d279186428a75016",
+      "type": "metric_card",
+      "title": "TTFT P85",
+      "value_formula": "<<RESOURCE.soc_metrics_cache.speed.ttft_percentiles.p85 | round(1)>>"
+    },
+    {
+      "id": "9d3e622df914d8de",
+      "type": "metric_card",
+      "title": "TTFT P95",
+      "value_formula": "<<RESOURCE.soc_metrics_cache.speed.ttft_percentiles.p95 | round(1)>>"
+    },
+    {
+      "id": "44379f2b1a5611f6",
+      "type": "line_chart",
+      "title": "TTFT P85 trend",
+      "data_formula": "<<RESOURCE.soc_metrics_cache.speed.response_time_trend>>",
+      "x_field": "date",
+      "y_field": "p85"
+    },
+    {
+      "id": "ed84d589f231f3dc",
+      "type": "table",
+      "title": "Closure bursts",
+      "rows_formula": "<<RESOURCE.soc_metrics_cache.speed.closure_bursts>>",
+      "columns": [
+        {
+          "field": "start",
+          "header": "Window start"
+        },
+        {
+          "field": "count",
+          "header": "Tickets closed"
+        }
+      ]
+    }
+  ],
+  "access": "tenant",
+  "exported_at": "2026-04-21T00:00:00Z"
+}

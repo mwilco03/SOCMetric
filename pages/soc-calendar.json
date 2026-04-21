@@ -1,0 +1,93 @@
+{
+  "schema_version": 1,
+  "name": "Calendar",
+  "slug": "soc-calendar",
+  "description": "Daily ticket volume with label breakdown and annotations.",
+  "tags": [
+    "socmetric"
+  ],
+  "components": [
+    {
+      "id": "099fb995346f31c7",
+      "type": "markdown",
+      "title": null,
+      "body": "**SOCMetric** \u00b7 Last sync: `<<RESOURCE.soc_settings.last_sync_completed_at | relative_time>>` \u00b7 Status: `<<RESOURCE.soc_settings.last_sync_status>>`"
+    },
+    {
+      "id": "d72e5ee9b3678339",
+      "type": "markdown",
+      "title": null,
+      "body": "| [Home](/pages/soc-dashboard-home) | [Calendar](/pages/soc-calendar) | [Watch Status](/pages/soc-watch-status) | [Flow](/pages/soc-flow) | [Response Speed](/pages/soc-response-speed) | [Capacity](/pages/soc-capacity) | [Patterns](/pages/soc-patterns) | [Projections](/pages/soc-projections) | [Context Ledger](/pages/soc-context-ledger) | [Setup](/pages/soc-setup) |\n| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |\n"
+    },
+    {
+      "id": "63d721d24d2dde77",
+      "type": "markdown",
+      "title": null,
+      "visibility_formula": "<<RESOURCE.soc_settings.first_sync_completed_at == null>>",
+      "body": "> Setup is incomplete. Open the [Setup page](/pages/soc-setup) to configure the project, classify statuses, and run the first sync."
+    },
+    {
+      "id": "436c3ea4ea5ce7a6",
+      "type": "markdown",
+      "body": "### Month: `<<RESOURCE.soc_settings.calendar_view_month | default(NOW() | date_format('yyyy-MM'))>>`"
+    },
+    {
+      "id": "fcb08b164ac83e09",
+      "type": "button",
+      "label": "< Prev month",
+      "action": {
+        "trigger_story": "soc_settings_crud",
+        "payload": {
+          "op": "set",
+          "key": "calendar_view_month",
+          "value": "<<DATE_FORMAT(DATE_SUBTRACT(DATE_PARSE(RESOURCE.soc_settings.calendar_view_month + '-01'), 1, 'months'), 'yyyy-MM')>>"
+        }
+      }
+    },
+    {
+      "id": "d0cab90d8d20d57e",
+      "type": "button",
+      "label": "Next month >",
+      "action": {
+        "trigger_story": "soc_settings_crud",
+        "payload": {
+          "op": "set",
+          "key": "calendar_view_month",
+          "value": "<<DATE_FORMAT(DATE_ADD(DATE_PARSE(RESOURCE.soc_settings.calendar_view_month + '-01'), 1, 'months'), 'yyyy-MM')>>"
+        }
+      }
+    },
+    {
+      "id": "ff4a008470319a22",
+      "type": "markdown",
+      "body": "<div class='cal-grid'>\n<<FOR d IN CALENDAR_CELLS(RESOURCE.soc_settings.calendar_view_month)>>\n  <div class='cell <<d.is_current_month ? '' : 'dim'>> <<IS_TODAY(d.date) ? 'today' : ''>>'>\n    <div class='day-num'><<d.day>></div>\n    <div class='total'><<RESOURCE.soc_metrics_cache.calendar.days | find(date == d.date) | pluck('total') | default(0)>></div>\n    <div class='labels'>\n      <<FOR l IN (RESOURCE.soc_metrics_cache.calendar.days | find(date == d.date) | pluck('labels') | default([]))>>\n        <span class='chip' style='background: <<HASH_COLOR(l.label)>>'><<l.label>>: <<l.count>></span>\n      <<ENDFOR>>\n    </div>\n    <div class='note'><<RESOURCE.soc_day_annotations[d.date]>></div>\n  </div>\n<<ENDFOR>>\n</div>\n"
+    },
+    {
+      "id": "53325e93c4f14ba0",
+      "type": "form",
+      "title": "Annotate a day",
+      "fields": [
+        {
+          "key": "date",
+          "type": "date",
+          "label": "Date"
+        },
+        {
+          "key": "annotation",
+          "type": "text",
+          "label": "Note"
+        }
+      ],
+      "submit": {
+        "trigger_story": "soc_annotations_crud",
+        "payload": {
+          "op": "set",
+          "date": "<<fields.date>>",
+          "annotation": "<<fields.annotation>>"
+        }
+      }
+    }
+  ],
+  "access": "tenant",
+  "exported_at": "2026-04-21T00:00:00Z"
+}

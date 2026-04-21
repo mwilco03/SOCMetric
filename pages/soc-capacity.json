@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "name": "Capacity",
+  "slug": "soc-capacity",
+  "description": "Shift rollover, after-hours load, staffing verdict.",
+  "tags": [
+    "socmetric"
+  ],
+  "components": [
+    {
+      "id": "099fb995346f31c7",
+      "type": "markdown",
+      "title": null,
+      "body": "**SOCMetric** \u00b7 Last sync: `<<RESOURCE.soc_settings.last_sync_completed_at | relative_time>>` \u00b7 Status: `<<RESOURCE.soc_settings.last_sync_status>>`"
+    },
+    {
+      "id": "d72e5ee9b3678339",
+      "type": "markdown",
+      "title": null,
+      "body": "| [Home](/pages/soc-dashboard-home) | [Calendar](/pages/soc-calendar) | [Watch Status](/pages/soc-watch-status) | [Flow](/pages/soc-flow) | [Response Speed](/pages/soc-response-speed) | [Capacity](/pages/soc-capacity) | [Patterns](/pages/soc-patterns) | [Projections](/pages/soc-projections) | [Context Ledger](/pages/soc-context-ledger) | [Setup](/pages/soc-setup) |\n| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |\n"
+    },
+    {
+      "id": "63d721d24d2dde77",
+      "type": "markdown",
+      "title": null,
+      "visibility_formula": "<<RESOURCE.soc_settings.first_sync_completed_at == null>>",
+      "body": "> Setup is incomplete. Open the [Setup page](/pages/soc-setup) to configure the project, classify statuses, and run the first sync."
+    },
+    {
+      "id": "a9f7e97965d6cf79",
+      "type": "markdown",
+      "body": "### Verdict: `<<RESOURCE.soc_metrics_cache.capacity.staffing_verdict>>`"
+    },
+    {
+      "id": "9ab62b5ef34a9854",
+      "type": "metric_card",
+      "title": "After-hours transitions",
+      "value_formula": "<<RESOURCE.soc_metrics_cache.capacity.after_hours_transitions>>"
+    },
+    {
+      "id": "0a3d72134fb3d6c0",
+      "type": "metric_card",
+      "title": "Velocity under load",
+      "value_formula": "<<RESOURCE.soc_metrics_cache.capacity.velocity_under_load | round(2)>>"
+    },
+    {
+      "id": "cb7524d792327e4c",
+      "type": "heatmap",
+      "title": "Shift rollover",
+      "data_formula": "<<RESOURCE.soc_metrics_cache.capacity.shift_rollover>>",
+      "x_field": "date",
+      "y_field": "shift",
+      "value_field": "rollover_count"
+    }
+  ],
+  "access": "tenant",
+  "exported_at": "2026-04-21T00:00:00Z"
+}

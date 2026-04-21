@@ -1,0 +1,197 @@
+{
+  "schema_version": 18,
+  "standard_lib_version": 47,
+  "action_runtime_version": 6,
+  "name": "SOC: Labels CRUD",
+  "description": "Toggles per-label inclusion in metrics. Body: {op, label?, included?}.",
+  "guid": "dcd08eb36dafa73f176b4467e470f0c3",
+  "slug": "soc_labels_crud",
+  "agents": [
+    {
+      "type": "Agents::WebhookAgent",
+      "name": "Webhook",
+      "disabled": false,
+      "description": "Body: {op, key?, value?, ...}. op in get|set|delete|bulk_set.",
+      "guid": "f122c38df5e1de1aa0656237beb00418",
+      "origin_story_identifier": "socmetric:tines-webapp:v1",
+      "options": {
+        "path": "af73f82f59f1d0e3414b2507e660aace",
+        "secret": "1644b07965f5b03a94dd9d814f8c7481",
+        "verbs": "post"
+      },
+      "reporting": {
+        "time_saved_value": 0,
+        "time_saved_unit": "minutes"
+      },
+      "monitoring": {
+        "monitor_all_events": false,
+        "monitor_failures": false,
+        "monitor_no_events_emitted": null
+      },
+      "template": {
+        "created_from_template_guid": null,
+        "created_from_template_version": null,
+        "template_tags": []
+      },
+      "width": null,
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "schedule": null
+    },
+    {
+      "type": "Agents::EventTransformationAgent",
+      "name": "Route by op",
+      "disabled": false,
+      "description": null,
+      "guid": "ce72b565106921252ac89b8165633ed2",
+      "origin_story_identifier": "socmetric:tines-webapp:v1",
+      "options": {
+        "mode": "message_only",
+        "payload": {
+          "op": "<<op>>",
+          "current": "<<RESOURCE.soc_label_config>>",
+          "next_value": "<<CASE(true, op == 'set', MERGE(RESOURCE.soc_label_config, { (key): value }), op == 'delete', OMIT(RESOURCE.soc_label_config, key), op == 'bulk_set', MERGE(RESOURCE.soc_label_config, mappings), RESOURCE.soc_label_config)>>"
+        }
+      },
+      "reporting": {
+        "time_saved_value": 0,
+        "time_saved_unit": "minutes"
+      },
+      "monitoring": {
+        "monitor_all_events": false,
+        "monitor_failures": false,
+        "monitor_no_events_emitted": null
+      },
+      "template": {
+        "created_from_template_guid": null,
+        "created_from_template_version": null,
+        "template_tags": []
+      },
+      "width": null,
+      "position": {
+        "x": 0,
+        "y": 150
+      },
+      "schedule": null
+    },
+    {
+      "type": "Agents::HTTPRequestAgent",
+      "name": "Write back",
+      "disabled": false,
+      "description": "Only runs when op is set / delete / bulk_set. For op=get, the Trigger below bypasses this.",
+      "guid": "8d6f06b4db41f76add80e80022ff728f",
+      "origin_story_identifier": "socmetric:tines-webapp:v1",
+      "options": {
+        "url": "<<RESOURCE_URL('soc_label_config')>>",
+        "method": "put",
+        "content_type": "application_json",
+        "payload": {
+          "value": "<<next_value>>"
+        }
+      },
+      "reporting": {
+        "time_saved_value": 0,
+        "time_saved_unit": "minutes"
+      },
+      "monitoring": {
+        "monitor_all_events": false,
+        "monitor_failures": false,
+        "monitor_no_events_emitted": null
+      },
+      "template": {
+        "created_from_template_guid": null,
+        "created_from_template_version": null,
+        "template_tags": []
+      },
+      "width": null,
+      "position": {
+        "x": 0,
+        "y": 300
+      },
+      "schedule": null
+    },
+    {
+      "type": "Agents::EventTransformationAgent",
+      "name": "Respond",
+      "disabled": false,
+      "description": null,
+      "guid": "d73e763b3d01cd5d9c0c070a8a6e4431",
+      "origin_story_identifier": "socmetric:tines-webapp:v1",
+      "options": {
+        "mode": "message_only",
+        "payload": {
+          "value": "<<IF(op == 'get', current, next_value)>>"
+        }
+      },
+      "reporting": {
+        "time_saved_value": 0,
+        "time_saved_unit": "minutes"
+      },
+      "monitoring": {
+        "monitor_all_events": false,
+        "monitor_failures": false,
+        "monitor_no_events_emitted": null
+      },
+      "template": {
+        "created_from_template_guid": null,
+        "created_from_template_version": null,
+        "template_tags": []
+      },
+      "width": null,
+      "position": {
+        "x": 0,
+        "y": 450
+      },
+      "schedule": null
+    }
+  ],
+  "diagram_notes": [],
+  "links": [
+    {
+      "source": 0,
+      "receiver": 1
+    },
+    {
+      "source": 1,
+      "receiver": 2
+    },
+    {
+      "source": 2,
+      "receiver": 3
+    }
+  ],
+  "diagram_layout": "{}",
+  "send_to_story_enabled": true,
+  "entry_agent_guid": "f122c38df5e1de1aa0656237beb00418",
+  "exit_agent_guids": [
+    "d73e763b3d01cd5d9c0c070a8a6e4431"
+  ],
+  "exit_agent_guid": "d73e763b3d01cd5d9c0c070a8a6e4431",
+  "api_entry_action_guids": [],
+  "api_exit_action_guids": [],
+  "keep_events_for": 604800,
+  "reporting_status": true,
+  "send_to_story_access": "team",
+  "story_library_metadata": {},
+  "parent_only_send_to_story": false,
+  "monitor_failures": false,
+  "send_to_stories": [],
+  "form": {},
+  "synchronous_webhooks_enabled": false,
+  "forms": [],
+  "pages": [],
+  "tags": [
+    "crud",
+    "socmetric"
+  ],
+  "time_saved_unit": "minutes",
+  "time_saved_value": 0,
+  "origin_story_identifier": "socmetric:tines-webapp:v1",
+  "integration_product": null,
+  "integration_vendor": null,
+  "exported_at": "2026-04-21T00:00:00Z",
+  "icon": null,
+  "integrations": []
+}

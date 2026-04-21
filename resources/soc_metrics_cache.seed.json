@@ -1,0 +1,48 @@
+{
+  "computed_at": null,
+  "project_key": null,
+  "date_range": { "start": null, "end": null },
+  "headline": {
+    "queue_depth": 0,
+    "active_incident_count": 0,
+    "net_velocity_7d": 0,
+    "ttft_p50_hours": null,
+    "ttft_p85_hours": null,
+    "ttft_p95_hours": null
+  },
+  "flow": {
+    "lead_time": {
+      "queue_wait": { "p50": null, "p85": null, "p95": null },
+      "active_work": { "p50": null, "p85": null, "p95": null },
+      "post_active_wait": { "p50": null, "p85": null, "p95": null }
+    },
+    "aging_buckets": [],
+    "stalled_tickets": 0,
+    "closure_integrity": {
+      "instant": 0, "untouched": 0, "normal": 0, "churned": 0, "still_open": 0
+    }
+  },
+  "speed": {
+    "ttft_percentiles": { "p50": null, "p85": null, "p95": null },
+    "response_time_trend": [],
+    "closure_bursts": []
+  },
+  "capacity": {
+    "shift_rollover": [],
+    "after_hours_transitions": 0,
+    "staffing_verdict": "healthy",
+    "velocity_under_load": 0
+  },
+  "patterns": {
+    "clusters": [],
+    "recurrence": { "rapid": 0, "slow": 0 }
+  },
+  "projections": {
+    "method": "linear",
+    "forecast": [],
+    "r2": null
+  },
+  "calendar": {
+    "days": []
+  }
+}

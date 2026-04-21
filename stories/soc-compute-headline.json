@@ -1,0 +1,157 @@
+{
+  "schema_version": 18,
+  "standard_lib_version": 47,
+  "action_runtime_version": 6,
+  "name": "SOC: Compute headline",
+  "description": "Queue depth, active incidents, net velocity, TTFT percentiles. See docs/metric-mapping.md -> headlineMetrics.",
+  "guid": "62d440b49914d9e1dd5224db2457fa3e",
+  "slug": "soc_compute_headline",
+  "agents": [
+    {
+      "type": "Agents::WebhookAgent",
+      "name": "Trigger (from parent)",
+      "disabled": false,
+      "description": "Entry. Receives {tickets, status_map, business_hours}.",
+      "guid": "17b6bf7b4eae464c67d50229ecaf06c9",
+      "origin_story_identifier": "socmetric:tines-webapp:v1",
+      "options": {
+        "path": "ca36f470f19e93e47e8ba7c47c174c66",
+        "secret": "bb61e6203dfdfff52e9e906f993326e6",
+        "verbs": "post"
+      },
+      "reporting": {
+        "time_saved_value": 0,
+        "time_saved_unit": "minutes"
+      },
+      "monitoring": {
+        "monitor_all_events": false,
+        "monitor_failures": false,
+        "monitor_no_events_emitted": null
+      },
+      "template": {
+        "created_from_template_guid": null,
+        "created_from_template_version": null,
+        "template_tags": []
+      },
+      "width": null,
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "schedule": null
+    },
+    {
+      "type": "Agents::EventTransformationAgent",
+      "name": "Compute",
+      "disabled": false,
+      "description": "Queue depth, active incidents, net velocity, TTFT percentiles. See docs/metric-mapping.md -> headlineMetrics.",
+      "guid": "ca33160babb06bc7268b225fe3b60fe5",
+      "origin_story_identifier": "socmetric:tines-webapp:v1",
+      "options": {
+        "mode": "message_only",
+        "payload": {
+          "slice": "queue_depth / active_incident_count / net_velocity_7d / ttft_{p50,p85,p95}_hours",
+          "_implementation_notes": "See docs/metric-mapping.md for the formula chain that lives in this agent."
+        }
+      },
+      "reporting": {
+        "time_saved_value": 0,
+        "time_saved_unit": "minutes"
+      },
+      "monitoring": {
+        "monitor_all_events": false,
+        "monitor_failures": false,
+        "monitor_no_events_emitted": null
+      },
+      "template": {
+        "created_from_template_guid": null,
+        "created_from_template_version": null,
+        "template_tags": []
+      },
+      "width": null,
+      "position": {
+        "x": 0,
+        "y": 150
+      },
+      "schedule": null
+    },
+    {
+      "type": "Agents::EventTransformationAgent",
+      "name": "Return result",
+      "disabled": false,
+      "description": "Shapes output for parent to merge into soc_metrics_cache.",
+      "guid": "5baacc1b22eaef92eb7e08c155725943",
+      "origin_story_identifier": "socmetric:tines-webapp:v1",
+      "options": {
+        "mode": "message_only",
+        "payload": {
+          "key": "headline",
+          "value": "<<slice>>"
+        }
+      },
+      "reporting": {
+        "time_saved_value": 0,
+        "time_saved_unit": "minutes"
+      },
+      "monitoring": {
+        "monitor_all_events": false,
+        "monitor_failures": false,
+        "monitor_no_events_emitted": null
+      },
+      "template": {
+        "created_from_template_guid": null,
+        "created_from_template_version": null,
+        "template_tags": []
+      },
+      "width": null,
+      "position": {
+        "x": 0,
+        "y": 300
+      },
+      "schedule": null
+    }
+  ],
+  "diagram_notes": [],
+  "links": [
+    {
+      "source": 0,
+      "receiver": 1
+    },
+    {
+      "source": 1,
+      "receiver": 2
+    }
+  ],
+  "diagram_layout": "{}",
+  "send_to_story_enabled": true,
+  "entry_agent_guid": "17b6bf7b4eae464c67d50229ecaf06c9",
+  "exit_agent_guids": [
+    "5baacc1b22eaef92eb7e08c155725943"
+  ],
+  "exit_agent_guid": "5baacc1b22eaef92eb7e08c155725943",
+  "api_entry_action_guids": [],
+  "api_exit_action_guids": [],
+  "keep_events_for": 604800,
+  "reporting_status": true,
+  "send_to_story_access": "team",
+  "story_library_metadata": {},
+  "parent_only_send_to_story": false,
+  "monitor_failures": false,
+  "send_to_stories": [],
+  "form": {},
+  "synchronous_webhooks_enabled": false,
+  "forms": [],
+  "pages": [],
+  "tags": [
+    "compute",
+    "socmetric"
+  ],
+  "time_saved_unit": "minutes",
+  "time_saved_value": 0,
+  "origin_story_identifier": "socmetric:tines-webapp:v1",
+  "integration_product": null,
+  "integration_vendor": null,
+  "exported_at": "2026-04-21T00:00:00Z",
+  "icon": null,
+  "integrations": []
+}

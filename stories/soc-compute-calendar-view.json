@@ -1,0 +1,157 @@
+{
+  "schema_version": 18,
+  "standard_lib_version": 47,
+  "action_runtime_version": 6,
+  "name": "SOC: Compute calendar view",
+  "description": "Per-day ticket totals and top-5 label breakdown plus 'other'.",
+  "guid": "54a26b6e3fc0a5c3ee508be3fb0b2953",
+  "slug": "soc_compute_calendar_view",
+  "agents": [
+    {
+      "type": "Agents::WebhookAgent",
+      "name": "Trigger (from parent)",
+      "disabled": false,
+      "description": "Entry. Receives {tickets, status_map, business_hours}.",
+      "guid": "175917fb5f6bd2a9be1aeac4077cedc3",
+      "origin_story_identifier": "socmetric:tines-webapp:v1",
+      "options": {
+        "path": "03719525b82528f0311281f1a5c756de",
+        "secret": "4ef110c1471183f4283aea61a1d1431a",
+        "verbs": "post"
+      },
+      "reporting": {
+        "time_saved_value": 0,
+        "time_saved_unit": "minutes"
+      },
+      "monitoring": {
+        "monitor_all_events": false,
+        "monitor_failures": false,
+        "monitor_no_events_emitted": null
+      },
+      "template": {
+        "created_from_template_guid": null,
+        "created_from_template_version": null,
+        "template_tags": []
+      },
+      "width": null,
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "schedule": null
+    },
+    {
+      "type": "Agents::EventTransformationAgent",
+      "name": "Compute",
+      "disabled": false,
+      "description": "Per-day ticket totals and top-5 label breakdown plus 'other'.",
+      "guid": "aa81fa8b6c52c24dc189c5fae8f8863a",
+      "origin_story_identifier": "socmetric:tines-webapp:v1",
+      "options": {
+        "mode": "message_only",
+        "payload": {
+          "slice": "days[] with date/total/labels[{label,count}]",
+          "_implementation_notes": "See docs/metric-mapping.md for the formula chain that lives in this agent."
+        }
+      },
+      "reporting": {
+        "time_saved_value": 0,
+        "time_saved_unit": "minutes"
+      },
+      "monitoring": {
+        "monitor_all_events": false,
+        "monitor_failures": false,
+        "monitor_no_events_emitted": null
+      },
+      "template": {
+        "created_from_template_guid": null,
+        "created_from_template_version": null,
+        "template_tags": []
+      },
+      "width": null,
+      "position": {
+        "x": 0,
+        "y": 150
+      },
+      "schedule": null
+    },
+    {
+      "type": "Agents::EventTransformationAgent",
+      "name": "Return result",
+      "disabled": false,
+      "description": "Shapes output for parent to merge into soc_metrics_cache.",
+      "guid": "1b2445769d8b8d651aaec0981e56d9e5",
+      "origin_story_identifier": "socmetric:tines-webapp:v1",
+      "options": {
+        "mode": "message_only",
+        "payload": {
+          "key": "calendar",
+          "value": "<<slice>>"
+        }
+      },
+      "reporting": {
+        "time_saved_value": 0,
+        "time_saved_unit": "minutes"
+      },
+      "monitoring": {
+        "monitor_all_events": false,
+        "monitor_failures": false,
+        "monitor_no_events_emitted": null
+      },
+      "template": {
+        "created_from_template_guid": null,
+        "created_from_template_version": null,
+        "template_tags": []
+      },
+      "width": null,
+      "position": {
+        "x": 0,
+        "y": 300
+      },
+      "schedule": null
+    }
+  ],
+  "diagram_notes": [],
+  "links": [
+    {
+      "source": 0,
+      "receiver": 1
+    },
+    {
+      "source": 1,
+      "receiver": 2
+    }
+  ],
+  "diagram_layout": "{}",
+  "send_to_story_enabled": true,
+  "entry_agent_guid": "175917fb5f6bd2a9be1aeac4077cedc3",
+  "exit_agent_guids": [
+    "1b2445769d8b8d651aaec0981e56d9e5"
+  ],
+  "exit_agent_guid": "1b2445769d8b8d651aaec0981e56d9e5",
+  "api_entry_action_guids": [],
+  "api_exit_action_guids": [],
+  "keep_events_for": 604800,
+  "reporting_status": true,
+  "send_to_story_access": "team",
+  "story_library_metadata": {},
+  "parent_only_send_to_story": false,
+  "monitor_failures": false,
+  "send_to_stories": [],
+  "form": {},
+  "synchronous_webhooks_enabled": false,
+  "forms": [],
+  "pages": [],
+  "tags": [
+    "compute",
+    "socmetric"
+  ],
+  "time_saved_unit": "minutes",
+  "time_saved_value": 0,
+  "origin_story_identifier": "socmetric:tines-webapp:v1",
+  "integration_product": null,
+  "integration_vendor": null,
+  "exported_at": "2026-04-21T00:00:00Z",
+  "icon": null,
+  "integrations": []
+}

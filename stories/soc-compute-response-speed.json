@@ -1,0 +1,157 @@
+{
+  "schema_version": 18,
+  "standard_lib_version": 47,
+  "action_runtime_version": 6,
+  "name": "SOC: Compute response speed",
+  "description": "TTFT percentiles, response time trend, closure bursts.",
+  "guid": "d5c7ad9f868009541d5f95149e397a1b",
+  "slug": "soc_compute_response_speed",
+  "agents": [
+    {
+      "type": "Agents::WebhookAgent",
+      "name": "Trigger (from parent)",
+      "disabled": false,
+      "description": "Entry. Receives {tickets, status_map, business_hours}.",
+      "guid": "1e1baddaa05ac41bf1100a7ed7a422ca",
+      "origin_story_identifier": "socmetric:tines-webapp:v1",
+      "options": {
+        "path": "920d7a5bea0d4441a7ef96557af8386d",
+        "secret": "b8cc142ea74a08278b5d0d1b83901e0d",
+        "verbs": "post"
+      },
+      "reporting": {
+        "time_saved_value": 0,
+        "time_saved_unit": "minutes"
+      },
+      "monitoring": {
+        "monitor_all_events": false,
+        "monitor_failures": false,
+        "monitor_no_events_emitted": null
+      },
+      "template": {
+        "created_from_template_guid": null,
+        "created_from_template_version": null,
+        "template_tags": []
+      },
+      "width": null,
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "schedule": null
+    },
+    {
+      "type": "Agents::EventTransformationAgent",
+      "name": "Compute",
+      "disabled": false,
+      "description": "TTFT percentiles, response time trend, closure bursts.",
+      "guid": "e9a39643695511f41684ee2e7baa5086",
+      "origin_story_identifier": "socmetric:tines-webapp:v1",
+      "options": {
+        "mode": "message_only",
+        "payload": {
+          "slice": "ttft_percentiles / response_time_trend / closure_bursts",
+          "_implementation_notes": "See docs/metric-mapping.md for the formula chain that lives in this agent."
+        }
+      },
+      "reporting": {
+        "time_saved_value": 0,
+        "time_saved_unit": "minutes"
+      },
+      "monitoring": {
+        "monitor_all_events": false,
+        "monitor_failures": false,
+        "monitor_no_events_emitted": null
+      },
+      "template": {
+        "created_from_template_guid": null,
+        "created_from_template_version": null,
+        "template_tags": []
+      },
+      "width": null,
+      "position": {
+        "x": 0,
+        "y": 150
+      },
+      "schedule": null
+    },
+    {
+      "type": "Agents::EventTransformationAgent",
+      "name": "Return result",
+      "disabled": false,
+      "description": "Shapes output for parent to merge into soc_metrics_cache.",
+      "guid": "9647dda16dc3e5cdf86035eaf7269a08",
+      "origin_story_identifier": "socmetric:tines-webapp:v1",
+      "options": {
+        "mode": "message_only",
+        "payload": {
+          "key": "response",
+          "value": "<<slice>>"
+        }
+      },
+      "reporting": {
+        "time_saved_value": 0,
+        "time_saved_unit": "minutes"
+      },
+      "monitoring": {
+        "monitor_all_events": false,
+        "monitor_failures": false,
+        "monitor_no_events_emitted": null
+      },
+      "template": {
+        "created_from_template_guid": null,
+        "created_from_template_version": null,
+        "template_tags": []
+      },
+      "width": null,
+      "position": {
+        "x": 0,
+        "y": 300
+      },
+      "schedule": null
+    }
+  ],
+  "diagram_notes": [],
+  "links": [
+    {
+      "source": 0,
+      "receiver": 1
+    },
+    {
+      "source": 1,
+      "receiver": 2
+    }
+  ],
+  "diagram_layout": "{}",
+  "send_to_story_enabled": true,
+  "entry_agent_guid": "1e1baddaa05ac41bf1100a7ed7a422ca",
+  "exit_agent_guids": [
+    "9647dda16dc3e5cdf86035eaf7269a08"
+  ],
+  "exit_agent_guid": "9647dda16dc3e5cdf86035eaf7269a08",
+  "api_entry_action_guids": [],
+  "api_exit_action_guids": [],
+  "keep_events_for": 604800,
+  "reporting_status": true,
+  "send_to_story_access": "team",
+  "story_library_metadata": {},
+  "parent_only_send_to_story": false,
+  "monitor_failures": false,
+  "send_to_stories": [],
+  "form": {},
+  "synchronous_webhooks_enabled": false,
+  "forms": [],
+  "pages": [],
+  "tags": [
+    "compute",
+    "socmetric"
+  ],
+  "time_saved_unit": "minutes",
+  "time_saved_value": 0,
+  "origin_story_identifier": "socmetric:tines-webapp:v1",
+  "integration_product": null,
+  "integration_vendor": null,
+  "exported_at": "2026-04-21T00:00:00Z",
+  "icon": null,
+  "integrations": []
+}

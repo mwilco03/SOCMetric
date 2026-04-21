@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "name": "Patterns",
+  "slug": "soc-patterns",
+  "description": "Recurrence clusters and automation tier.",
+  "tags": [
+    "socmetric"
+  ],
+  "components": [
+    {
+      "id": "099fb995346f31c7",
+      "type": "markdown",
+      "title": null,
+      "body": "**SOCMetric** \u00b7 Last sync: `<<RESOURCE.soc_settings.last_sync_completed_at | relative_time>>` \u00b7 Status: `<<RESOURCE.soc_settings.last_sync_status>>`"
+    },
+    {
+      "id": "d72e5ee9b3678339",
+      "type": "markdown",
+      "title": null,
+      "body": "| [Home](/pages/soc-dashboard-home) | [Calendar](/pages/soc-calendar) | [Watch Status](/pages/soc-watch-status) | [Flow](/pages/soc-flow) | [Response Speed](/pages/soc-response-speed) | [Capacity](/pages/soc-capacity) | [Patterns](/pages/soc-patterns) | [Projections](/pages/soc-projections) | [Context Ledger](/pages/soc-context-ledger) | [Setup](/pages/soc-setup) |\n| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |\n"
+    },
+    {
+      "id": "63d721d24d2dde77",
+      "type": "markdown",
+      "title": null,
+      "visibility_formula": "<<RESOURCE.soc_settings.first_sync_completed_at == null>>",
+      "body": "> Setup is incomplete. Open the [Setup page](/pages/soc-setup) to configure the project, classify statuses, and run the first sync."
+    },
+    {
+      "id": "ec6ef230f1828039",
+      "type": "metric_card",
+      "title": "Rapid recurrences (<24h)",
+      "value_formula": "<<RESOURCE.soc_metrics_cache.patterns.recurrence.rapid>>"
+    },
+    {
+      "id": "1d665b9b1467944c",
+      "type": "metric_card",
+      "title": "Slow recurrences (<14d)",
+      "value_formula": "<<RESOURCE.soc_metrics_cache.patterns.recurrence.slow>>"
+    },
+    {
+      "id": "7bc3ca68769437ce",
+      "type": "table",
+      "title": "Top clusters",
+      "rows_formula": "<<RESOURCE.soc_metrics_cache.patterns.clusters | take(50)>>",
+      "columns": [
+        {
+          "field": "cluster_name",
+          "header": "Cluster"
+        },
+        {
+          "field": "count",
+          "header": "Count"
+        },
+        {
+          "field": "first_seen",
+          "header": "First seen"
+        },
+        {
+          "field": "last_seen",
+          "header": "Last seen"
+        },
+        {
+          "field": "automation_tier",
+          "header": "Automation tier"
+        }
+      ]
+    }
+  ],
+  "access": "tenant",
+  "exported_at": "2026-04-21T00:00:00Z"
+}

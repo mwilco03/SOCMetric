@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "name": "Context Ledger",
+  "slug": "soc-context-ledger",
+  "description": "All day annotations.",
+  "tags": [
+    "socmetric"
+  ],
+  "components": [
+    {
+      "id": "099fb995346f31c7",
+      "type": "markdown",
+      "title": null,
+      "body": "**SOCMetric** \u00b7 Last sync: `<<RESOURCE.soc_settings.last_sync_completed_at | relative_time>>` \u00b7 Status: `<<RESOURCE.soc_settings.last_sync_status>>`"
+    },
+    {
+      "id": "d72e5ee9b3678339",
+      "type": "markdown",
+      "title": null,
+      "body": "| [Home](/pages/soc-dashboard-home) | [Calendar](/pages/soc-calendar) | [Watch Status](/pages/soc-watch-status) | [Flow](/pages/soc-flow) | [Response Speed](/pages/soc-response-speed) | [Capacity](/pages/soc-capacity) | [Patterns](/pages/soc-patterns) | [Projections](/pages/soc-projections) | [Context Ledger](/pages/soc-context-ledger) | [Setup](/pages/soc-setup) |\n| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |\n"
+    },
+    {
+      "id": "63d721d24d2dde77",
+      "type": "markdown",
+      "title": null,
+      "visibility_formula": "<<RESOURCE.soc_settings.first_sync_completed_at == null>>",
+      "body": "> Setup is incomplete. Open the [Setup page](/pages/soc-setup) to configure the project, classify statuses, and run the first sync."
+    },
+    {
+      "id": "406752a6778784f2",
+      "type": "table",
+      "title": "Annotations",
+      "rows_formula": "<<ENTRIES(RESOURCE.soc_day_annotations) | sort(key desc)>>",
+      "columns": [
+        {
+          "field": "key",
+          "header": "Date"
+        },
+        {
+          "field": "value",
+          "header": "Note"
+        },
+        {
+          "field": "_actions",
+          "header": "Actions",
+          "action_buttons": [
+            {
+              "label": "Delete",
+              "trigger_story": "soc_annotations_crud",
+              "payload": {
+                "op": "delete",
+                "date": "<<row.key>>"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "f03e3c8a8090e226",
+      "type": "form",
+      "title": "Add annotation",
+      "fields": [
+        {
+          "key": "date",
+          "type": "date",
+          "label": "Date"
+        },
+        {
+          "key": "annotation",
+          "type": "text",
+          "label": "Note"
+        }
+      ],
+      "submit": {
+        "trigger_story": "soc_annotations_crud",
+        "payload": {
+          "op": "set",
+          "date": "<<fields.date>>",
+          "annotation": "<<fields.annotation>>"
+        }
+      }
+    }
+  ],
+  "access": "tenant",
+  "exported_at": "2026-04-21T00:00:00Z"
+}

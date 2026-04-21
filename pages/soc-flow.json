@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "name": "Flow",
+  "slug": "soc-flow",
+  "description": "Lead time decomposition and aging.",
+  "tags": [
+    "socmetric"
+  ],
+  "components": [
+    {
+      "id": "099fb995346f31c7",
+      "type": "markdown",
+      "title": null,
+      "body": "**SOCMetric** \u00b7 Last sync: `<<RESOURCE.soc_settings.last_sync_completed_at | relative_time>>` \u00b7 Status: `<<RESOURCE.soc_settings.last_sync_status>>`"
+    },
+    {
+      "id": "d72e5ee9b3678339",
+      "type": "markdown",
+      "title": null,
+      "body": "| [Home](/pages/soc-dashboard-home) | [Calendar](/pages/soc-calendar) | [Watch Status](/pages/soc-watch-status) | [Flow](/pages/soc-flow) | [Response Speed](/pages/soc-response-speed) | [Capacity](/pages/soc-capacity) | [Patterns](/pages/soc-patterns) | [Projections](/pages/soc-projections) | [Context Ledger](/pages/soc-context-ledger) | [Setup](/pages/soc-setup) |\n| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |\n"
+    },
+    {
+      "id": "63d721d24d2dde77",
+      "type": "markdown",
+      "title": null,
+      "visibility_formula": "<<RESOURCE.soc_settings.first_sync_completed_at == null>>",
+      "body": "> Setup is incomplete. Open the [Setup page](/pages/soc-setup) to configure the project, classify statuses, and run the first sync."
+    },
+    {
+      "id": "bd19836ddb62c11c",
+      "type": "stacked_bar_chart",
+      "title": "Lead time by phase (P50 / P85 / P95)",
+      "data_formula": "<<[{\"percentile\":\"P50\",\"queue_wait\": RESOURCE.soc_metrics_cache.flow.lead_time.queue_wait.p50, \"active_work\": RESOURCE.soc_metrics_cache.flow.lead_time.active_work.p50, \"post_active_wait\": RESOURCE.soc_metrics_cache.flow.lead_time.post_active_wait.p50}, {\"percentile\":\"P85\",\"queue_wait\": RESOURCE.soc_metrics_cache.flow.lead_time.queue_wait.p85, \"active_work\": RESOURCE.soc_metrics_cache.flow.lead_time.active_work.p85, \"post_active_wait\": RESOURCE.soc_metrics_cache.flow.lead_time.post_active_wait.p85}, {\"percentile\":\"P95\",\"queue_wait\": RESOURCE.soc_metrics_cache.flow.lead_time.queue_wait.p95, \"active_work\": RESOURCE.soc_metrics_cache.flow.lead_time.active_work.p95, \"post_active_wait\": RESOURCE.soc_metrics_cache.flow.lead_time.post_active_wait.p95}]>>",
+      "x_field": "percentile",
+      "y_fields": [
+        "queue_wait",
+        "active_work",
+        "post_active_wait"
+      ],
+      "y_label": "hours"
+    },
+    {
+      "id": "3667f6a0c9749075",
+      "type": "bar_chart",
+      "title": "Open ticket age",
+      "data_formula": "<<RESOURCE.soc_metrics_cache.flow.aging_buckets>>",
+      "x_field": "label",
+      "y_field": "count"
+    },
+    {
+      "id": "1779cf3aa50c413a",
+      "type": "metric_card",
+      "title": "Stalled (>48h)",
+      "value_formula": "<<RESOURCE.soc_metrics_cache.flow.stalled_tickets>>",
+      "format": "integer"
+    },
+    {
+      "id": "6e1fcd704528ad8b",
+      "type": "donut_chart",
+      "title": "Closure integrity",
+      "data_formula": "<<[{\"label\":\"instant\",\"count\": RESOURCE.soc_metrics_cache.flow.closure_integrity.instant},{\"label\":\"untouched\",\"count\": RESOURCE.soc_metrics_cache.flow.closure_integrity.untouched},{\"label\":\"normal\",\"count\": RESOURCE.soc_metrics_cache.flow.closure_integrity.normal},{\"label\":\"churned\",\"count\": RESOURCE.soc_metrics_cache.flow.closure_integrity.churned}]>>",
+      "label_field": "label",
+      "value_field": "count"
+    }
+  ],
+  "access": "tenant",
+  "exported_at": "2026-04-21T00:00:00Z"
+}

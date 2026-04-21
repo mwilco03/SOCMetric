@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "name": "Projections",
+  "slug": "soc-projections",
+  "description": "Linear forecast of queue depth.",
+  "tags": [
+    "socmetric"
+  ],
+  "components": [
+    {
+      "id": "099fb995346f31c7",
+      "type": "markdown",
+      "title": null,
+      "body": "**SOCMetric** \u00b7 Last sync: `<<RESOURCE.soc_settings.last_sync_completed_at | relative_time>>` \u00b7 Status: `<<RESOURCE.soc_settings.last_sync_status>>`"
+    },
+    {
+      "id": "d72e5ee9b3678339",
+      "type": "markdown",
+      "title": null,
+      "body": "| [Home](/pages/soc-dashboard-home) | [Calendar](/pages/soc-calendar) | [Watch Status](/pages/soc-watch-status) | [Flow](/pages/soc-flow) | [Response Speed](/pages/soc-response-speed) | [Capacity](/pages/soc-capacity) | [Patterns](/pages/soc-patterns) | [Projections](/pages/soc-projections) | [Context Ledger](/pages/soc-context-ledger) | [Setup](/pages/soc-setup) |\n| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |\n"
+    },
+    {
+      "id": "63d721d24d2dde77",
+      "type": "markdown",
+      "title": null,
+      "visibility_formula": "<<RESOURCE.soc_settings.first_sync_completed_at == null>>",
+      "body": "> Setup is incomplete. Open the [Setup page](/pages/soc-setup) to configure the project, classify statuses, and run the first sync."
+    },
+    {
+      "id": "a6c85163d954c307",
+      "type": "markdown",
+      "body": "Method: **<<RESOURCE.soc_metrics_cache.projections.method>>** \u00b7 R\u00b2: **<<RESOURCE.soc_metrics_cache.projections.r2 | round(3)>>**\n\n> STL seasonal decomposition is deferred; see `docs/limitations.md`."
+    },
+    {
+      "id": "6f50456b91ef8ec5",
+      "type": "line_chart",
+      "title": "Projected queue depth (60 days)",
+      "data_formula": "<<RESOURCE.soc_metrics_cache.projections.forecast>>",
+      "x_field": "date",
+      "y_field": "predicted_queue"
+    }
+  ],
+  "access": "tenant",
+  "exported_at": "2026-04-21T00:00:00Z"
+}

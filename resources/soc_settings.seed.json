@@ -1,0 +1,20 @@
+{
+  "project_key": null,
+  "jira_domain": null,
+  "sync_interval_minutes": 60,
+  "date_range_days": 90,
+  "first_sync_completed_at": null,
+  "last_sync_completed_at": null,
+  "last_sync_status": "idle",
+  "last_sync_error": null,
+  "calendar_view_month": null,
+  "max_issues_per_sync": 10000,
+  "page_size": 100,
+  "rate_limit_delay_ms": 200,
+  "business_hours": {
+    "start_hour": 9,
+    "end_hour": 17,
+    "timezone": "America/New_York",
+    "work_days": ["Mon", "Tue", "Wed", "Thu", "Fri"]
+  }
+}

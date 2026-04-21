@@ -1,0 +1,321 @@
+{
+  "schema_version": 1,
+  "name": "Setup",
+  "slug": "soc-setup",
+  "description": "One-time and ongoing admin configuration.",
+  "tags": [
+    "socmetric"
+  ],
+  "components": [
+    {
+      "id": "099fb995346f31c7",
+      "type": "markdown",
+      "title": null,
+      "body": "**SOCMetric** \u00b7 Last sync: `<<RESOURCE.soc_settings.last_sync_completed_at | relative_time>>` \u00b7 Status: `<<RESOURCE.soc_settings.last_sync_status>>`"
+    },
+    {
+      "id": "d72e5ee9b3678339",
+      "type": "markdown",
+      "title": null,
+      "body": "| [Home](/pages/soc-dashboard-home) | [Calendar](/pages/soc-calendar) | [Watch Status](/pages/soc-watch-status) | [Flow](/pages/soc-flow) | [Response Speed](/pages/soc-response-speed) | [Capacity](/pages/soc-capacity) | [Patterns](/pages/soc-patterns) | [Projections](/pages/soc-projections) | [Context Ledger](/pages/soc-context-ledger) | [Setup](/pages/soc-setup) |\n| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |\n"
+    },
+    {
+      "id": "63d721d24d2dde77",
+      "type": "markdown",
+      "title": null,
+      "visibility_formula": "<<RESOURCE.soc_settings.first_sync_completed_at == null>>",
+      "body": "> Setup is incomplete. Open the [Setup page](/pages/soc-setup) to configure the project, classify statuses, and run the first sync."
+    },
+    {
+      "id": "8ddf878039b70767",
+      "type": "markdown",
+      "body": "## Status"
+    },
+    {
+      "id": "fac989447cad2edb",
+      "type": "metric_card",
+      "title": "Project",
+      "value_formula": "<<RESOURCE.soc_settings.project_key | default('(not set)')>>"
+    },
+    {
+      "id": "c0828e0381730bef",
+      "type": "metric_card",
+      "title": "Sync status",
+      "value_formula": "<<RESOURCE.soc_settings.last_sync_status>>"
+    },
+    {
+      "id": "7e7cb6814b74d659",
+      "type": "metric_card",
+      "title": "First sync",
+      "value_formula": "<<RESOURCE.soc_settings.first_sync_completed_at | relative_time | default('never')>>"
+    },
+    {
+      "id": "437f57809f82b9e2",
+      "type": "markdown",
+      "body": "## Project selection"
+    },
+    {
+      "id": "425db905039f7a65",
+      "type": "button",
+      "label": "Discover projects",
+      "action": {
+        "trigger_story": "soc_jira_discover_projects"
+      }
+    },
+    {
+      "id": "9d7115b42254d59b",
+      "type": "dropdown",
+      "label": "Project",
+      "options_formula": "<<STORY_RESULT('soc_jira_discover_projects').projects>>",
+      "option_label_field": "name",
+      "option_value_field": "key",
+      "bind_to": "selected_project"
+    },
+    {
+      "id": "3e8d88fdd85d7153",
+      "type": "button",
+      "label": "Save project",
+      "action": {
+        "trigger_story": "soc_settings_crud",
+        "payload": {
+          "op": "set",
+          "key": "project_key",
+          "value": "<<selected_project>>"
+        }
+      }
+    },
+    {
+      "id": "03e04301b15a7969",
+      "type": "markdown",
+      "body": "## Status classification"
+    },
+    {
+      "id": "2b3357d90b70edb1",
+      "type": "button",
+      "label": "Discover statuses",
+      "action": {
+        "trigger_story": "soc_jira_discover_statuses",
+        "payload": {
+          "project_key": "<<RESOURCE.soc_settings.project_key>>"
+        }
+      }
+    },
+    {
+      "id": "e744f97eb579be2c",
+      "type": "table",
+      "title": "Statuses",
+      "rows_formula": "<<STORY_RESULT('soc_jira_discover_statuses').discovered>>",
+      "columns": [
+        {
+          "field": "status_name",
+          "header": "Status"
+        },
+        {
+          "field": "category_key",
+          "header": "Category"
+        },
+        {
+          "field": "suggested_classification",
+          "header": "Suggested"
+        },
+        {
+          "field": "_classify",
+          "header": "Set to",
+          "action_buttons": [
+            {
+              "label": "Queue",
+              "trigger_story": "soc_status_map_crud",
+              "payload": {
+                "op": "set",
+                "key": "<<RESOURCE.soc_settings.project_key>>:<<row.status_name>>",
+                "value": "queue"
+              }
+            },
+            {
+              "label": "Active",
+              "trigger_story": "soc_status_map_crud",
+              "payload": {
+                "op": "set",
+                "key": "<<RESOURCE.soc_settings.project_key>>:<<row.status_name>>",
+                "value": "active"
+              }
+            },
+            {
+              "label": "Done",
+              "trigger_story": "soc_status_map_crud",
+              "payload": {
+                "op": "set",
+                "key": "<<RESOURCE.soc_settings.project_key>>:<<row.status_name>>",
+                "value": "done"
+              }
+            },
+            {
+              "label": "Blocked",
+              "trigger_story": "soc_status_map_crud",
+              "payload": {
+                "op": "set",
+                "key": "<<RESOURCE.soc_settings.project_key>>:<<row.status_name>>",
+                "value": "blocked"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "3dfae9d68590fef9",
+      "type": "markdown",
+      "body": "## Business hours"
+    },
+    {
+      "id": "f38672fc0f5a142d",
+      "type": "form",
+      "title": "Business hours",
+      "fields": [
+        {
+          "key": "start_hour",
+          "type": "number",
+          "label": "Start hour (0-23)"
+        },
+        {
+          "key": "end_hour",
+          "type": "number",
+          "label": "End hour (0-23)"
+        },
+        {
+          "key": "timezone",
+          "type": "text",
+          "label": "Timezone (IANA)"
+        }
+      ],
+      "submit": {
+        "trigger_story": "soc_settings_crud",
+        "payload": {
+          "op": "set",
+          "key": "business_hours",
+          "value": {
+            "start_hour": "<<fields.start_hour>>",
+            "end_hour": "<<fields.end_hour>>",
+            "timezone": "<<fields.timezone>>",
+            "work_days": [
+              "Mon",
+              "Tue",
+              "Wed",
+              "Thu",
+              "Fri"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "df512b9cb3e7d8de",
+      "type": "markdown",
+      "body": "## Label filters"
+    },
+    {
+      "id": "d3bea8363a5046e2",
+      "type": "table",
+      "title": "Labels",
+      "rows_formula": "<<FLATTEN(MAP_LAMBDA(UNIQUE(FLATTEN(MAP_LAMBDA(RESOURCE.soc_tickets_cache.tickets, t, t.labels))), label, {\"label\": label, \"included\": RESOURCE.soc_label_config[label] | default(true)}))>>",
+      "columns": [
+        {
+          "field": "label",
+          "header": "Label"
+        },
+        {
+          "field": "included",
+          "header": "Included"
+        },
+        {
+          "field": "_toggle",
+          "header": "Toggle",
+          "action_buttons": [
+            {
+              "label": "Include",
+              "trigger_story": "soc_labels_crud",
+              "payload": {
+                "op": "set",
+                "key": "<<row.label>>",
+                "value": true
+              }
+            },
+            {
+              "label": "Exclude",
+              "trigger_story": "soc_labels_crud",
+              "payload": {
+                "op": "set",
+                "key": "<<row.label>>",
+                "value": false
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "396f387f2e22fb29",
+      "type": "markdown",
+      "body": "## Sync controls"
+    },
+    {
+      "id": "c69fe72dddb4b914",
+      "type": "button",
+      "label": "Run sync now",
+      "action": {
+        "trigger_story": "soc_jira_sync"
+      }
+    },
+    {
+      "id": "ebea9452dff950c2",
+      "type": "form",
+      "title": "Sync interval (minutes)",
+      "fields": [
+        {
+          "key": "sync_interval_minutes",
+          "type": "number",
+          "label": "Minutes"
+        }
+      ],
+      "submit": {
+        "trigger_story": "soc_settings_crud",
+        "payload": {
+          "op": "set",
+          "key": "sync_interval_minutes",
+          "value": "<<fields.sync_interval_minutes>>"
+        }
+      }
+    },
+    {
+      "id": "49f01a4751e1e0bf",
+      "type": "markdown",
+      "body": "## Reset"
+    },
+    {
+      "id": "cff850f16499e786",
+      "type": "button",
+      "label": "Reset settings (keep tickets)",
+      "action": {
+        "trigger_story": "soc_reset",
+        "payload": {
+          "tier": "settings"
+        },
+        "confirm": "Reset settings?"
+      }
+    },
+    {
+      "id": "c655c94ce843d593",
+      "type": "button",
+      "label": "Reset everything (keep credentials)",
+      "action": {
+        "trigger_story": "soc_reset",
+        "payload": {
+          "tier": "everything"
+        },
+        "confirm": "Reset all Resources? Credentials are NOT touched."
+      }
+    }
+  ],
+  "access": "tenant",
+  "exported_at": "2026-04-21T00:00:00Z"
+}
