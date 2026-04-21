@@ -59,14 +59,17 @@
       "type": "button",
       "label": "Discover projects",
       "action": {
-        "trigger_story": "soc_jira_discover_projects"
+        "trigger_story": "soc_data",
+        "payload": {
+          "action": "discover_projects"
+        }
       }
     },
     {
       "id": "9d7115b42254d59b",
       "type": "dropdown",
       "label": "Project",
-      "options_formula": "<<STORY_RESULT('soc_jira_discover_projects').projects>>",
+      "options_formula": "<<STORY_RESULT('soc_data').projects>>",
       "option_label_field": "name",
       "option_value_field": "key",
       "bind_to": "selected_project"
@@ -76,8 +79,9 @@
       "type": "button",
       "label": "Save project",
       "action": {
-        "trigger_story": "soc_settings_crud",
+        "trigger_story": "soc_data",
         "payload": {
+          "action": "settings_op",
           "op": "set",
           "key": "project_key",
           "value": "<<selected_project>>"
@@ -94,8 +98,9 @@
       "type": "button",
       "label": "Discover statuses",
       "action": {
-        "trigger_story": "soc_jira_discover_statuses",
+        "trigger_story": "soc_data",
         "payload": {
+          "action": "discover_statuses",
           "project_key": "<<RESOURCE.soc_settings.project_key>>"
         }
       }
@@ -104,7 +109,7 @@
       "id": "e744f97eb579be2c",
       "type": "table",
       "title": "Statuses",
-      "rows_formula": "<<STORY_RESULT('soc_jira_discover_statuses').discovered>>",
+      "rows_formula": "<<STORY_RESULT('soc_data').discovered>>",
       "columns": [
         {
           "field": "status_name",
@@ -124,8 +129,9 @@
           "action_buttons": [
             {
               "label": "Queue",
-              "trigger_story": "soc_status_map_crud",
+              "trigger_story": "soc_data",
               "payload": {
+                "action": "status_map_op",
                 "op": "set",
                 "key": "<<RESOURCE.soc_settings.project_key>>:<<row.status_name>>",
                 "value": "queue"
@@ -133,8 +139,9 @@
             },
             {
               "label": "Active",
-              "trigger_story": "soc_status_map_crud",
+              "trigger_story": "soc_data",
               "payload": {
+                "action": "status_map_op",
                 "op": "set",
                 "key": "<<RESOURCE.soc_settings.project_key>>:<<row.status_name>>",
                 "value": "active"
@@ -142,8 +149,9 @@
             },
             {
               "label": "Done",
-              "trigger_story": "soc_status_map_crud",
+              "trigger_story": "soc_data",
               "payload": {
+                "action": "status_map_op",
                 "op": "set",
                 "key": "<<RESOURCE.soc_settings.project_key>>:<<row.status_name>>",
                 "value": "done"
@@ -151,8 +159,9 @@
             },
             {
               "label": "Blocked",
-              "trigger_story": "soc_status_map_crud",
+              "trigger_story": "soc_data",
               "payload": {
+                "action": "status_map_op",
                 "op": "set",
                 "key": "<<RESOURCE.soc_settings.project_key>>:<<row.status_name>>",
                 "value": "blocked"
@@ -189,8 +198,9 @@
         }
       ],
       "submit": {
-        "trigger_story": "soc_settings_crud",
+        "trigger_story": "soc_data",
         "payload": {
+          "action": "settings_op",
           "op": "set",
           "key": "business_hours",
           "value": {
@@ -233,8 +243,9 @@
           "action_buttons": [
             {
               "label": "Include",
-              "trigger_story": "soc_labels_crud",
+              "trigger_story": "soc_data",
               "payload": {
+                "action": "labels_op",
                 "op": "set",
                 "key": "<<row.label>>",
                 "value": true
@@ -242,8 +253,9 @@
             },
             {
               "label": "Exclude",
-              "trigger_story": "soc_labels_crud",
+              "trigger_story": "soc_data",
               "payload": {
+                "action": "labels_op",
                 "op": "set",
                 "key": "<<row.label>>",
                 "value": false
@@ -263,7 +275,10 @@
       "type": "button",
       "label": "Run sync now",
       "action": {
-        "trigger_story": "soc_jira_sync"
+        "trigger_story": "soc_data",
+        "payload": {
+          "action": "sync_now"
+        }
       }
     },
     {
@@ -278,8 +293,9 @@
         }
       ],
       "submit": {
-        "trigger_story": "soc_settings_crud",
+        "trigger_story": "soc_data",
         "payload": {
+          "action": "settings_op",
           "op": "set",
           "key": "sync_interval_minutes",
           "value": "<<fields.sync_interval_minutes>>"

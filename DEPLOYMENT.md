@@ -78,31 +78,13 @@ Replace `your-tenant.tines.com` with your actual tenant hostname, `admin@example
 
 ## 3. Import Stories
 
-Tines UI -> Stories -> Import story. Import in this order so any "Send to Story" references resolve on the first pass:
+Tines UI -> Stories -> Import story. Import in this order:
 
-1. CRUD stories (no dependencies):
-   - `soc-settings-crud.json`
-   - `soc-status-map-crud.json`
-   - `soc-labels-crud.json`
-   - `soc-annotations-crud.json`
-2. Compute sub-stories (no dependencies):
-   - `soc-compute-headline.json`
-   - `soc-compute-flow-lead-time.json`
-   - `soc-compute-response-speed.json`
-   - `soc-compute-capacity-shift.json`
-   - `soc-compute-patterns-recurrence.json`
-   - `soc-compute-projections.json`
-   - `soc-compute-calendar-view.json`
-3. Fan-out orchestrator (depends on compute subs):
-   - `soc-compute-all-metrics.json`
-4. Data ingest (depends on compute-all-metrics):
-   - `soc-jira-discover-projects.json`
-   - `soc-jira-discover-statuses.json`
-   - `soc-jira-sync.json`
-5. Admin:
-   - `soc-reset.json`
+1. `soc-compute.json` (no outbound Send-to-Story references)
+2. `soc-data.json` (references `soc_compute` via Send-to-Story; must exist first)
+3. `soc-reset.json` (no Send-to-Story references)
 
-After the second-pass import, open each compute-fan-out link and the sync story. If any "Send to Story" target reads `<unresolved>`, pick the correct story from the dropdown and save. This is because story GUIDs in exports are installation-specific.
+After importing `soc-data`, open the "Trigger compute" action. If the Send-to-Story target reads `<unresolved>`, pick `SOC: Compute` from the dropdown and save. Tines story GUIDs in exports are installation-specific.
 
 ## 4. Import Pages
 
@@ -112,13 +94,15 @@ If your tenant's Page export schema differs from the one here (Tines Page export
 
 ## 5. Wire the sync schedule
 
-Open `soc-jira-sync`. Click the first action (**Scheduled start**). In the Tines UI attach a **Schedule** to it:
+Open `soc-data`. Click the **Scheduled start** action (top-left, the one labeled as an EventTransformationAgent with description "Cron entry"). Attach a **Schedule** in the Tines UI:
 
 - Schedule type: cron
 - Recommended cron: `0 * * * *` (hourly on the hour)
 - Timezone: UTC or your local zone
 
-Schedules in schema-28 Tines live as a property attached to the entry action via the UI. They do not round-trip in the exported JSON (Confirmed from the `auto-action-collection.json` and `crowdstrike-secure.json` reference exports where every agent's export has no schedule but live scheduling is still possible). After saving the schedule in the UI, the story self-fires.
+Schedules in schema-28 Tines live as a property attached to the entry action via the UI. They do not round-trip in the exported JSON (Confirmed from the `auto-action-collection.json` and `crowdstrike-secure.json` reference exports). After saving the schedule in the UI, the story self-fires.
+
+The webhook entry on `soc-data` is unrelated to the schedule; it is what Pages trigger. Leave the webhook alone.
 
 Sync interval is NOT read from `soc_settings.sync_interval_minutes` at story-runtime in v1. The Resource key is a documentation hint for operators; to change cadence, edit the schedule in the UI.
 
@@ -171,7 +155,7 @@ Do not delete and re-import; GUIDs change and every "Send to Story" reference wi
 |---|---|---|
 | Setup Page shows empty dropdown after Discover projects | `jira_basic_auth` credential wrong or Jira domain wrong | Fix the Credential; set `jira_domain` on `soc_settings` |
 | Sync stuck on `running` forever | A previous run crashed and left the sentinel | Manually set `soc_settings.last_sync_status = "idle"` in the Resource UI |
-| Sync ends with `truncated` status | 10k issue cap hit | Narrow `soc_settings.date_range_days` or raise the cap inside `soc-jira-sync` |
-| Tickets cache write fails with "too large" | Tenant Resource size limit exceeded | Enable sharded-write branch in `soc-jira-sync` (scaffold present, wire shard writer agents) |
-| Home page shows zeros | Compute fan-out failed | Open `soc-compute-all-metrics` event log; check sub-story errors |
+| Sync ends with `truncated` status | 10k issue cap hit | Narrow `soc_settings.date_range_days` or raise `soc_settings.max_issues_per_sync` (read by the `Sync entry` action in `soc-data`) |
+| Tickets cache write fails with "too large" | Tenant Resource size limit exceeded | Enable sharded-write branch in `soc-data` (scaffold per `docs/limitations.md`; wire shard writer agents) |
+| Home page shows zeros | Compute failed | Open `soc-compute` event log; a formula error in any slice halts the run |
 | A formula errors on a Page | Tenant formula runtime lacks a primitive | Apply the fallback from `docs/limitations.md` section 11 |

@@ -2,7 +2,7 @@
 
 Source of truth: `../../soc-dashboard/src/metrics/*.ts`, `src/patterns/recurrenceEngine.ts`, `src/staffing/projectionEngine.ts`, `src/dimensions/dimensionEngine.ts`, `src/normalization/entityNormalizer.ts`, `src/hooks/useCalendarData.ts`.
 
-All formulas below are written in Tines formula syntax (see `../tines-formulas-reference.md`). Every chain runs inside an Event Transformation agent in the corresponding `soc-compute-*` story. Input is always the concatenated `tickets` array from `soc_tickets_cache` plus the `soc_status_map` Resource.
+All formulas below are written in Tines formula syntax (see `../tines-formulas-reference.md`). Every chain runs inside the corresponding EventTransformationAgent slice inside the single `soc-compute` story (e.g. the "Compute headline" action). Input is always the concatenated `tickets` array from `soc_tickets_cache` plus the `soc_status_map` Resource, bound via the upstream "Load inputs" action.
 
 Shared helpers referenced throughout:
 
@@ -30,7 +30,7 @@ TTFT_HOURS(ticket) =
 
 ---
 
-## headlineMetrics.ts -> soc-compute-headline
+## headlineMetrics.ts -> soc-compute "Compute headline"
 
 Inputs read: `fields.status`, `fields.created`, `fields.resolutiondate`, changelog status-transition entries.
 
@@ -59,7 +59,7 @@ Output written as the `headline` slice of `soc_metrics_cache`.
 
 ---
 
-## leadTimeDecomposition.ts -> soc-compute-flow-lead-time
+## leadTimeDecomposition.ts -> soc-compute "Compute flow"
 
 Decomposes total lead time into three phases using transition timestamps and the status classification.
 
@@ -137,7 +137,7 @@ closure_integrity = GROUP_BY(tickets, t -> classify(t)) -> SIZE per group
 
 ---
 
-## shiftMetrics.ts + afterHours.ts + staffingModel.ts -> soc-compute-capacity-shift
+## shiftMetrics.ts + afterHours.ts + staffingModel.ts -> soc-compute "Compute capacity"
 
 ```
 # shift attribution (user-configurable via soc_settings.business_hours)
@@ -177,7 +177,7 @@ velocity_under_load = closed_7d / MAX(queue_depth, 1)
 
 ---
 
-## clusterAnalysis.ts + recurrenceEngine.ts + entityNormalizer.ts -> soc-compute-patterns-recurrence
+## clusterAnalysis.ts + recurrenceEngine.ts + entityNormalizer.ts -> soc-compute "Compute patterns"
 
 ```
 # Entity normalization: replace IPs, hashes, URLs, emails, paths with tokens
@@ -209,7 +209,7 @@ slow  = COUNT(
 
 ---
 
-## closureBurst.ts -> soc-compute-response-speed
+## closureBurst.ts -> soc-compute "Compute speed"
 
 ```
 resolved_events = SORT(
@@ -232,7 +232,7 @@ ttft_trend = GROUP_BY(tickets, t -> DATE_FORMAT(t.created_at, "YYYY-MM-DD"))
 
 ---
 
-## projectionEngine.ts -> soc-compute-projections
+## projectionEngine.ts -> soc-compute "Compute projections"
 
 Seasonal decomposition (STL) is deferred. Linear regression ships:
 
@@ -276,7 +276,7 @@ r2 = 1 - ss_res / ss_tot
 
 ---
 
-## useCalendarData.ts -> soc-compute-calendar-view
+## useCalendarData.ts -> soc-compute "Compute calendar"
 
 ```
 calendar_days = GROUP_BY(tickets, t -> DATE_FORMAT(t.created_at, "YYYY-MM-DD"))

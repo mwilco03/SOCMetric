@@ -6,16 +6,16 @@ Confidence levels below follow the project's epistemic rules: Confirmed (directl
 
 The original TypeScript `seasonalDecomposition.ts` performs STL (Seasonal-Trend decomposition using Loess) on the daily queue-depth series. Tines formulas do not expose a native STL primitive and the iterative loess smoothing required is not practical to express in a formula chain.
 
-- **v1 behavior:** `soc-compute-projections` ships linear regression only. The Projections Page shows a banner stating this.
-- **Escape hatch (if needed):** add a `soc-compute-projections-seasonal` story that POSTs the time series to an external statistics microservice (Flask + statsmodels, Python) and feeds the decomposition output back into `soc_metrics_cache.projections`. That is explicitly out of scope for this plan since the plan is Tines-only.
+- **v1 behavior:** the "Compute projections" slice inside `soc-compute` ships linear regression only. The Projections Page shows a banner stating this.
+- **Escape hatch (if needed):** add a parallel slice action inside `soc-compute` that POSTs the time series to an external statistics microservice (Flask + statsmodels, Python) and feeds the decomposition output back into `soc_metrics_cache.projections`. That is explicitly out of scope for this plan since the plan is Tines-only.
 - **Confidence:** Confirmed that STL is not formula-expressible in a useful way. Likely that linear regression is sufficient for the first SOC user's needs (Confirmed only by shipping).
 
 ## 2. Tines Resource size limit
 
 The Tines-documented Resource maximum size is tenant-specific (Likely 1 MB in standard tenants; not a published universal number).
 
-- **Mitigation:** the sync story enforces a 900 KB soft budget on `soc_tickets_cache`. Above that, it writes to shard Resources (`soc_tickets_cache_shard_001`, ...) and the primary Resource holds only a manifest.
-- **What this affects:** 10k tickets at ~200 bytes average is ~2 MB, so any tenant with >4.5k tickets in the rolling window will end up sharded. Compute stories iterate shards transparently.
+- **Mitigation:** the sync pipeline in `soc-data` enforces a 900 KB soft budget on `soc_tickets_cache`. Above that, it writes to shard Resources (`soc_tickets_cache_shard_001`, ...) and the primary Resource holds only a manifest. Sharded-write scaffolding is documented but not yet wired into the exported JSON; enable it by adding an inline "Is payload large?" Trigger before the "Write tickets cache" action.
+- **What this affects:** 10k tickets at ~200 bytes average is ~2 MB, so any tenant with >4.5k tickets in the rolling window will end up sharded. The "Load inputs" action in `soc-compute` iterates shards transparently.
 - **Open question:** the hard ceiling of sharding (how many shards one Tines tenant supports in aggregate) is not documented. Likely not a problem below 20 shards. Possible that very active tenants hit it.
 
 ## 3. No real-time progress events
@@ -30,13 +30,13 @@ The Tauri app emitted `sync:progress` and `sync:complete` events during a sync r
 The Rust app capped sync at 10,000 issues (`JIRA_MAX_ISSUES`). The Tines sync story mirrors this.
 
 - **Behavior:** after 10k issues the sync story stops and sets `last_sync_status = "truncated"`. The Setup Page surfaces this.
-- **To raise the cap:** edit `soc-jira-sync` to change the `max_issues` constant at the top of the story's first Event Transformation agent. This is the only place the value lives in the Tines side.
+- **To raise the cap:** edit `soc_settings.max_issues_per_sync` via the Setup Page or CRUD. The "Sync entry" action in `soc-data` reads this Resource field at runtime. No story edit required.
 
 ## 5. Jira rate limiting
 
 Atlassian rate-limits the `/search/jql` endpoint. The Rust app used a 200 ms delay between pages.
 
-- **v1 behavior:** `soc-jira-sync` includes a Trigger agent in the paging loop that delays 200 ms between HTTPRequest invocations.
+- **v1 behavior:** the sync pipeline in `soc-data` includes a Trigger agent in the paging loop; add a 200 ms delay action between the `Jira search page` HTTP action and `Normalize to TicketRow` if 429s appear. Not wired by default in the exported JSON.
 - **Confidence:** Likely sufficient for standard tenants. Possible that large single-page responses with `expand=changelog` trigger throttles even with this delay. If we see 429 responses in practice, the story's retry-with-backoff branch handles it (already modeled on the tuckner throttle example story).
 
 ## 6. Business hours and holidays
@@ -44,7 +44,7 @@ Atlassian rate-limits the `/search/jql` endpoint. The Rust app used a 200 ms del
 The TypeScript code pulled US federal holidays from `src/ledger/holidays.ts` and used a configurable business-hours window.
 
 - **Business hours** are stored in `soc_settings.business_hours` and are configurable via the Setup Page.
-- **Holidays** are currently hardcoded as a list inside `soc-compute-capacity-shift`'s first Event Transformation agent, covering the next three calendar years (2026 through 2028). The list is refreshed by editing the story. Likely acceptable for v1; a cleaner design would store holidays in their own Resource.
+- **Holidays** are currently hardcoded as a list inside `soc-compute`'s "Compute capacity" slice action, covering the next three calendar years (2026 through 2028). The list is refreshed by editing the story. Likely acceptable for v1; a cleaner design would store holidays in their own Resource.
 
 ## 7. Page calendar grid renders via HTML template
 

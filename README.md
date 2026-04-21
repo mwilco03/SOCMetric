@@ -15,7 +15,7 @@ tines-webapp/
 │   ├── resource-schemas.md         field definitions and size budgets
 │   └── limitations.md              STL deferral, resource caps, rate limits, open questions
 ├── resources/                      seed JSON for each Tines Resource (7 Resources)
-├── stories/                        16 story exports (data + compute + CRUD), schema 28
+├── stories/                        3 story exports (soc-data, soc-compute, soc-reset), schema 28
 └── pages/                          10 Page exports (the dashboard UI)
 ```
 
@@ -23,12 +23,13 @@ tines-webapp/
 
 See `DEPLOYMENT.md`. In short:
 
-1. Create the `jira_basic_auth` Credential in your Tines tenant.
-2. Import the six resource seed JSONs from `resources/`.
-3. Import every story JSON from `stories/`.
+1. Create the `jira_basic_auth` and `tines_api_token` Credentials in your Tines tenant.
+2. Import the seven resource seed JSONs from `resources/`.
+3. Import the three story JSONs from `stories/` (`soc-data`, `soc-compute`, `soc-reset`) in that order.
 4. Import every Page JSON from `pages/`.
-5. Open the Setup Page, discover projects, pick one, classify statuses, run first sync.
-6. Open the Dashboard Home Page.
+5. Attach a cron schedule to the "Scheduled start" action inside `soc-data`.
+6. Open the Setup Page, discover projects, pick one, classify statuses, run first sync.
+7. Open the Dashboard Home Page.
 
 ## What this replaces
 

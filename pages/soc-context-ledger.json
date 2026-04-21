@@ -46,10 +46,11 @@
           "action_buttons": [
             {
               "label": "Delete",
-              "trigger_story": "soc_annotations_crud",
+              "trigger_story": "soc_data",
               "payload": {
+                "action": "annotations_op",
                 "op": "delete",
-                "date": "<<row.key>>"
+                "key": "<<row.key>>"
               }
             }
           ]
@@ -73,11 +74,12 @@
         }
       ],
       "submit": {
-        "trigger_story": "soc_annotations_crud",
+        "trigger_story": "soc_data",
         "payload": {
+          "action": "annotations_op",
           "op": "set",
-          "date": "<<fields.date>>",
-          "annotation": "<<fields.annotation>>"
+          "key": "<<fields.date>>",
+          "value": "<<fields.annotation>>"
         }
       }
     }

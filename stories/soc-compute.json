@@ -1,0 +1,289 @@
+{
+  "schema_version": 28,
+  "standard_lib_version": 90,
+  "action_runtime_version": 74,
+  "name": "SOC: Compute",
+  "description": "Single compute story. Inlines all 7 metric slices sequentially (headline, flow, speed, capacity, patterns, projections, calendar), merges, writes soc_metrics_cache. Triggered by soc_data after a successful sync. Replaces the 7 compute sub-stories and the compute fan-out orchestrator.",
+  "guid": "c0a1cea2aabb0000000000000f0000c1",
+  "slug": "soc_compute",
+  "agents": [
+    {
+      "type": "Agents::WebhookAgent",
+      "name": "Webhook (from soc_data)",
+      "disabled": false,
+      "description": "Entry. Receives {project_key} from soc_data.Trigger_compute.",
+      "guid": "c0000001000000000000000000000web",
+      "origin_story_identifier": "socmetric:tines-webapp:v1",
+      "options": {
+        "path": "c0a1cea2aabb0000000000000f0000c2",
+        "secret": "c0a1cea2aabb0000000000000f0000c3",
+        "verbs": "post"
+      },
+      "reporting": { "time_saved_value": 0, "time_saved_unit": "minutes" },
+      "monitoring": { "monitor_all_events": false, "monitor_failures": false, "monitor_no_events_emitted": null },
+      "template": { "created_from_template_guid": null, "created_from_template_version": null, "template_tags": [] },
+      "width": null
+    },
+    {
+      "type": "Agents::EventTransformationAgent",
+      "name": "Load inputs",
+      "disabled": false,
+      "description": "Reads tickets (handles sharded-mode Resource), status_map, label_config, settings.",
+      "guid": "c0000002000000000000000000000load",
+      "origin_story_identifier": "socmetric:tines-webapp:v1",
+      "options": {
+        "mode": "message_only",
+        "loop": false,
+        "payload": {
+          "tickets": "=IF(RESOURCE.soc_tickets_cache.mode = 'inline', RESOURCE.soc_tickets_cache.tickets, FLATTEN(MAP(RANGE(1, RESOURCE.soc_tickets_cache.shards + 1), i, RESOURCE_BY_NAME(CONCAT('soc_tickets_cache_shard_', PAD_LEFT(i, 3, '0'))).tickets)))",
+          "status_map": "<<RESOURCE.soc_status_map>>",
+          "label_config": "<<RESOURCE.soc_label_config>>",
+          "settings": "<<RESOURCE.soc_settings>>"
+        }
+      },
+      "reporting": { "time_saved_value": 0, "time_saved_unit": "minutes" },
+      "monitoring": { "monitor_all_events": false, "monitor_failures": false, "monitor_no_events_emitted": null },
+      "template": { "created_from_template_guid": null, "created_from_template_version": null, "template_tags": [] },
+      "width": null
+    },
+    {
+      "type": "Agents::EventTransformationAgent",
+      "name": "Compute headline",
+      "disabled": false,
+      "description": "Queue depth, active incidents, net velocity, TTFT percentiles. See docs/metric-mapping.md.",
+      "guid": "c0000003000000000000000000000hd",
+      "origin_story_identifier": "socmetric:tines-webapp:v1",
+      "options": {
+        "mode": "message_only",
+        "loop": false,
+        "payload": {
+          "headline": "=OBJECT('queue_depth', LENGTH(FILTER(load_inputs.tickets, t, LOOKUP(load_inputs.status_map, CONCAT(t.project_key, ':', t.status_name), 'queue') = 'queue')), 'active_incident_count', LENGTH(FILTER(load_inputs.tickets, t, LOOKUP(load_inputs.status_map, CONCAT(t.project_key, ':', t.status_name), 'queue') = 'active')), 'ttft_p50_hours', PERCENTILE(FILTER(MAP(load_inputs.tickets, t, TTFT_HOURS(t)), v, v != null), 50), 'ttft_p85_hours', PERCENTILE(FILTER(MAP(load_inputs.tickets, t, TTFT_HOURS(t)), v, v != null), 85), 'ttft_p95_hours', PERCENTILE(FILTER(MAP(load_inputs.tickets, t, TTFT_HOURS(t)), v, v != null), 95), 'net_velocity_7d', (LENGTH(FILTER(load_inputs.tickets, t, AND(t.resolved_at != null, DATE_DIFF(NOW(), t.resolved_at, 'days') <= 7))) - LENGTH(FILTER(load_inputs.tickets, t, DATE_DIFF(NOW(), t.created_at, 'days') <= 7))) / 7)"
+        }
+      },
+      "reporting": { "time_saved_value": 0, "time_saved_unit": "minutes" },
+      "monitoring": { "monitor_all_events": false, "monitor_failures": false, "monitor_no_events_emitted": null },
+      "template": { "created_from_template_guid": null, "created_from_template_version": null, "template_tags": [] },
+      "width": null
+    },
+    {
+      "type": "Agents::EventTransformationAgent",
+      "name": "Compute flow",
+      "disabled": false,
+      "description": "Lead time decomposition, aging buckets, closure integrity, stalled tickets. Placeholder shape; fill formulas from docs/metric-mapping.md.",
+      "guid": "c0000004000000000000000000000fl",
+      "origin_story_identifier": "socmetric:tines-webapp:v1",
+      "options": {
+        "mode": "message_only",
+        "loop": false,
+        "payload": {
+          "flow": "=OBJECT('lead_time', OBJECT('queue_wait', OBJECT('p50', 0, 'p85', 0, 'p95', 0), 'active_work', OBJECT('p50', 0, 'p85', 0, 'p95', 0), 'post_active_wait', OBJECT('p50', 0, 'p85', 0, 'p95', 0)), 'aging_buckets', ARRAY(), 'stalled_tickets', 0, 'closure_integrity', OBJECT('instant', 0, 'untouched', 0, 'normal', 0, 'churned', 0, 'still_open', 0))"
+        }
+      },
+      "reporting": { "time_saved_value": 0, "time_saved_unit": "minutes" },
+      "monitoring": { "monitor_all_events": false, "monitor_failures": false, "monitor_no_events_emitted": null },
+      "template": { "created_from_template_guid": null, "created_from_template_version": null, "template_tags": [] },
+      "width": null
+    },
+    {
+      "type": "Agents::EventTransformationAgent",
+      "name": "Compute speed",
+      "disabled": false,
+      "description": "Response time trend and closure bursts. Placeholder shape.",
+      "guid": "c0000005000000000000000000000sp",
+      "origin_story_identifier": "socmetric:tines-webapp:v1",
+      "options": {
+        "mode": "message_only",
+        "loop": false,
+        "payload": {
+          "speed": "=OBJECT('ttft_percentiles', OBJECT('p50', null, 'p85', null, 'p95', null), 'response_time_trend', ARRAY(), 'closure_bursts', ARRAY())"
+        }
+      },
+      "reporting": { "time_saved_value": 0, "time_saved_unit": "minutes" },
+      "monitoring": { "monitor_all_events": false, "monitor_failures": false, "monitor_no_events_emitted": null },
+      "template": { "created_from_template_guid": null, "created_from_template_version": null, "template_tags": [] },
+      "width": null
+    },
+    {
+      "type": "Agents::EventTransformationAgent",
+      "name": "Compute capacity",
+      "disabled": false,
+      "description": "Shift rollover, after-hours transitions, staffing verdict, velocity under load. Placeholder shape.",
+      "guid": "c0000006000000000000000000000cp",
+      "origin_story_identifier": "socmetric:tines-webapp:v1",
+      "options": {
+        "mode": "message_only",
+        "loop": false,
+        "payload": {
+          "capacity": "=OBJECT('shift_rollover', ARRAY(), 'after_hours_transitions', 0, 'staffing_verdict', 'healthy', 'velocity_under_load', 0)"
+        }
+      },
+      "reporting": { "time_saved_value": 0, "time_saved_unit": "minutes" },
+      "monitoring": { "monitor_all_events": false, "monitor_failures": false, "monitor_no_events_emitted": null },
+      "template": { "created_from_template_guid": null, "created_from_template_version": null, "template_tags": [] },
+      "width": null
+    },
+    {
+      "type": "Agents::EventTransformationAgent",
+      "name": "Compute patterns",
+      "disabled": false,
+      "description": "Cluster analysis, recurrence engine. Placeholder shape.",
+      "guid": "c0000007000000000000000000000pt",
+      "origin_story_identifier": "socmetric:tines-webapp:v1",
+      "options": {
+        "mode": "message_only",
+        "loop": false,
+        "payload": {
+          "patterns": "=OBJECT('clusters', ARRAY(), 'recurrence', OBJECT('rapid', 0, 'slow', 0))"
+        }
+      },
+      "reporting": { "time_saved_value": 0, "time_saved_unit": "minutes" },
+      "monitoring": { "monitor_all_events": false, "monitor_failures": false, "monitor_no_events_emitted": null },
+      "template": { "created_from_template_guid": null, "created_from_template_version": null, "template_tags": [] },
+      "width": null
+    },
+    {
+      "type": "Agents::EventTransformationAgent",
+      "name": "Compute projections",
+      "disabled": false,
+      "description": "Linear regression projections. Placeholder shape.",
+      "guid": "c0000008000000000000000000000pr",
+      "origin_story_identifier": "socmetric:tines-webapp:v1",
+      "options": {
+        "mode": "message_only",
+        "loop": false,
+        "payload": {
+          "projections": "=OBJECT('method', 'linear', 'forecast', ARRAY(), 'r2', null)"
+        }
+      },
+      "reporting": { "time_saved_value": 0, "time_saved_unit": "minutes" },
+      "monitoring": { "monitor_all_events": false, "monitor_failures": false, "monitor_no_events_emitted": null },
+      "template": { "created_from_template_guid": null, "created_from_template_version": null, "template_tags": [] },
+      "width": null
+    },
+    {
+      "type": "Agents::EventTransformationAgent",
+      "name": "Compute calendar",
+      "disabled": false,
+      "description": "Per-day counts and top-N labels. Placeholder shape.",
+      "guid": "c0000009000000000000000000000cl",
+      "origin_story_identifier": "socmetric:tines-webapp:v1",
+      "options": {
+        "mode": "message_only",
+        "loop": false,
+        "payload": {
+          "calendar": "=OBJECT('days', ARRAY())"
+        }
+      },
+      "reporting": { "time_saved_value": 0, "time_saved_unit": "minutes" },
+      "monitoring": { "monitor_all_events": false, "monitor_failures": false, "monitor_no_events_emitted": null },
+      "template": { "created_from_template_guid": null, "created_from_template_version": null, "template_tags": [] },
+      "width": null
+    },
+    {
+      "type": "Agents::EventTransformationAgent",
+      "name": "Merge results",
+      "disabled": false,
+      "description": "Assembles the complete soc_metrics_cache payload.",
+      "guid": "c000000a000000000000000000000mg",
+      "origin_story_identifier": "socmetric:tines-webapp:v1",
+      "options": {
+        "mode": "message_only",
+        "loop": false,
+        "payload": {
+          "computed_at": "=NOW()",
+          "project_key": "<<load_inputs.settings.project_key>>",
+          "date_range": {
+            "start": "=DATE_SUBTRACT(NOW(), load_inputs.settings.date_range_days, 'days')",
+            "end": "=NOW()"
+          },
+          "headline": "<<compute_headline.headline>>",
+          "flow": "<<compute_flow.flow>>",
+          "speed": "<<compute_speed.speed>>",
+          "capacity": "<<compute_capacity.capacity>>",
+          "patterns": "<<compute_patterns.patterns>>",
+          "projections": "<<compute_projections.projections>>",
+          "calendar": "<<compute_calendar.calendar>>"
+        }
+      },
+      "reporting": { "time_saved_value": 0, "time_saved_unit": "minutes" },
+      "monitoring": { "monitor_all_events": false, "monitor_failures": false, "monitor_no_events_emitted": null },
+      "template": { "created_from_template_guid": null, "created_from_template_version": null, "template_tags": [] },
+      "width": null
+    },
+    {
+      "type": "Agents::HTTPRequestAgent",
+      "name": "Write metrics cache",
+      "disabled": false,
+      "description": "Updates the soc_metrics_cache Resource via the Tines API.",
+      "guid": "c000000b000000000000000000000wr",
+      "origin_story_identifier": "socmetric:tines-webapp:v1",
+      "options": {
+        "url": "=CONCAT('https://', RESOURCE.soc_tines_api.domain, '/api/v1/global_resources/', RESOURCE.soc_tines_api.resource_ids.soc_metrics_cache)",
+        "content_type": "json",
+        "method": "put",
+        "headers": {
+          "x-user-email": "<<RESOURCE.soc_tines_api.user_email>>",
+          "x-user-token": "<<CREDENTIAL.tines_api_token>>"
+        },
+        "payload": {
+          "value": "<<merge_results>>",
+          "value_type": "json"
+        }
+      },
+      "reporting": { "time_saved_value": 0, "time_saved_unit": "minutes" },
+      "monitoring": { "monitor_all_events": false, "monitor_failures": false, "monitor_no_events_emitted": null },
+      "template": { "created_from_template_guid": null, "created_from_template_version": null, "template_tags": [] },
+      "width": null
+    }
+  ],
+  "diagram_notes": [],
+  "links": [
+    { "source": 0, "receiver": 1 },
+    { "source": 1, "receiver": 2 },
+    { "source": 2, "receiver": 3 },
+    { "source": 3, "receiver": 4 },
+    { "source": 4, "receiver": 5 },
+    { "source": 5, "receiver": 6 },
+    { "source": 6, "receiver": 7 },
+    { "source": 7, "receiver": 8 },
+    { "source": 8, "receiver": 9 },
+    { "source": 9, "receiver": 10 }
+  ],
+  "diagram_layout": "{\"c0000001000000000000000000000web\": [0, 0], \"c0000002000000000000000000000load\": [0, 150], \"c0000003000000000000000000000hd\": [0, 300], \"c0000004000000000000000000000fl\": [0, 450], \"c0000005000000000000000000000sp\": [0, 600], \"c0000006000000000000000000000cp\": [0, 750], \"c0000007000000000000000000000pt\": [0, 900], \"c0000008000000000000000000000pr\": [0, 1050], \"c0000009000000000000000000000cl\": [0, 1200], \"c000000a000000000000000000000mg\": [0, 1350], \"c000000b000000000000000000000wr\": [0, 1500]}",
+  "send_to_story_enabled": true,
+  "entry_agent_guid": "c0000001000000000000000000000web",
+  "exit_agent_guids": [
+    "c000000b000000000000000000000wr"
+  ],
+  "api_entry_action_guids": [],
+  "api_exit_action_guids": [],
+  "keep_events_for": 604800,
+  "reporting_status": true,
+  "send_to_story_access": null,
+  "send_to_story_access_source": 0,
+  "send_to_story_timeout_enabled": false,
+  "send_to_story_timeout_duration_seconds": null,
+  "send_to_story_skill_use_requires_confirmation": true,
+  "story_library_metadata": {},
+  "parent_only_send_to_story": false,
+  "monitor_failures": false,
+  "send_to_stories": [],
+  "synchronous_webhooks_enabled": false,
+  "pages": [],
+  "tags": [
+    "compute",
+    "socmetric"
+  ],
+  "time_saved_unit": "minutes",
+  "time_saved_value": 0,
+  "origin_story_identifier": "socmetric:tines-webapp:v1",
+  "integration_product": null,
+  "integration_vendor": null,
+  "exported_at": "2026-04-21T00:00:00Z",
+  "icon": ":abacus:",
+  "integrations": [],
+  "recipients": [],
+  "sections": [],
+  "start_reference": null,
+  "llm_product_instructions": ""
+}

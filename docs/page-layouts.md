@@ -21,9 +21,9 @@ Purpose: overview. Five KPI cards + a 14-day headline trend.
 
 Purpose: daily volume + label breakdown + annotation layer.
 
-- Month selector: two buttons "prev" and "next" that post to `soc-settings-crud` with `calendar_view_month`.
+- Month selector: two buttons "prev" and "next" that post to `soc-data` (action `settings_op`) with `calendar_view_month`.
 - Grid: custom HTML component rendered via text-block + templated formula that walks `soc_metrics_cache.calendar.days` for the selected month. Each cell shows: day number, total count, top-3 label color bars, annotation preview.
-- Annotation panel: below the grid, an editable text input bound to `RESOURCE.soc_day_annotations[selected_date]`. "Save" posts to `soc-annotations-crud`.
+- Annotation panel: below the grid, an editable text input bound to `RESOURCE.soc_day_annotations[selected_date]`. "Save" posts to `soc-data` (action `annotations_op`).
 
 Because Tines Pages do not natively render a calendar grid, the month-view HTML is generated in-Page via a Markdown/HTML text component whose template uses formula `<for>` loops to iterate 42 day cells (six weeks) and a `<if>` to dim out-of-month cells.
 
@@ -81,7 +81,7 @@ Purpose: forecast.
 Purpose: full list of day annotations.
 
 - Table: date, note, with edit and delete actions per row. Bound to `RESOURCE.soc_day_annotations`.
-- Form: add-new annotation (date picker + text input + save button). Posts to `soc-annotations-crud`.
+- Form: add-new annotation (date picker + text input + save button). Posts to `soc-data` (action `annotations_op`).
 
 ## Page: Setup
 
@@ -90,11 +90,11 @@ Purpose: one-time and ongoing admin configuration. Unlike other Pages, this one 
 Sections:
 
 1. **Status**: reads `RESOURCE.soc_settings.{project_key, first_sync_completed_at, last_sync_status, last_sync_error}`. Shows a traffic-light.
-2. **Project selection**: button "Discover projects" triggers `soc-jira-discover-projects`. Dropdown populated from the story's latest result. Save button posts to `soc-settings-crud` with `project_key`.
-3. **Status classification**: button "Discover statuses" triggers `soc-jira-discover-statuses`. Table rows show status name, category, suggested classification, and four radio buttons (queue / active / done / blocked). Save triggers `soc-status-map-crud`.
-4. **Business hours**: form fields for start_hour, end_hour, timezone, work_days (multi-select). Save posts to `soc-settings-crud`.
-5. **Label filters**: list of every label seen in `soc_tickets_cache`; checkbox per label. Posts to `soc-labels-crud`.
-6. **Sync controls**: "Run sync now" button triggers `soc-jira-sync`. "Change sync interval" form posts to `soc-settings-crud`. Status banner shows `last_sync_status`.
+2. **Project selection**: button "Discover projects" triggers `soc-data` (action `discover_projects`). Dropdown populated from the story's latest result. Save button posts to `soc-data` (action `settings_op`) with `project_key`.
+3. **Status classification**: button "Discover statuses" triggers `soc-data` (action `discover_statuses`). Table rows show status name, category, suggested classification, and four radio buttons (queue / active / done / blocked). Save triggers `soc-data` (action `status_map_op`).
+4. **Business hours**: form fields for start_hour, end_hour, timezone, work_days (multi-select). Save posts to `soc-data` (action `settings_op`).
+5. **Label filters**: list of every label seen in `soc_tickets_cache`; checkbox per label. Posts to `soc-data` (action `labels_op`).
+6. **Sync controls**: "Run sync now" button triggers `soc-data` (action `sync_now`). "Change sync interval" form posts to `soc-data` (action `settings_op`). Status banner shows `last_sync_status`.
 7. **Reset**: two buttons, "Reset settings (keep tickets)" and "Reset everything (keep credentials)". Each triggers `soc-reset` with the appropriate tier. Confirmation dialog required.
 
 ## Component inventory
@@ -108,4 +108,4 @@ Any layout that a component type does not cover (the calendar grid, the heat-str
 - Numbers: component `value` formula is `<<RESOURCE.soc_metrics_cache.<path>>>`.
 - Arrays for charts: component `data` formula is the array directly; axis formulas pick fields by name.
 - Table: `rows` formula is the array; `columns` metadata lists field names and optional formatters.
-- Triggers (Setup page buttons): the button's action is a Send to Story that posts to the CRUD story's webhook entry point. Response handling uses the Page's built-in "refresh this component on success" option.
+- Triggers (Setup page buttons): the button's action is a Send to Story that posts to `soc-data`'s webhook entry point with `{action: "<name>", ...params}`. Response handling uses the Page's built-in "refresh this component on success" option.
