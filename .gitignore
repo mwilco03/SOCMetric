@@ -1,0 +1,20 @@
+# Reference drops — sample/example Tines stories the user may unzip here
+# for inspection. These are not our deliverables; don't track them.
+*.zip
+__MACOSX/
+
+# Known reference sample exports
+auto-action-collection.json
+crowdstrike-secure.json
+
+# Editor / OS cruft
+.DS_Store
+Thumbs.db
+*.swp
+*~
+.vscode/
+.idea/
+
+# Ephemeral
+*.tmp
+*.log
