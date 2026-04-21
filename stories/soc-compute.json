@@ -12,7 +12,7 @@
       "name": "Webhook (from soc_data)",
       "disabled": false,
       "description": "Entry. Receives {project_key} from soc_data.Trigger_compute.",
-      "guid": "c0000001000000000000000000000web",
+      "guid": "3b66d4b2a4f6fbb71481fa4fe65df81e",
       "origin_story_identifier": "socmetric:tines-webapp:v1",
       "options": {
         "path": "c0a1cea2aabb0000000000000f0000c2",
@@ -29,7 +29,7 @@
       "name": "Load inputs",
       "disabled": false,
       "description": "Reads tickets (handles sharded-mode Resource), status_map, label_config, settings.",
-      "guid": "c0000002000000000000000000000load",
+      "guid": "007338d0d78562e5fb9f299e5527fc6e",
       "origin_story_identifier": "socmetric:tines-webapp:v1",
       "options": {
         "mode": "message_only",
@@ -51,7 +51,7 @@
       "name": "Compute headline",
       "disabled": false,
       "description": "Queue depth, active incidents, net velocity, TTFT percentiles. See docs/metric-mapping.md.",
-      "guid": "c0000003000000000000000000000hd",
+      "guid": "d1eb1288d13fe2cd0eb9f1b1768d0f1a",
       "origin_story_identifier": "socmetric:tines-webapp:v1",
       "options": {
         "mode": "message_only",
@@ -70,7 +70,7 @@
       "name": "Compute flow",
       "disabled": false,
       "description": "Lead time decomposition, aging buckets, closure integrity, stalled tickets. Placeholder shape; fill formulas from docs/metric-mapping.md.",
-      "guid": "c0000004000000000000000000000fl",
+      "guid": "7f09277cb7d280fabca1f9f3b2d372cf",
       "origin_story_identifier": "socmetric:tines-webapp:v1",
       "options": {
         "mode": "message_only",
@@ -89,7 +89,7 @@
       "name": "Compute speed",
       "disabled": false,
       "description": "Response time trend and closure bursts. Placeholder shape.",
-      "guid": "c0000005000000000000000000000sp",
+      "guid": "68b18546396197931819aaf7c05d56b8",
       "origin_story_identifier": "socmetric:tines-webapp:v1",
       "options": {
         "mode": "message_only",
@@ -108,7 +108,7 @@
       "name": "Compute capacity",
       "disabled": false,
       "description": "Shift rollover, after-hours transitions, staffing verdict, velocity under load. Placeholder shape.",
-      "guid": "c0000006000000000000000000000cp",
+      "guid": "73f1275113d9c6701a8269bb4c26f5d3",
       "origin_story_identifier": "socmetric:tines-webapp:v1",
       "options": {
         "mode": "message_only",
@@ -127,7 +127,7 @@
       "name": "Compute patterns",
       "disabled": false,
       "description": "Cluster analysis, recurrence engine. Placeholder shape.",
-      "guid": "c0000007000000000000000000000pt",
+      "guid": "dc41510fe8d9f249a58caac23ac4e745",
       "origin_story_identifier": "socmetric:tines-webapp:v1",
       "options": {
         "mode": "message_only",
@@ -146,7 +146,7 @@
       "name": "Compute projections",
       "disabled": false,
       "description": "Linear regression projections. Placeholder shape.",
-      "guid": "c0000008000000000000000000000pr",
+      "guid": "6597330d8fed642d7e6864302c7c61f5",
       "origin_story_identifier": "socmetric:tines-webapp:v1",
       "options": {
         "mode": "message_only",
@@ -165,7 +165,7 @@
       "name": "Compute calendar",
       "disabled": false,
       "description": "Per-day counts and top-N labels. Placeholder shape.",
-      "guid": "c0000009000000000000000000000cl",
+      "guid": "71a0b1cf677924571d6e6eefa7ac9e15",
       "origin_story_identifier": "socmetric:tines-webapp:v1",
       "options": {
         "mode": "message_only",
@@ -184,7 +184,7 @@
       "name": "Merge results",
       "disabled": false,
       "description": "Assembles the complete soc_metrics_cache payload.",
-      "guid": "c000000a000000000000000000000mg",
+      "guid": "1e98b49843916b4aa0ada67faba14791",
       "origin_story_identifier": "socmetric:tines-webapp:v1",
       "options": {
         "mode": "message_only",
@@ -215,7 +215,7 @@
       "name": "Write metrics cache",
       "disabled": false,
       "description": "Updates the soc_metrics_cache Resource via the Tines API.",
-      "guid": "c000000b000000000000000000000wr",
+      "guid": "f76dd79f6beaac86fe60466c02487540",
       "origin_story_identifier": "socmetric:tines-webapp:v1",
       "options": {
         "url": "=CONCAT('https://', RESOURCE.soc_tines_api.domain, '/api/v1/global_resources/', RESOURCE.soc_tines_api.resource_ids.soc_metrics_cache)",
@@ -249,11 +249,11 @@
     { "source": 8, "receiver": 9 },
     { "source": 9, "receiver": 10 }
   ],
-  "diagram_layout": "{\"c0000001000000000000000000000web\": [0, 0], \"c0000002000000000000000000000load\": [0, 150], \"c0000003000000000000000000000hd\": [0, 300], \"c0000004000000000000000000000fl\": [0, 450], \"c0000005000000000000000000000sp\": [0, 600], \"c0000006000000000000000000000cp\": [0, 750], \"c0000007000000000000000000000pt\": [0, 900], \"c0000008000000000000000000000pr\": [0, 1050], \"c0000009000000000000000000000cl\": [0, 1200], \"c000000a000000000000000000000mg\": [0, 1350], \"c000000b000000000000000000000wr\": [0, 1500]}",
+  "diagram_layout": "{\"3b66d4b2a4f6fbb71481fa4fe65df81e\": [0, 0], \"007338d0d78562e5fb9f299e5527fc6e\": [0, 150], \"d1eb1288d13fe2cd0eb9f1b1768d0f1a\": [0, 300], \"7f09277cb7d280fabca1f9f3b2d372cf\": [0, 450], \"68b18546396197931819aaf7c05d56b8\": [0, 600], \"73f1275113d9c6701a8269bb4c26f5d3\": [0, 750], \"dc41510fe8d9f249a58caac23ac4e745\": [0, 900], \"6597330d8fed642d7e6864302c7c61f5\": [0, 1050], \"71a0b1cf677924571d6e6eefa7ac9e15\": [0, 1200], \"1e98b49843916b4aa0ada67faba14791\": [0, 1350], \"f76dd79f6beaac86fe60466c02487540\": [0, 1500]}",
   "send_to_story_enabled": true,
-  "entry_agent_guid": "c0000001000000000000000000000web",
+  "entry_agent_guid": "3b66d4b2a4f6fbb71481fa4fe65df81e",
   "exit_agent_guids": [
-    "c000000b000000000000000000000wr"
+    "f76dd79f6beaac86fe60466c02487540"
   ],
   "api_entry_action_guids": [],
   "api_exit_action_guids": [],
