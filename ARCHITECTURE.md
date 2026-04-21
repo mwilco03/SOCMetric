@@ -1,6 +1,6 @@
 # SOCMetric on Tines: Architecture
 
-Version 1. Target schema: Tines story `schema_version` 18 (matches the caldera example export we validated against). All artefacts import-and-run inside a single Tines tenant.
+Version 1. Target schema: Tines story `schema_version` 28, `standard_lib_version` 90, `action_runtime_version` 74 (matches the auto-action-collection and crowdstrike-secure exports validated against a live tenant). All artefacts import-and-run inside a single Tines tenant.
 
 ## Goals
 
@@ -20,7 +20,9 @@ Version 1. Target schema: Tines story `schema_version` 18 (matches the caldera e
 ```
 Tines tenant
 ├── Credentials
-│   └── jira_basic_auth            type: HTTP Basic (email + api_token). Admin-configured once.
+│   ├── jira_basic_auth            type: HTTP Basic (email + api_token). Admin-configured once.
+│   └── tines_api_token            type: HTTP Token (or Text). Token for the Tines tenant's own
+│                                  /api/v1/global_resources endpoint. Scope: global_resources:write.
 │
 ├── Resources (Tines key-value Resources, JSON-object type)
 │   ├── soc_settings               { project_key, sync_interval_minutes, date_range_days, first_sync_completed_at }
@@ -29,7 +31,10 @@ Tines tenant
 │   ├── soc_day_annotations        { "YYYY-MM-DD": "<note text>" }
 │   ├── soc_tickets_cache          { last_synced_at, project_key, total, tickets: [ TicketRow, ... ] }
 │   ├── soc_tickets_cache_shard_N  (optional; created on-demand by sync story if primary exceeds byte budget)
-│   └── soc_metrics_cache          { computed_at, headline, flow, speed, capacity, patterns, projections, calendar }
+│   ├── soc_metrics_cache          { computed_at, headline, flow, speed, capacity, patterns, projections, calendar }
+│   └── soc_tines_api              { domain, user_email, resource_ids: { soc_settings: 111, ... } }
+│                                  Bootstrap map the stories use to find each Resource's numeric ID
+│                                  when writing back via the Tines /api/v1/global_resources endpoint.
 │
 ├── Stories
 │   │   (data ingest)

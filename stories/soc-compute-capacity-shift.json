@@ -1,18 +1,18 @@
 {
-  "schema_version": 18,
-  "standard_lib_version": 47,
-  "action_runtime_version": 6,
+  "schema_version": 28,
+  "standard_lib_version": 90,
+  "action_runtime_version": 74,
   "name": "SOC: Compute capacity / shift",
-  "description": "Shift rollover, after-hours transitions, staffing verdict, velocity under load. Uses business_hours from payload.",
+  "description": "Shift rollover, after-hours transitions, staffing verdict, velocity under load.",
   "guid": "c09ac8404efd4d12bef0715427bbb4e7",
   "slug": "soc_compute_capacity_shift",
   "agents": [
     {
       "type": "Agents::WebhookAgent",
-      "name": "Trigger (from parent)",
+      "name": "Webhook (from parent)",
       "disabled": false,
-      "description": "Entry. Receives {tickets, status_map, business_hours}.",
-      "guid": "34c0fb530c756ad4dda35d54d19be1d2",
+      "description": "Entry. Receives {tickets, status_map, business_hours, label_config} from soc-compute-all-metrics.",
+      "guid": "7a503d71f03ffce782bc55911f4d9d59",
       "origin_story_identifier": "socmetric:tines-webapp:v1",
       "options": {
         "path": "d83b16ca9c2b1655941c19924231b523",
@@ -33,25 +33,21 @@
         "created_from_template_version": null,
         "template_tags": []
       },
-      "width": null,
-      "position": {
-        "x": 0,
-        "y": 0
-      },
-      "schedule": null
+      "width": null
     },
     {
       "type": "Agents::EventTransformationAgent",
-      "name": "Compute",
+      "name": "Compute slice",
       "disabled": false,
-      "description": "Shift rollover, after-hours transitions, staffing verdict, velocity under load. Uses business_hours from payload.",
-      "guid": "fc9cc180bf2bd70f3d47ba38bab6a668",
+      "description": "Shift rollover, after-hours transitions, staffing verdict, velocity under load.",
+      "guid": "6ae98071b76e622e573ac985603eeaa8",
       "origin_story_identifier": "socmetric:tines-webapp:v1",
       "options": {
         "mode": "message_only",
+        "loop": false,
         "payload": {
-          "slice": "shift_rollover / after_hours_transitions / staffing_verdict / velocity_under_load",
-          "_implementation_notes": "See docs/metric-mapping.md for the formula chain that lives in this agent."
+          "slice": "=OBJECT('shift_rollover', ARRAY(), 'after_hours_transitions', 0, 'staffing_verdict', 'healthy', 'velocity_under_load', 0)",
+          "_note": "Replace the placeholder with the formula chain from docs/metric-mapping.md for capacity_shift. The action's output shape is the capacity slice of soc_metrics_cache."
         }
       },
       "reporting": {
@@ -68,25 +64,21 @@
         "created_from_template_version": null,
         "template_tags": []
       },
-      "width": null,
-      "position": {
-        "x": 0,
-        "y": 150
-      },
-      "schedule": null
+      "width": null
     },
     {
       "type": "Agents::EventTransformationAgent",
-      "name": "Return result",
+      "name": "Return",
       "disabled": false,
-      "description": "Shapes output for parent to merge into soc_metrics_cache.",
-      "guid": "aa4151edd08a7e5c269a565115163025",
+      "description": "Shapes output for the parent fan-out to merge into soc_metrics_cache.",
+      "guid": "3117c6671ca892e63b8a9625fd3e03c7",
       "origin_story_identifier": "socmetric:tines-webapp:v1",
       "options": {
         "mode": "message_only",
+        "loop": false,
         "payload": {
           "key": "capacity",
-          "value": "<<slice>>"
+          "value": "<<compute_slice.slice>>"
         }
       },
       "reporting": {
@@ -103,12 +95,7 @@
         "created_from_template_version": null,
         "template_tags": []
       },
-      "width": null,
-      "position": {
-        "x": 0,
-        "y": 300
-      },
-      "schedule": null
+      "width": null
     }
   ],
   "diagram_notes": [],
@@ -122,25 +109,26 @@
       "receiver": 2
     }
   ],
-  "diagram_layout": "{}",
+  "diagram_layout": "{\"7a503d71f03ffce782bc55911f4d9d59\": [0, 0], \"6ae98071b76e622e573ac985603eeaa8\": [0, 150], \"3117c6671ca892e63b8a9625fd3e03c7\": [0, 300]}",
   "send_to_story_enabled": true,
-  "entry_agent_guid": "34c0fb530c756ad4dda35d54d19be1d2",
+  "entry_agent_guid": "7a503d71f03ffce782bc55911f4d9d59",
   "exit_agent_guids": [
-    "aa4151edd08a7e5c269a565115163025"
+    "3117c6671ca892e63b8a9625fd3e03c7"
   ],
-  "exit_agent_guid": "aa4151edd08a7e5c269a565115163025",
   "api_entry_action_guids": [],
   "api_exit_action_guids": [],
   "keep_events_for": 604800,
   "reporting_status": true,
-  "send_to_story_access": "team",
+  "send_to_story_access": null,
+  "send_to_story_access_source": 0,
+  "send_to_story_timeout_enabled": false,
+  "send_to_story_timeout_duration_seconds": null,
+  "send_to_story_skill_use_requires_confirmation": true,
   "story_library_metadata": {},
   "parent_only_send_to_story": false,
   "monitor_failures": false,
   "send_to_stories": [],
-  "form": {},
   "synchronous_webhooks_enabled": false,
-  "forms": [],
   "pages": [],
   "tags": [
     "compute",
@@ -152,6 +140,10 @@
   "integration_product": null,
   "integration_vendor": null,
   "exported_at": "2026-04-21T00:00:00Z",
-  "icon": null,
-  "integrations": []
+  "icon": ":abacus:",
+  "integrations": [],
+  "recipients": [],
+  "sections": [],
+  "start_reference": null,
+  "llm_product_instructions": ""
 }

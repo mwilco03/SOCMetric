@@ -1,7 +1,7 @@
 {
-  "schema_version": 18,
-  "standard_lib_version": 47,
-  "action_runtime_version": 6,
+  "schema_version": 28,
+  "standard_lib_version": 90,
+  "action_runtime_version": 74,
   "name": "SOC: Compute response speed",
   "description": "TTFT percentiles, response time trend, closure bursts.",
   "guid": "d5c7ad9f868009541d5f95149e397a1b",
@@ -9,10 +9,10 @@
   "agents": [
     {
       "type": "Agents::WebhookAgent",
-      "name": "Trigger (from parent)",
+      "name": "Webhook (from parent)",
       "disabled": false,
-      "description": "Entry. Receives {tickets, status_map, business_hours}.",
-      "guid": "1e1baddaa05ac41bf1100a7ed7a422ca",
+      "description": "Entry. Receives {tickets, status_map, business_hours, label_config} from soc-compute-all-metrics.",
+      "guid": "6cf05d7e81c9989471fbf6daa81d42f1",
       "origin_story_identifier": "socmetric:tines-webapp:v1",
       "options": {
         "path": "920d7a5bea0d4441a7ef96557af8386d",
@@ -33,25 +33,21 @@
         "created_from_template_version": null,
         "template_tags": []
       },
-      "width": null,
-      "position": {
-        "x": 0,
-        "y": 0
-      },
-      "schedule": null
+      "width": null
     },
     {
       "type": "Agents::EventTransformationAgent",
-      "name": "Compute",
+      "name": "Compute slice",
       "disabled": false,
       "description": "TTFT percentiles, response time trend, closure bursts.",
-      "guid": "e9a39643695511f41684ee2e7baa5086",
+      "guid": "d5ccbf093da5c272d8a3f30023d449af",
       "origin_story_identifier": "socmetric:tines-webapp:v1",
       "options": {
         "mode": "message_only",
+        "loop": false,
         "payload": {
-          "slice": "ttft_percentiles / response_time_trend / closure_bursts",
-          "_implementation_notes": "See docs/metric-mapping.md for the formula chain that lives in this agent."
+          "slice": "=OBJECT('ttft_percentiles', OBJECT('p50', null, 'p85', null, 'p95', null), 'response_time_trend', ARRAY(), 'closure_bursts', ARRAY())",
+          "_note": "Replace the placeholder with the formula chain from docs/metric-mapping.md for response_speed. The action's output shape is the speed slice of soc_metrics_cache."
         }
       },
       "reporting": {
@@ -68,25 +64,21 @@
         "created_from_template_version": null,
         "template_tags": []
       },
-      "width": null,
-      "position": {
-        "x": 0,
-        "y": 150
-      },
-      "schedule": null
+      "width": null
     },
     {
       "type": "Agents::EventTransformationAgent",
-      "name": "Return result",
+      "name": "Return",
       "disabled": false,
-      "description": "Shapes output for parent to merge into soc_metrics_cache.",
-      "guid": "9647dda16dc3e5cdf86035eaf7269a08",
+      "description": "Shapes output for the parent fan-out to merge into soc_metrics_cache.",
+      "guid": "2a1f92e554e043d48a03fbd6da84bb1e",
       "origin_story_identifier": "socmetric:tines-webapp:v1",
       "options": {
         "mode": "message_only",
+        "loop": false,
         "payload": {
-          "key": "response",
-          "value": "<<slice>>"
+          "key": "speed",
+          "value": "<<compute_slice.slice>>"
         }
       },
       "reporting": {
@@ -103,12 +95,7 @@
         "created_from_template_version": null,
         "template_tags": []
       },
-      "width": null,
-      "position": {
-        "x": 0,
-        "y": 300
-      },
-      "schedule": null
+      "width": null
     }
   ],
   "diagram_notes": [],
@@ -122,25 +109,26 @@
       "receiver": 2
     }
   ],
-  "diagram_layout": "{}",
+  "diagram_layout": "{\"6cf05d7e81c9989471fbf6daa81d42f1\": [0, 0], \"d5ccbf093da5c272d8a3f30023d449af\": [0, 150], \"2a1f92e554e043d48a03fbd6da84bb1e\": [0, 300]}",
   "send_to_story_enabled": true,
-  "entry_agent_guid": "1e1baddaa05ac41bf1100a7ed7a422ca",
+  "entry_agent_guid": "6cf05d7e81c9989471fbf6daa81d42f1",
   "exit_agent_guids": [
-    "9647dda16dc3e5cdf86035eaf7269a08"
+    "2a1f92e554e043d48a03fbd6da84bb1e"
   ],
-  "exit_agent_guid": "9647dda16dc3e5cdf86035eaf7269a08",
   "api_entry_action_guids": [],
   "api_exit_action_guids": [],
   "keep_events_for": 604800,
   "reporting_status": true,
-  "send_to_story_access": "team",
+  "send_to_story_access": null,
+  "send_to_story_access_source": 0,
+  "send_to_story_timeout_enabled": false,
+  "send_to_story_timeout_duration_seconds": null,
+  "send_to_story_skill_use_requires_confirmation": true,
   "story_library_metadata": {},
   "parent_only_send_to_story": false,
   "monitor_failures": false,
   "send_to_stories": [],
-  "form": {},
   "synchronous_webhooks_enabled": false,
-  "forms": [],
   "pages": [],
   "tags": [
     "compute",
@@ -152,6 +140,10 @@
   "integration_product": null,
   "integration_vendor": null,
   "exported_at": "2026-04-21T00:00:00Z",
-  "icon": null,
-  "integrations": []
+  "icon": ":abacus:",
+  "integrations": [],
+  "recipients": [],
+  "sections": [],
+  "start_reference": null,
+  "llm_product_instructions": ""
 }

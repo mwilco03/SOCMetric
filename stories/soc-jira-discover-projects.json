@@ -1,18 +1,18 @@
 {
-  "schema_version": 18,
-  "standard_lib_version": 47,
-  "action_runtime_version": 6,
+  "schema_version": 28,
+  "standard_lib_version": 90,
+  "action_runtime_version": 74,
   "name": "SOC: Jira discover projects",
-  "description": "On-demand: returns [{id,key,name}] for the Setup Page's project dropdown.",
+  "description": "On-demand webhook. Returns [{id,key,name}] for the Setup Page's project dropdown.",
   "guid": "3ea7ae6c703ce0853e71dd65c709fcfb",
   "slug": "soc_jira_discover_projects",
   "agents": [
     {
       "type": "Agents::WebhookAgent",
-      "name": "Trigger",
+      "name": "Webhook",
       "disabled": false,
-      "description": "Triggered from the Setup Page 'Discover projects' button.",
-      "guid": "3321439258f39a9f7927b3acfb6f0100",
+      "description": null,
+      "guid": "c6406e47c1a6b0348d4913b8e1d12ac6",
       "origin_story_identifier": "socmetric:tines-webapp:v1",
       "options": {
         "path": "dffa480c058e98e89c609683380599fa",
@@ -33,12 +33,7 @@
         "created_from_template_version": null,
         "template_tags": []
       },
-      "width": null,
-      "position": {
-        "x": 0,
-        "y": 0
-      },
-      "schedule": null
+      "width": null
     },
     {
       "type": "Agents::HTTPRequestAgent",
@@ -48,8 +43,9 @@
       "guid": "eab72f3f1882d3a53bcc969392f04574",
       "origin_story_identifier": "socmetric:tines-webapp:v1",
       "options": {
-        "url": "https://<<RESOURCE.soc_settings.jira_domain>>/rest/api/3/project/search",
+        "url": "=CONCAT('https://', RESOURCE.soc_settings.jira_domain, '/rest/api/3/project/search?maxResults=100')",
         "method": "get",
+        "content_type": "json",
         "basic_auth": [
           "<<CREDENTIAL.jira_basic_auth.email>>",
           "<<CREDENTIAL.jira_basic_auth.api_token>>"
@@ -72,12 +68,7 @@
         "created_from_template_version": null,
         "template_tags": []
       },
-      "width": null,
-      "position": {
-        "x": 0,
-        "y": 150
-      },
-      "schedule": null
+      "width": null
     },
     {
       "type": "Agents::EventTransformationAgent",
@@ -88,8 +79,9 @@
       "origin_story_identifier": "socmetric:tines-webapp:v1",
       "options": {
         "mode": "message_only",
+        "loop": false,
         "payload": {
-          "projects": "<<MAP_LAMBDA(values, p, {\"id\": p.id, \"key\": p.key, \"name\": p.name})>>"
+          "projects": "=MAP(fetch_projects.body.values, p, OBJECT('id', p.id, 'key', p.key, 'name', p.name))"
         }
       },
       "reporting": {
@@ -106,12 +98,7 @@
         "created_from_template_version": null,
         "template_tags": []
       },
-      "width": null,
-      "position": {
-        "x": 0,
-        "y": 300
-      },
-      "schedule": null
+      "width": null
     }
   ],
   "diagram_notes": [],
@@ -125,25 +112,26 @@
       "receiver": 2
     }
   ],
-  "diagram_layout": "{}",
+  "diagram_layout": "{\"c6406e47c1a6b0348d4913b8e1d12ac6\": [0, 0], \"eab72f3f1882d3a53bcc969392f04574\": [0, 150], \"e435d95233efb365b5de375ffe8ed979\": [0, 300]}",
   "send_to_story_enabled": true,
-  "entry_agent_guid": "3321439258f39a9f7927b3acfb6f0100",
+  "entry_agent_guid": "c6406e47c1a6b0348d4913b8e1d12ac6",
   "exit_agent_guids": [
     "e435d95233efb365b5de375ffe8ed979"
   ],
-  "exit_agent_guid": "e435d95233efb365b5de375ffe8ed979",
   "api_entry_action_guids": [],
   "api_exit_action_guids": [],
   "keep_events_for": 604800,
   "reporting_status": true,
-  "send_to_story_access": "team",
+  "send_to_story_access": null,
+  "send_to_story_access_source": 0,
+  "send_to_story_timeout_enabled": false,
+  "send_to_story_timeout_duration_seconds": null,
+  "send_to_story_skill_use_requires_confirmation": true,
   "story_library_metadata": {},
   "parent_only_send_to_story": false,
   "monitor_failures": false,
   "send_to_stories": [],
-  "form": {},
   "synchronous_webhooks_enabled": false,
-  "forms": [],
   "pages": [],
   "tags": [
     "data",
@@ -157,6 +145,10 @@
   "integration_product": null,
   "integration_vendor": null,
   "exported_at": "2026-04-21T00:00:00Z",
-  "icon": null,
-  "integrations": []
+  "icon": ":mag:",
+  "integrations": [],
+  "recipients": [],
+  "sections": [],
+  "start_reference": null,
+  "llm_product_instructions": ""
 }

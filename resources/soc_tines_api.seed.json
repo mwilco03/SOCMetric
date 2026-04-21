@@ -1,0 +1,12 @@
+{
+  "domain": "your-tenant.tines.com",
+  "user_email": "admin@example.com",
+  "resource_ids": {
+    "soc_settings": 0,
+    "soc_status_map": 0,
+    "soc_label_config": 0,
+    "soc_day_annotations": 0,
+    "soc_tickets_cache": 0,
+    "soc_metrics_cache": 0
+  }
+}

@@ -1,7 +1,7 @@
 {
-  "schema_version": 18,
-  "standard_lib_version": 47,
-  "action_runtime_version": 6,
+  "schema_version": 28,
+  "standard_lib_version": 90,
+  "action_runtime_version": 74,
   "name": "SOC: Compute projections",
   "description": "Linear regression forecast of queue depth for 60 days. STL deferred; see limitations.md.",
   "guid": "9667adc1b35d81fab343cbb96c467c31",
@@ -9,10 +9,10 @@
   "agents": [
     {
       "type": "Agents::WebhookAgent",
-      "name": "Trigger (from parent)",
+      "name": "Webhook (from parent)",
       "disabled": false,
-      "description": "Entry. Receives {tickets, status_map, business_hours}.",
-      "guid": "dc6f2cd7528f1aca90ecfa7b13ae53e9",
+      "description": "Entry. Receives {tickets, status_map, business_hours, label_config} from soc-compute-all-metrics.",
+      "guid": "ce1c864c88c1af624c79773990055ab9",
       "origin_story_identifier": "socmetric:tines-webapp:v1",
       "options": {
         "path": "421bbc5978be856a695c52e8e3355715",
@@ -33,25 +33,21 @@
         "created_from_template_version": null,
         "template_tags": []
       },
-      "width": null,
-      "position": {
-        "x": 0,
-        "y": 0
-      },
-      "schedule": null
+      "width": null
     },
     {
       "type": "Agents::EventTransformationAgent",
-      "name": "Compute",
+      "name": "Compute slice",
       "disabled": false,
       "description": "Linear regression forecast of queue depth for 60 days. STL deferred; see limitations.md.",
-      "guid": "6932f8a7e120902fcd509ea87f263225",
+      "guid": "cfa0d70a0aa784f7f711ba4d72f217b5",
       "origin_story_identifier": "socmetric:tines-webapp:v1",
       "options": {
         "mode": "message_only",
+        "loop": false,
         "payload": {
-          "slice": "method / forecast[] / r2",
-          "_implementation_notes": "See docs/metric-mapping.md for the formula chain that lives in this agent."
+          "slice": "=OBJECT('method', 'linear', 'forecast', ARRAY(), 'r2', null)",
+          "_note": "Replace the placeholder with the formula chain from docs/metric-mapping.md for projections. The action's output shape is the projections slice of soc_metrics_cache."
         }
       },
       "reporting": {
@@ -68,25 +64,21 @@
         "created_from_template_version": null,
         "template_tags": []
       },
-      "width": null,
-      "position": {
-        "x": 0,
-        "y": 150
-      },
-      "schedule": null
+      "width": null
     },
     {
       "type": "Agents::EventTransformationAgent",
-      "name": "Return result",
+      "name": "Return",
       "disabled": false,
-      "description": "Shapes output for parent to merge into soc_metrics_cache.",
-      "guid": "953914e6b13f839b783e1c7010b7e7e7",
+      "description": "Shapes output for the parent fan-out to merge into soc_metrics_cache.",
+      "guid": "45641e1fe6c132d446a8a76fa2067f7f",
       "origin_story_identifier": "socmetric:tines-webapp:v1",
       "options": {
         "mode": "message_only",
+        "loop": false,
         "payload": {
           "key": "projections",
-          "value": "<<slice>>"
+          "value": "<<compute_slice.slice>>"
         }
       },
       "reporting": {
@@ -103,12 +95,7 @@
         "created_from_template_version": null,
         "template_tags": []
       },
-      "width": null,
-      "position": {
-        "x": 0,
-        "y": 300
-      },
-      "schedule": null
+      "width": null
     }
   ],
   "diagram_notes": [],
@@ -122,25 +109,26 @@
       "receiver": 2
     }
   ],
-  "diagram_layout": "{}",
+  "diagram_layout": "{\"ce1c864c88c1af624c79773990055ab9\": [0, 0], \"cfa0d70a0aa784f7f711ba4d72f217b5\": [0, 150], \"45641e1fe6c132d446a8a76fa2067f7f\": [0, 300]}",
   "send_to_story_enabled": true,
-  "entry_agent_guid": "dc6f2cd7528f1aca90ecfa7b13ae53e9",
+  "entry_agent_guid": "ce1c864c88c1af624c79773990055ab9",
   "exit_agent_guids": [
-    "953914e6b13f839b783e1c7010b7e7e7"
+    "45641e1fe6c132d446a8a76fa2067f7f"
   ],
-  "exit_agent_guid": "953914e6b13f839b783e1c7010b7e7e7",
   "api_entry_action_guids": [],
   "api_exit_action_guids": [],
   "keep_events_for": 604800,
   "reporting_status": true,
-  "send_to_story_access": "team",
+  "send_to_story_access": null,
+  "send_to_story_access_source": 0,
+  "send_to_story_timeout_enabled": false,
+  "send_to_story_timeout_duration_seconds": null,
+  "send_to_story_skill_use_requires_confirmation": true,
   "story_library_metadata": {},
   "parent_only_send_to_story": false,
   "monitor_failures": false,
   "send_to_stories": [],
-  "form": {},
   "synchronous_webhooks_enabled": false,
-  "forms": [],
   "pages": [],
   "tags": [
     "compute",
@@ -152,6 +140,10 @@
   "integration_product": null,
   "integration_vendor": null,
   "exported_at": "2026-04-21T00:00:00Z",
-  "icon": null,
-  "integrations": []
+  "icon": ":abacus:",
+  "integrations": [],
+  "recipients": [],
+  "sections": [],
+  "start_reference": null,
+  "llm_product_instructions": ""
 }

@@ -1,7 +1,7 @@
 {
-  "schema_version": 18,
-  "standard_lib_version": 47,
-  "action_runtime_version": 6,
+  "schema_version": 28,
+  "standard_lib_version": 90,
+  "action_runtime_version": 74,
   "name": "SOC: Compute flow / lead time",
   "description": "Lead time decomposition, aging buckets, closure integrity, stalled tickets.",
   "guid": "99c359e2013d24b30c04371cef9fd6fe",
@@ -9,10 +9,10 @@
   "agents": [
     {
       "type": "Agents::WebhookAgent",
-      "name": "Trigger (from parent)",
+      "name": "Webhook (from parent)",
       "disabled": false,
-      "description": "Entry. Receives {tickets, status_map, business_hours}.",
-      "guid": "3657520669884545fefc1623508a26ee",
+      "description": "Entry. Receives {tickets, status_map, business_hours, label_config} from soc-compute-all-metrics.",
+      "guid": "6ddd4a544dce0ba65de450a12edd94a0",
       "origin_story_identifier": "socmetric:tines-webapp:v1",
       "options": {
         "path": "8fa0be1ec88b1ac19e79d217683b0114",
@@ -33,25 +33,21 @@
         "created_from_template_version": null,
         "template_tags": []
       },
-      "width": null,
-      "position": {
-        "x": 0,
-        "y": 0
-      },
-      "schedule": null
+      "width": null
     },
     {
       "type": "Agents::EventTransformationAgent",
-      "name": "Compute",
+      "name": "Compute slice",
       "disabled": false,
       "description": "Lead time decomposition, aging buckets, closure integrity, stalled tickets.",
-      "guid": "302dffa2507edef57c6903554250e4a1",
+      "guid": "bea3890b4e7a55bf9588367030d3d0c1",
       "origin_story_identifier": "socmetric:tines-webapp:v1",
       "options": {
         "mode": "message_only",
+        "loop": false,
         "payload": {
-          "slice": "lead_time.{queue_wait,active_work,post_active_wait} / aging_buckets / stalled_tickets / closure_integrity",
-          "_implementation_notes": "See docs/metric-mapping.md for the formula chain that lives in this agent."
+          "slice": "=OBJECT('lead_time', OBJECT('queue_wait', OBJECT('p50', 0, 'p85', 0, 'p95', 0), 'active_work', OBJECT('p50', 0, 'p85', 0, 'p95', 0), 'post_active_wait', OBJECT('p50', 0, 'p85', 0, 'p95', 0)), 'aging_buckets', ARRAY(), 'stalled_tickets', 0, 'closure_integrity', OBJECT('instant', 0, 'untouched', 0, 'normal', 0, 'churned', 0, 'still_open', 0))",
+          "_note": "Replace the placeholder with the formula chain from docs/metric-mapping.md for flow_lead_time. The action's output shape is the flow slice of soc_metrics_cache."
         }
       },
       "reporting": {
@@ -68,25 +64,21 @@
         "created_from_template_version": null,
         "template_tags": []
       },
-      "width": null,
-      "position": {
-        "x": 0,
-        "y": 150
-      },
-      "schedule": null
+      "width": null
     },
     {
       "type": "Agents::EventTransformationAgent",
-      "name": "Return result",
+      "name": "Return",
       "disabled": false,
-      "description": "Shapes output for parent to merge into soc_metrics_cache.",
-      "guid": "08774ce778e6a7fd88c9c6780e322725",
+      "description": "Shapes output for the parent fan-out to merge into soc_metrics_cache.",
+      "guid": "077730bad5b2fc2e782a43324dacc0c2",
       "origin_story_identifier": "socmetric:tines-webapp:v1",
       "options": {
         "mode": "message_only",
+        "loop": false,
         "payload": {
           "key": "flow",
-          "value": "<<slice>>"
+          "value": "<<compute_slice.slice>>"
         }
       },
       "reporting": {
@@ -103,12 +95,7 @@
         "created_from_template_version": null,
         "template_tags": []
       },
-      "width": null,
-      "position": {
-        "x": 0,
-        "y": 300
-      },
-      "schedule": null
+      "width": null
     }
   ],
   "diagram_notes": [],
@@ -122,25 +109,26 @@
       "receiver": 2
     }
   ],
-  "diagram_layout": "{}",
+  "diagram_layout": "{\"6ddd4a544dce0ba65de450a12edd94a0\": [0, 0], \"bea3890b4e7a55bf9588367030d3d0c1\": [0, 150], \"077730bad5b2fc2e782a43324dacc0c2\": [0, 300]}",
   "send_to_story_enabled": true,
-  "entry_agent_guid": "3657520669884545fefc1623508a26ee",
+  "entry_agent_guid": "6ddd4a544dce0ba65de450a12edd94a0",
   "exit_agent_guids": [
-    "08774ce778e6a7fd88c9c6780e322725"
+    "077730bad5b2fc2e782a43324dacc0c2"
   ],
-  "exit_agent_guid": "08774ce778e6a7fd88c9c6780e322725",
   "api_entry_action_guids": [],
   "api_exit_action_guids": [],
   "keep_events_for": 604800,
   "reporting_status": true,
-  "send_to_story_access": "team",
+  "send_to_story_access": null,
+  "send_to_story_access_source": 0,
+  "send_to_story_timeout_enabled": false,
+  "send_to_story_timeout_duration_seconds": null,
+  "send_to_story_skill_use_requires_confirmation": true,
   "story_library_metadata": {},
   "parent_only_send_to_story": false,
   "monitor_failures": false,
   "send_to_stories": [],
-  "form": {},
   "synchronous_webhooks_enabled": false,
-  "forms": [],
   "pages": [],
   "tags": [
     "compute",
@@ -152,6 +140,10 @@
   "integration_product": null,
   "integration_vendor": null,
   "exported_at": "2026-04-21T00:00:00Z",
-  "icon": null,
-  "integrations": []
+  "icon": ":abacus:",
+  "integrations": [],
+  "recipients": [],
+  "sections": [],
+  "start_reference": null,
+  "llm_product_instructions": ""
 }

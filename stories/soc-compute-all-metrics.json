@@ -1,7 +1,7 @@
 {
-  "schema_version": 18,
-  "standard_lib_version": 47,
-  "action_runtime_version": 6,
+  "schema_version": 28,
+  "standard_lib_version": 90,
+  "action_runtime_version": 74,
   "name": "SOC: Compute all metrics",
   "description": "Fan-out orchestrator. Reads tickets from soc_tickets_cache (handles sharded mode), broadcasts to each compute-* sub-story, merges results into soc_metrics_cache.",
   "guid": "f058d7e00ee44940aa1e99a4296e02fe",
@@ -9,10 +9,10 @@
   "agents": [
     {
       "type": "Agents::WebhookAgent",
-      "name": "Trigger",
+      "name": "Webhook",
       "disabled": false,
-      "description": "Called by soc-jira-sync on successful sync, or manually from Setup.",
-      "guid": "0fd1c9a95cda0fe5be518b59b02c6a16",
+      "description": null,
+      "guid": "2e466ac8aea4729af3b3d2534cb16eb1",
       "origin_story_identifier": "socmetric:tines-webapp:v1",
       "options": {
         "path": "e6c64caff18428b10ae948fcda135c85",
@@ -33,24 +33,20 @@
         "created_from_template_version": null,
         "template_tags": []
       },
-      "width": null,
-      "position": {
-        "x": 0,
-        "y": 0
-      },
-      "schedule": null
+      "width": null
     },
     {
       "type": "Agents::EventTransformationAgent",
       "name": "Load inputs",
       "disabled": false,
-      "description": null,
+      "description": "Reads tickets (handles sharded-mode Resource). NOTE: RESOURCE_BY_NAME is a placeholder; if the Tines tenant cannot dereference shards dynamically, expand inline shards up front when the sync writes them.",
       "guid": "dcdbdb5802c62b668e7864e066fd3cb1",
       "origin_story_identifier": "socmetric:tines-webapp:v1",
       "options": {
         "mode": "message_only",
+        "loop": false,
         "payload": {
-          "tickets": "<<IF(RESOURCE.soc_tickets_cache.mode == 'inline', RESOURCE.soc_tickets_cache.tickets, FLATTEN(MAP_LAMBDA(RANGE(1, RESOURCE.soc_tickets_cache.shards + 1), i, RESOURCE_BY_NAME(CONCAT('soc_tickets_cache_shard_', PAD_LEFT(i, 3, '0'))).tickets)))>>",
+          "tickets": "=IF(RESOURCE.soc_tickets_cache.mode = 'inline', RESOURCE.soc_tickets_cache.tickets, FLATTEN(MAP(RANGE(1, RESOURCE.soc_tickets_cache.shards + 1), i, RESOURCE_BY_NAME(CONCAT('soc_tickets_cache_shard_', PAD_LEFT(i, 3, '0'))).tickets)))",
           "status_map": "<<RESOURCE.soc_status_map>>",
           "label_config": "<<RESOURCE.soc_label_config>>",
           "settings": "<<RESOURCE.soc_settings>>"
@@ -70,26 +66,22 @@
         "created_from_template_version": null,
         "template_tags": []
       },
-      "width": null,
-      "position": {
-        "x": 0,
-        "y": 150
-      },
-      "schedule": null
+      "width": null
     },
     {
       "type": "Agents::SendToStoryAgent",
-      "name": "Fan out: headline",
+      "name": "Fan out headline",
       "disabled": false,
       "description": null,
-      "guid": "3dd551b6de82b1e4ca5518de3f054471",
+      "guid": "300132bd4856b32dba0fe0765bbbf113",
       "origin_story_identifier": "socmetric:tines-webapp:v1",
       "options": {
-        "story_id": "<<STORY_ID('soc_compute_headline')>>",
+        "story": "<<STORY.soc_compute_headline>>",
         "payload": {
-          "tickets": "<<tickets>>",
-          "status_map": "<<status_map>>"
-        }
+          "tickets": "<<load_inputs.tickets>>",
+          "status_map": "<<load_inputs.status_map>>"
+        },
+        "mode": "publish"
       },
       "reporting": {
         "time_saved_value": 0,
@@ -105,26 +97,22 @@
         "created_from_template_version": null,
         "template_tags": []
       },
-      "width": null,
-      "position": {
-        "x": -600,
-        "y": 300
-      },
-      "schedule": null
+      "width": null
     },
     {
       "type": "Agents::SendToStoryAgent",
-      "name": "Fan out: flow",
+      "name": "Fan out flow",
       "disabled": false,
       "description": null,
-      "guid": "7398900df6cae7851b963425aa73b66a",
+      "guid": "dacdd8ac9c68b2747ca3765b0828f2b6",
       "origin_story_identifier": "socmetric:tines-webapp:v1",
       "options": {
-        "story_id": "<<STORY_ID('soc_compute_flow_lead_time')>>",
+        "story": "<<STORY.soc_compute_flow_lead_time>>",
         "payload": {
-          "tickets": "<<tickets>>",
-          "status_map": "<<status_map>>"
-        }
+          "tickets": "<<load_inputs.tickets>>",
+          "status_map": "<<load_inputs.status_map>>"
+        },
+        "mode": "publish"
       },
       "reporting": {
         "time_saved_value": 0,
@@ -140,25 +128,21 @@
         "created_from_template_version": null,
         "template_tags": []
       },
-      "width": null,
-      "position": {
-        "x": -400,
-        "y": 300
-      },
-      "schedule": null
+      "width": null
     },
     {
       "type": "Agents::SendToStoryAgent",
-      "name": "Fan out: speed",
+      "name": "Fan out speed",
       "disabled": false,
       "description": null,
-      "guid": "cbeea874f01039d0da64f2db464644a6",
+      "guid": "38ea491450a048288c73ec85fc143d6a",
       "origin_story_identifier": "socmetric:tines-webapp:v1",
       "options": {
-        "story_id": "<<STORY_ID('soc_compute_response_speed')>>",
+        "story": "<<STORY.soc_compute_response_speed>>",
         "payload": {
-          "tickets": "<<tickets>>"
-        }
+          "tickets": "<<load_inputs.tickets>>"
+        },
+        "mode": "publish"
       },
       "reporting": {
         "time_saved_value": 0,
@@ -174,26 +158,22 @@
         "created_from_template_version": null,
         "template_tags": []
       },
-      "width": null,
-      "position": {
-        "x": -200,
-        "y": 300
-      },
-      "schedule": null
+      "width": null
     },
     {
       "type": "Agents::SendToStoryAgent",
-      "name": "Fan out: capacity",
+      "name": "Fan out capacity",
       "disabled": false,
       "description": null,
-      "guid": "6437bfbcccd0b702c336c5860e3f61d2",
+      "guid": "4157e034ef510f93a9fa2641c8c048f4",
       "origin_story_identifier": "socmetric:tines-webapp:v1",
       "options": {
-        "story_id": "<<STORY_ID('soc_compute_capacity_shift')>>",
+        "story": "<<STORY.soc_compute_capacity_shift>>",
         "payload": {
-          "tickets": "<<tickets>>",
-          "business_hours": "<<settings.business_hours>>"
-        }
+          "tickets": "<<load_inputs.tickets>>",
+          "business_hours": "<<load_inputs.settings.business_hours>>"
+        },
+        "mode": "publish"
       },
       "reporting": {
         "time_saved_value": 0,
@@ -209,26 +189,22 @@
         "created_from_template_version": null,
         "template_tags": []
       },
-      "width": null,
-      "position": {
-        "x": 0,
-        "y": 300
-      },
-      "schedule": null
+      "width": null
     },
     {
       "type": "Agents::SendToStoryAgent",
-      "name": "Fan out: patterns",
+      "name": "Fan out patterns",
       "disabled": false,
       "description": null,
-      "guid": "dc4d0b4a161e9f41016f13d88c547add",
+      "guid": "1a8c2a1de36eabaaf58fc96b623c20f8",
       "origin_story_identifier": "socmetric:tines-webapp:v1",
       "options": {
-        "story_id": "<<STORY_ID('soc_compute_patterns_recurrence')>>",
+        "story": "<<STORY.soc_compute_patterns_recurrence>>",
         "payload": {
-          "tickets": "<<tickets>>",
-          "label_config": "<<label_config>>"
-        }
+          "tickets": "<<load_inputs.tickets>>",
+          "label_config": "<<load_inputs.label_config>>"
+        },
+        "mode": "publish"
       },
       "reporting": {
         "time_saved_value": 0,
@@ -244,25 +220,21 @@
         "created_from_template_version": null,
         "template_tags": []
       },
-      "width": null,
-      "position": {
-        "x": 200,
-        "y": 300
-      },
-      "schedule": null
+      "width": null
     },
     {
       "type": "Agents::SendToStoryAgent",
-      "name": "Fan out: projections",
+      "name": "Fan out projections",
       "disabled": false,
       "description": null,
-      "guid": "88f411370e89f61689e9c3d0892170ca",
+      "guid": "cfbfaf5c19dc98cc3bd4d82939ea833d",
       "origin_story_identifier": "socmetric:tines-webapp:v1",
       "options": {
-        "story_id": "<<STORY_ID('soc_compute_projections')>>",
+        "story": "<<STORY.soc_compute_projections>>",
         "payload": {
-          "tickets": "<<tickets>>"
-        }
+          "tickets": "<<load_inputs.tickets>>"
+        },
+        "mode": "publish"
       },
       "reporting": {
         "time_saved_value": 0,
@@ -278,26 +250,22 @@
         "created_from_template_version": null,
         "template_tags": []
       },
-      "width": null,
-      "position": {
-        "x": 400,
-        "y": 300
-      },
-      "schedule": null
+      "width": null
     },
     {
       "type": "Agents::SendToStoryAgent",
-      "name": "Fan out: calendar",
+      "name": "Fan out calendar",
       "disabled": false,
       "description": null,
-      "guid": "6e8205a4bab1ade99833695cc708ecee",
+      "guid": "ea1f029b3e9cf048dca22f32ae19090b",
       "origin_story_identifier": "socmetric:tines-webapp:v1",
       "options": {
-        "story_id": "<<STORY_ID('soc_compute_calendar_view')>>",
+        "story": "<<STORY.soc_compute_calendar_view>>",
         "payload": {
-          "tickets": "<<tickets>>",
-          "label_config": "<<label_config>>"
-        }
+          "tickets": "<<load_inputs.tickets>>",
+          "label_config": "<<load_inputs.label_config>>"
+        },
+        "mode": "publish"
       },
       "reporting": {
         "time_saved_value": 0,
@@ -313,36 +281,32 @@
         "created_from_template_version": null,
         "template_tags": []
       },
-      "width": null,
-      "position": {
-        "x": 600,
-        "y": 300
-      },
-      "schedule": null
+      "width": null
     },
     {
       "type": "Agents::EventTransformationAgent",
       "name": "Merge results",
       "disabled": false,
-      "description": null,
+      "description": "SendToStoryAgent in publish+wait mode blocks until the sub-story returns; on return its 'value' field is available as <<fan_out_<name>.value>>. If your tenant needs this as a separate 'Merge events' action, add one here.",
       "guid": "1447906d8b57db4673bfc051a7d6829a",
       "origin_story_identifier": "socmetric:tines-webapp:v1",
       "options": {
         "mode": "message_only",
+        "loop": false,
         "payload": {
-          "computed_at": "<<NOW()>>",
-          "project_key": "<<settings.project_key>>",
+          "computed_at": "=NOW()",
+          "project_key": "<<load_inputs.settings.project_key>>",
           "date_range": {
-            "start": "<<DATE_SUBTRACT(NOW(), settings.date_range_days, 'days')>>",
-            "end": "<<NOW()>>"
+            "start": "=DATE_SUBTRACT(NOW(), load_inputs.settings.date_range_days, 'days')",
+            "end": "=NOW()"
           },
-          "headline": "<<SUBSTORY_RESULT('soc_compute_headline').value>>",
-          "flow": "<<SUBSTORY_RESULT('soc_compute_flow_lead_time').value>>",
-          "speed": "<<SUBSTORY_RESULT('soc_compute_response_speed').value>>",
-          "capacity": "<<SUBSTORY_RESULT('soc_compute_capacity_shift').value>>",
-          "patterns": "<<SUBSTORY_RESULT('soc_compute_patterns_recurrence').value>>",
-          "projections": "<<SUBSTORY_RESULT('soc_compute_projections').value>>",
-          "calendar": "<<SUBSTORY_RESULT('soc_compute_calendar_view').value>>"
+          "headline": "<<fan_out_headline.value>>",
+          "flow": "<<fan_out_flow.value>>",
+          "speed": "<<fan_out_speed.value>>",
+          "capacity": "<<fan_out_capacity.value>>",
+          "patterns": "<<fan_out_patterns.value>>",
+          "projections": "<<fan_out_projections.value>>",
+          "calendar": "<<fan_out_calendar.value>>"
         }
       },
       "reporting": {
@@ -359,26 +323,26 @@
         "created_from_template_version": null,
         "template_tags": []
       },
-      "width": null,
-      "position": {
-        "x": 0,
-        "y": 450
-      },
-      "schedule": null
+      "width": null
     },
     {
       "type": "Agents::HTTPRequestAgent",
       "name": "Write metrics cache",
       "disabled": false,
-      "description": null,
+      "description": "Updates the soc_metrics_cache Resource via the Tines API.",
       "guid": "9ce3ff42e702b4196811c0c94c03eba4",
       "origin_story_identifier": "socmetric:tines-webapp:v1",
       "options": {
-        "url": "<<RESOURCE_URL('soc_metrics_cache')>>",
+        "url": "=CONCAT('https://', RESOURCE.soc_tines_api.domain, '/api/v1/global_resources/', RESOURCE.soc_tines_api.resource_ids.soc_metrics_cache)",
+        "content_type": "json",
         "method": "put",
-        "content_type": "application_json",
+        "headers": {
+          "x-user-email": "<<RESOURCE.soc_tines_api.user_email>>",
+          "x-user-token": "<<CREDENTIAL.tines_api_token>>"
+        },
         "payload": {
-          "value": "<<.>>"
+          "value": "<<merge_results>>",
+          "value_type": "json"
         }
       },
       "reporting": {
@@ -395,12 +359,7 @@
         "created_from_template_version": null,
         "template_tags": []
       },
-      "width": null,
-      "position": {
-        "x": 0,
-        "y": 600
-      },
-      "schedule": null
+      "width": null
     }
   ],
   "diagram_notes": [],
@@ -414,52 +373,52 @@
       "receiver": 2
     },
     {
-      "source": 1,
-      "receiver": 3
-    },
-    {
-      "source": 1,
-      "receiver": 4
-    },
-    {
-      "source": 1,
-      "receiver": 5
-    },
-    {
-      "source": 1,
-      "receiver": 6
-    },
-    {
-      "source": 1,
-      "receiver": 7
-    },
-    {
-      "source": 1,
-      "receiver": 8
-    },
-    {
       "source": 2,
       "receiver": 9
+    },
+    {
+      "source": 1,
+      "receiver": 3
     },
     {
       "source": 3,
       "receiver": 9
     },
     {
+      "source": 1,
+      "receiver": 4
+    },
+    {
       "source": 4,
       "receiver": 9
+    },
+    {
+      "source": 1,
+      "receiver": 5
     },
     {
       "source": 5,
       "receiver": 9
     },
     {
+      "source": 1,
+      "receiver": 6
+    },
+    {
       "source": 6,
       "receiver": 9
     },
     {
+      "source": 1,
+      "receiver": 7
+    },
+    {
       "source": 7,
       "receiver": 9
+    },
+    {
+      "source": 1,
+      "receiver": 8
     },
     {
       "source": 8,
@@ -470,25 +429,26 @@
       "receiver": 10
     }
   ],
-  "diagram_layout": "{}",
+  "diagram_layout": "{\"2e466ac8aea4729af3b3d2534cb16eb1\": [300, 0], \"dcdbdb5802c62b668e7864e066fd3cb1\": [300, 150], \"300132bd4856b32dba0fe0765bbbf113\": [0, 300], \"dacdd8ac9c68b2747ca3765b0828f2b6\": [150, 300], \"38ea491450a048288c73ec85fc143d6a\": [300, 300], \"4157e034ef510f93a9fa2641c8c048f4\": [450, 300], \"1a8c2a1de36eabaaf58fc96b623c20f8\": [600, 300], \"cfbfaf5c19dc98cc3bd4d82939ea833d\": [750, 300], \"ea1f029b3e9cf048dca22f32ae19090b\": [900, 300], \"1447906d8b57db4673bfc051a7d6829a\": [450, 450], \"9ce3ff42e702b4196811c0c94c03eba4\": [450, 600]}",
   "send_to_story_enabled": true,
-  "entry_agent_guid": "0fd1c9a95cda0fe5be518b59b02c6a16",
+  "entry_agent_guid": "2e466ac8aea4729af3b3d2534cb16eb1",
   "exit_agent_guids": [
     "9ce3ff42e702b4196811c0c94c03eba4"
   ],
-  "exit_agent_guid": "9ce3ff42e702b4196811c0c94c03eba4",
   "api_entry_action_guids": [],
   "api_exit_action_guids": [],
   "keep_events_for": 604800,
   "reporting_status": true,
-  "send_to_story_access": "team",
+  "send_to_story_access": null,
+  "send_to_story_access_source": 0,
+  "send_to_story_timeout_enabled": false,
+  "send_to_story_timeout_duration_seconds": null,
+  "send_to_story_skill_use_requires_confirmation": true,
   "story_library_metadata": {},
   "parent_only_send_to_story": false,
   "monitor_failures": false,
   "send_to_stories": [],
-  "form": {},
   "synchronous_webhooks_enabled": false,
-  "forms": [],
   "pages": [],
   "tags": [
     "compute",
@@ -500,6 +460,10 @@
   "integration_product": null,
   "integration_vendor": null,
   "exported_at": "2026-04-21T00:00:00Z",
-  "icon": null,
-  "integrations": []
+  "icon": ":abacus:",
+  "integrations": [],
+  "recipients": [],
+  "sections": [],
+  "start_reference": null,
+  "llm_product_instructions": ""
 }

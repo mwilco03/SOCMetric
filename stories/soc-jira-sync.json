@@ -1,28 +1,30 @@
 {
-  "schema_version": 18,
-  "standard_lib_version": 47,
-  "action_runtime_version": 6,
+  "schema_version": 28,
+  "standard_lib_version": 90,
+  "action_runtime_version": 74,
   "name": "SOC: Jira sync",
-  "description": "Scheduled: pages Jira /search/jql, normalizes issues to TicketRow, writes soc_tickets_cache, triggers compute fan-out.",
+  "description": "Scheduled sync. Pages /rest/api/3/search/jql with expand=changelog, flattens each issue to TicketRow, writes soc_tickets_cache, then fires soc-compute-all-metrics. Attach a cron schedule on the first action.",
   "guid": "ae0369acde529dfd77c9ae2987d0688e",
   "slug": "soc_jira_sync",
   "agents": [
     {
       "type": "Agents::EventTransformationAgent",
-      "name": "Start (scheduled)",
+      "name": "Scheduled start",
       "disabled": false,
-      "description": "Scheduled entry. Pulls runtime config from soc_settings.",
-      "guid": "3fbc03083ea6531713fbc4247c1d0482",
+      "description": "Entry action. Attach a schedule (cron) on this action in the Tines UI.",
+      "guid": "ff39e4bf1c3f4b9f8b7162c9461b6001",
       "origin_story_identifier": "socmetric:tines-webapp:v1",
       "options": {
         "mode": "message_only",
+        "loop": false,
         "payload": {
           "project_key": "<<RESOURCE.soc_settings.project_key>>",
           "domain": "<<RESOURCE.soc_settings.jira_domain>>",
           "date_range_days": "<<RESOURCE.soc_settings.date_range_days>>",
           "max_issues": "<<RESOURCE.soc_settings.max_issues_per_sync>>",
           "page_size": "<<RESOURCE.soc_settings.page_size>>",
-          "now": "<<NOW()>>"
+          "start_date": "=DATE_FORMAT(DATE_SUBTRACT(NOW(), RESOURCE.soc_settings.date_range_days, 'days'), 'yyyy-MM-dd')",
+          "now": "=NOW()"
         }
       },
       "reporting": {
@@ -39,12 +41,7 @@
         "created_from_template_version": null,
         "template_tags": []
       },
-      "width": null,
-      "position": {
-        "x": 0,
-        "y": 0
-      },
-      "schedule": null
+      "width": null
     },
     {
       "type": "Agents::TriggerAgent",
@@ -56,12 +53,11 @@
       "options": {
         "rules": [
           {
-            "type": "regex",
-            "value": ".+",
-            "path": "=project_key"
+            "type": "formula",
+            "value": "true",
+            "path": "=LENGTH(project_key) > 0"
           }
-        ],
-        "must_match": 1
+        ]
       },
       "reporting": {
         "time_saved_value": 0,
@@ -77,36 +73,26 @@
         "created_from_template_version": null,
         "template_tags": []
       },
-      "width": null,
-      "position": {
-        "x": 0,
-        "y": 150
-      },
-      "schedule": null
+      "width": null
     },
     {
       "type": "Agents::HTTPRequestAgent",
       "name": "Mark sync running",
       "disabled": false,
-      "description": "Sets status=running. Next invocation that sees running exits.",
+      "description": "Updates the soc_settings Resource via the Tines API.",
       "guid": "458220a207800b3a7ad257fa72a4d6ce",
       "origin_story_identifier": "socmetric:tines-webapp:v1",
       "options": {
-        "url": "<<RESOURCE_URL('soc_settings')>>",
+        "url": "=CONCAT('https://', RESOURCE.soc_tines_api.domain, '/api/v1/global_resources/', RESOURCE.soc_tines_api.resource_ids.soc_settings)",
+        "content_type": "json",
         "method": "put",
-        "content_type": "application_json",
+        "headers": {
+          "x-user-email": "<<RESOURCE.soc_tines_api.user_email>>",
+          "x-user-token": "<<CREDENTIAL.tines_api_token>>"
+        },
         "payload": {
-          "value": {
-            "project_key": "<<RESOURCE.soc_settings.project_key>>",
-            "jira_domain": "<<RESOURCE.soc_settings.jira_domain>>",
-            "sync_interval_minutes": "<<RESOURCE.soc_settings.sync_interval_minutes>>",
-            "date_range_days": "<<RESOURCE.soc_settings.date_range_days>>",
-            "first_sync_completed_at": "<<RESOURCE.soc_settings.first_sync_completed_at>>",
-            "last_sync_completed_at": "<<RESOURCE.soc_settings.last_sync_completed_at>>",
-            "last_sync_status": "running",
-            "last_sync_error": null,
-            "business_hours": "<<RESOURCE.soc_settings.business_hours>>"
-          }
+          "value": "=MERGE(RESOURCE.soc_settings, OBJECT('last_sync_status', 'running', 'last_sync_error', null))",
+          "value_type": "json"
         }
       },
       "reporting": {
@@ -123,24 +109,20 @@
         "created_from_template_version": null,
         "template_tags": []
       },
-      "width": null,
-      "position": {
-        "x": 0,
-        "y": 300
-      },
-      "schedule": null
+      "width": null
     },
     {
       "type": "Agents::EventTransformationAgent",
-      "name": "Build initial JQL",
+      "name": "Build initial paging state",
       "disabled": false,
       "description": null,
-      "guid": "ce5ff046e8b0bc050a23745e18ce7ca9",
+      "guid": "d86cf3d397722ecebe5b762fc683b002",
       "origin_story_identifier": "socmetric:tines-webapp:v1",
       "options": {
         "mode": "message_only",
+        "loop": false,
         "payload": {
-          "jql": "project = \"<<project_key>>\" AND created >= \"<<DATE_SUBTRACT(NOW(), date_range_days, 'days') | date_format('yyyy-MM-dd')>>\" ORDER BY created ASC",
+          "jql": "=CONCAT('project = \"', scheduled_start.project_key, '\" AND created >= \"', scheduled_start.start_date, '\" ORDER BY created ASC')",
           "nextPageToken": null,
           "accumulated": [],
           "page_num": 0
@@ -160,24 +142,19 @@
         "created_from_template_version": null,
         "template_tags": []
       },
-      "width": null,
-      "position": {
-        "x": 0,
-        "y": 450
-      },
-      "schedule": null
+      "width": null
     },
     {
       "type": "Agents::HTTPRequestAgent",
       "name": "Jira search page",
       "disabled": false,
-      "description": "One page of the two-pass sync, expand=changelog included.",
+      "description": "One page of the sync. expand=changelog included so the backfill happens in a single pass.",
       "guid": "270a7c084fb699d914ec647e2ef07ac3",
       "origin_story_identifier": "socmetric:tines-webapp:v1",
       "options": {
-        "url": "https://<<domain>>/rest/api/3/search/jql",
+        "url": "=CONCAT('https://', scheduled_start.domain, '/rest/api/3/search/jql')",
         "method": "post",
-        "content_type": "application_json",
+        "content_type": "json",
         "basic_auth": [
           "<<CREDENTIAL.jira_basic_auth.email>>",
           "<<CREDENTIAL.jira_basic_auth.api_token>>"
@@ -186,9 +163,9 @@
           "Accept": "application/json"
         },
         "payload": {
-          "jql": "<<jql>>",
-          "nextPageToken": "<<nextPageToken>>",
-          "maxResults": "<<page_size>>",
+          "jql": "<<build_initial_paging_state.jql>>",
+          "nextPageToken": "<<build_initial_paging_state.nextPageToken>>",
+          "maxResults": "<<scheduled_start.page_size>>",
           "fields": [
             "summary",
             "status",
@@ -219,28 +196,24 @@
         "created_from_template_version": null,
         "template_tags": []
       },
-      "width": null,
-      "position": {
-        "x": 0,
-        "y": 600
-      },
-      "schedule": null
+      "width": null
     },
     {
       "type": "Agents::EventTransformationAgent",
       "name": "Normalize to TicketRow",
       "disabled": false,
-      "description": "Flattens Jira issues to 17-field TicketRow; keeps only status changelog entries.",
+      "description": "Flattens Jira issues to 17-field TicketRow shape; keeps only status changelog entries.",
       "guid": "0b168b0ecf7bb822bfe6add600164214",
       "origin_story_identifier": "socmetric:tines-webapp:v1",
       "options": {
         "mode": "message_only",
+        "loop": false,
         "payload": {
-          "tickets_page": "<<MAP_LAMBDA(issues, i, {\"id\": i.id, \"key\": i.key, \"project_key\": project_key, \"summary\": i.fields.summary, \"status_name\": i.fields.status.name, \"status_category_key\": i.fields.status.statusCategory.key, \"issue_type\": i.fields.issuetype.name, \"priority\": i.fields.priority ? i.fields.priority.name : null, \"assignee\": i.fields.assignee ? i.fields.assignee.displayName : null, \"reporter\": i.fields.reporter ? i.fields.reporter.displayName : null, \"labels\": i.fields.labels, \"components\": MAP_LAMBDA(i.fields.components, c, c.name), \"created_at\": i.fields.created, \"updated_at\": i.fields.updated, \"resolved_at\": i.fields.resolutiondate, \"changelog_json\": JSON_STRINGIFY(FILTER(MAP_LAMBDA(i.changelog.histories, h, {\"id\": h.id, \"created\": h.created, \"items\": FILTER(h.items, it, it.field == 'status')}), hh, COUNT(hh.items) > 0)), \"fetched_at\": NOW()})>>",
-          "accumulated": "<<CONCAT(accumulated, tickets_page)>>",
-          "nextPageToken": "<<.nextPageToken>>",
-          "isLast": "<<.isLast>>",
-          "total_fetched": "<<COUNT(CONCAT(accumulated, tickets_page))>>"
+          "tickets_page": "=MAP(jira_search_page.body.issues, i, OBJECT('id', i.id, 'key', i.key, 'project_key', scheduled_start.project_key, 'summary', i.fields.summary, 'status_name', i.fields.status.name, 'status_category_key', i.fields.status.statusCategory.key, 'issue_type', i.fields.issuetype.name, 'priority', IF(i.fields.priority, i.fields.priority.name, null), 'assignee', IF(i.fields.assignee, i.fields.assignee.displayName, null), 'reporter', IF(i.fields.reporter, i.fields.reporter.displayName, null), 'labels', i.fields.labels, 'components', MAP(i.fields.components, c, c.name), 'created_at', i.fields.created, 'updated_at', i.fields.updated, 'resolved_at', i.fields.resolutiondate, 'changelog_json', JSON_STRINGIFY(FILTER(MAP(i.changelog.histories, h, OBJECT('id', h.id, 'created', h.created, 'items', FILTER(h.items, it, it.field = 'status'))), hh, LENGTH(hh.items) > 0)), 'fetched_at', NOW()))",
+          "accumulated": "=CONCAT(build_initial_paging_state.accumulated, normalize_to_ticketrow.tickets_page)",
+          "nextPageToken": "<<jira_search_page.body.nextPageToken>>",
+          "isLast": "<<jira_search_page.body.isLast>>",
+          "total_fetched": "=LENGTH(CONCAT(build_initial_paging_state.accumulated, normalize_to_ticketrow.tickets_page))"
         }
       },
       "reporting": {
@@ -257,31 +230,23 @@
         "created_from_template_version": null,
         "template_tags": []
       },
-      "width": null,
-      "position": {
-        "x": 0,
-        "y": 750
-      },
-      "schedule": null
+      "width": null
     },
     {
       "type": "Agents::TriggerAgent",
-      "name": "Rate-limit delay",
+      "name": "More pages?",
       "disabled": false,
-      "description": "200ms-ish delay + loop gate when more pages remain.",
-      "guid": "483112ecf177d24a18f6c0f2ab816f40",
+      "description": "Loop guard: continue paging when not last and under cap.",
+      "guid": "12faa970d1ee15bfab1b7adebf6ee4d1",
       "origin_story_identifier": "socmetric:tines-webapp:v1",
       "options": {
         "rules": [
           {
-            "type": "field==value",
-            "value": "false",
-            "path": "=isLast"
+            "type": "formula",
+            "value": "true",
+            "path": "=AND(normalize_to_ticketrow.isLast = false, normalize_to_ticketrow.total_fetched < scheduled_start.max_issues)"
           }
-        ],
-        "must_match": 1,
-        "keep_event": true,
-        "delay_for_seconds": 1
+        ]
       },
       "reporting": {
         "time_saved_value": 0,
@@ -297,26 +262,23 @@
         "created_from_template_version": null,
         "template_tags": []
       },
-      "width": null,
-      "position": {
-        "x": 0,
-        "y": 900
-      },
-      "schedule": null
+      "width": null
     },
     {
-      "type": "Agents::EventTransformationAgent",
-      "name": "Loop or finish",
+      "type": "Agents::TriggerAgent",
+      "name": "Done paging",
       "disabled": false,
-      "description": null,
-      "guid": "4a52ef0e3560cd744dba0537c7834fa3",
+      "description": "Paging complete; proceed to write + compute.",
+      "guid": "266888ebc5fd0bfa7c6e9d82ef261856",
       "origin_story_identifier": "socmetric:tines-webapp:v1",
       "options": {
-        "mode": "message_only",
-        "payload": {
-          "continue": "<<AND(isLast == false, total_fetched < max_issues)>>",
-          "done": "<<OR(isLast == true, total_fetched >= max_issues)>>"
-        }
+        "rules": [
+          {
+            "type": "formula",
+            "value": "true",
+            "path": "=OR(normalize_to_ticketrow.isLast = true, normalize_to_ticketrow.total_fetched >= scheduled_start.max_issues)"
+          }
+        ]
       },
       "reporting": {
         "time_saved_value": 0,
@@ -332,32 +294,26 @@
         "created_from_template_version": null,
         "template_tags": []
       },
-      "width": null,
-      "position": {
-        "x": 0,
-        "y": 1050
-      },
-      "schedule": null
+      "width": null
     },
     {
       "type": "Agents::HTTPRequestAgent",
       "name": "Write tickets cache",
       "disabled": false,
-      "description": "Inline write. If payload > 900 KB, a side branch rewrites this as sharded mode (not shown here; populate shard writer agents before first production run > 4.5k tickets).",
+      "description": "Updates the soc_tickets_cache Resource via the Tines API.",
       "guid": "0852ce975be8ad11192617b39bb7cb6c",
       "origin_story_identifier": "socmetric:tines-webapp:v1",
       "options": {
-        "url": "<<RESOURCE_URL('soc_tickets_cache')>>",
+        "url": "=CONCAT('https://', RESOURCE.soc_tines_api.domain, '/api/v1/global_resources/', RESOURCE.soc_tines_api.resource_ids.soc_tickets_cache)",
+        "content_type": "json",
         "method": "put",
-        "content_type": "application_json",
+        "headers": {
+          "x-user-email": "<<RESOURCE.soc_tines_api.user_email>>",
+          "x-user-token": "<<CREDENTIAL.tines_api_token>>"
+        },
         "payload": {
-          "value": {
-            "mode": "inline",
-            "project_key": "<<project_key>>",
-            "last_synced_at": "<<NOW()>>",
-            "total": "<<total_fetched>>",
-            "tickets": "<<accumulated>>"
-          }
+          "value": "=OBJECT('mode', 'inline', 'project_key', scheduled_start.project_key, 'last_synced_at', NOW(), 'total', normalize_to_ticketrow.total_fetched, 'tickets', normalize_to_ticketrow.accumulated)",
+          "value_type": "json"
         }
       },
       "reporting": {
@@ -374,36 +330,26 @@
         "created_from_template_version": null,
         "template_tags": []
       },
-      "width": null,
-      "position": {
-        "x": 0,
-        "y": 1200
-      },
-      "schedule": null
+      "width": null
     },
     {
       "type": "Agents::HTTPRequestAgent",
       "name": "Mark sync ok",
       "disabled": false,
-      "description": null,
+      "description": "Updates the soc_settings Resource via the Tines API.",
       "guid": "f1c1abb66fcc13d1f50c9961394834d7",
       "origin_story_identifier": "socmetric:tines-webapp:v1",
       "options": {
-        "url": "<<RESOURCE_URL('soc_settings')>>",
+        "url": "=CONCAT('https://', RESOURCE.soc_tines_api.domain, '/api/v1/global_resources/', RESOURCE.soc_tines_api.resource_ids.soc_settings)",
+        "content_type": "json",
         "method": "put",
-        "content_type": "application_json",
+        "headers": {
+          "x-user-email": "<<RESOURCE.soc_tines_api.user_email>>",
+          "x-user-token": "<<CREDENTIAL.tines_api_token>>"
+        },
         "payload": {
-          "value": {
-            "project_key": "<<RESOURCE.soc_settings.project_key>>",
-            "jira_domain": "<<RESOURCE.soc_settings.jira_domain>>",
-            "sync_interval_minutes": "<<RESOURCE.soc_settings.sync_interval_minutes>>",
-            "date_range_days": "<<RESOURCE.soc_settings.date_range_days>>",
-            "first_sync_completed_at": "<<COALESCE(RESOURCE.soc_settings.first_sync_completed_at, NOW())>>",
-            "last_sync_completed_at": "<<NOW()>>",
-            "last_sync_status": "ok",
-            "last_sync_error": null,
-            "business_hours": "<<RESOURCE.soc_settings.business_hours>>"
-          }
+          "value": "=MERGE(RESOURCE.soc_settings, OBJECT('last_sync_status', 'ok', 'last_sync_error', null, 'last_sync_completed_at', NOW(), 'first_sync_completed_at', COALESCE(RESOURCE.soc_settings.first_sync_completed_at, NOW())))",
+          "value_type": "json"
         }
       },
       "reporting": {
@@ -420,25 +366,21 @@
         "created_from_template_version": null,
         "template_tags": []
       },
-      "width": null,
-      "position": {
-        "x": 0,
-        "y": 1350
-      },
-      "schedule": null
+      "width": null
     },
     {
       "type": "Agents::SendToStoryAgent",
       "name": "Trigger compute",
       "disabled": false,
-      "description": "Kicks off the full metrics compute fan-out.",
+      "description": null,
       "guid": "423795ebfb4f728f54403327371a9eba",
       "origin_story_identifier": "socmetric:tines-webapp:v1",
       "options": {
-        "story_id": "<<STORY_ID('soc_compute_all_metrics')>>",
+        "story": "<<STORY.soc_compute_all_metrics>>",
         "payload": {
-          "project_key": "<<project_key>>"
-        }
+          "project_key": "<<scheduled_start.project_key>>"
+        },
+        "mode": "publish"
       },
       "reporting": {
         "time_saved_value": 0,
@@ -454,12 +396,7 @@
         "created_from_template_version": null,
         "template_tags": []
       },
-      "width": null,
-      "position": {
-        "x": 0,
-        "y": 1500
-      },
-      "schedule": null
+      "width": null
     }
   ],
   "diagram_notes": [],
@@ -509,25 +446,26 @@
       "receiver": 10
     }
   ],
-  "diagram_layout": "{}",
+  "diagram_layout": "{\"ff39e4bf1c3f4b9f8b7162c9461b6001\": [0, 0], \"571416f9d7dabbfefcf489d2b95a58b7\": [0, 150], \"458220a207800b3a7ad257fa72a4d6ce\": [0, 300], \"d86cf3d397722ecebe5b762fc683b002\": [0, 450], \"270a7c084fb699d914ec647e2ef07ac3\": [0, 600], \"0b168b0ecf7bb822bfe6add600164214\": [0, 750], \"12faa970d1ee15bfab1b7adebf6ee4d1\": [0, 900], \"266888ebc5fd0bfa7c6e9d82ef261856\": [0, 1050], \"0852ce975be8ad11192617b39bb7cb6c\": [0, 1200], \"f1c1abb66fcc13d1f50c9961394834d7\": [0, 1350], \"423795ebfb4f728f54403327371a9eba\": [0, 1500]}",
   "send_to_story_enabled": true,
-  "entry_agent_guid": "3fbc03083ea6531713fbc4247c1d0482",
+  "entry_agent_guid": "ff39e4bf1c3f4b9f8b7162c9461b6001",
   "exit_agent_guids": [
     "423795ebfb4f728f54403327371a9eba"
   ],
-  "exit_agent_guid": "423795ebfb4f728f54403327371a9eba",
   "api_entry_action_guids": [],
   "api_exit_action_guids": [],
   "keep_events_for": 604800,
   "reporting_status": true,
-  "send_to_story_access": "team",
+  "send_to_story_access": null,
+  "send_to_story_access_source": 0,
+  "send_to_story_timeout_enabled": false,
+  "send_to_story_timeout_duration_seconds": null,
+  "send_to_story_skill_use_requires_confirmation": true,
   "story_library_metadata": {},
   "parent_only_send_to_story": false,
   "monitor_failures": false,
   "send_to_stories": [],
-  "form": {},
   "synchronous_webhooks_enabled": false,
-  "forms": [],
   "pages": [],
   "tags": [
     "data",
@@ -540,6 +478,10 @@
   "integration_product": null,
   "integration_vendor": null,
   "exported_at": "2026-04-21T00:00:00Z",
-  "icon": null,
-  "integrations": []
+  "icon": ":arrows_counterclockwise:",
+  "integrations": [],
+  "recipients": [],
+  "sections": [],
+  "start_reference": null,
+  "llm_product_instructions": ""
 }

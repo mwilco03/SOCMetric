@@ -1,9 +1,9 @@
 {
-  "schema_version": 18,
-  "standard_lib_version": 47,
-  "action_runtime_version": 6,
+  "schema_version": 28,
+  "standard_lib_version": 90,
+  "action_runtime_version": 74,
   "name": "SOC: Status map CRUD",
-  "description": "Reads or writes soc_status_map. bulk_set accepts {mappings: {'<projectKey>:<statusName>': 'queue'|'active'|'done'|'blocked'}}.",
+  "description": "Reads or writes soc_status_map. bulk_set accepts {mappings}. Keys are '<projectKey>:<statusName>', values are queue|active|done|blocked.",
   "guid": "8066918678594bb28e638d784d2099b1",
   "slug": "soc_status_map_crud",
   "agents": [
@@ -11,7 +11,7 @@
       "type": "Agents::WebhookAgent",
       "name": "Webhook",
       "disabled": false,
-      "description": "Body: {op, key?, value?, ...}. op in get|set|delete|bulk_set.",
+      "description": "Body: {op, key?, value?, mappings?}. op in get|set|delete|bulk_set.",
       "guid": "29ff17e16fa9b14e4dcf5d7c45193c12",
       "origin_story_identifier": "socmetric:tines-webapp:v1",
       "options": {
@@ -33,12 +33,7 @@
         "created_from_template_version": null,
         "template_tags": []
       },
-      "width": null,
-      "position": {
-        "x": 0,
-        "y": 0
-      },
-      "schedule": null
+      "width": null
     },
     {
       "type": "Agents::EventTransformationAgent",
@@ -49,10 +44,11 @@
       "origin_story_identifier": "socmetric:tines-webapp:v1",
       "options": {
         "mode": "message_only",
+        "loop": false,
         "payload": {
-          "op": "<<op>>",
+          "op": "<<webhook.body.op>>",
           "current": "<<RESOURCE.soc_status_map>>",
-          "next_value": "<<CASE(true, op == 'set', MERGE(RESOURCE.soc_status_map, { (key): value }), op == 'delete', OMIT(RESOURCE.soc_status_map, key), op == 'bulk_set', MERGE(RESOURCE.soc_status_map, mappings), RESOURCE.soc_status_map)>>"
+          "next_value": "=IF(webhook.body.op = 'set', MERGE(RESOURCE.soc_status_map, OBJECT(webhook.body.key, webhook.body.value)), IF(webhook.body.op = 'delete', OMIT(RESOURCE.soc_status_map, webhook.body.key), IF(webhook.body.op = 'bulk_set', MERGE(RESOURCE.soc_status_map, webhook.body.mappings), RESOURCE.soc_status_map)))"
         }
       },
       "reporting": {
@@ -69,26 +65,58 @@
         "created_from_template_version": null,
         "template_tags": []
       },
-      "width": null,
-      "position": {
-        "x": 0,
-        "y": 150
+      "width": null
+    },
+    {
+      "type": "Agents::TriggerAgent",
+      "name": "Is write op?",
+      "disabled": false,
+      "description": null,
+      "guid": "84cc53a161c5744931598b4c4108a83d",
+      "origin_story_identifier": "socmetric:tines-webapp:v1",
+      "options": {
+        "rules": [
+          {
+            "type": "formula",
+            "value": "true",
+            "path": "=route_by_op.op != 'get'"
+          }
+        ]
       },
-      "schedule": null
+      "reporting": {
+        "time_saved_value": 0,
+        "time_saved_unit": "minutes"
+      },
+      "monitoring": {
+        "monitor_all_events": false,
+        "monitor_failures": false,
+        "monitor_no_events_emitted": null
+      },
+      "template": {
+        "created_from_template_guid": null,
+        "created_from_template_version": null,
+        "template_tags": []
+      },
+      "width": null
     },
     {
       "type": "Agents::HTTPRequestAgent",
       "name": "Write back",
       "disabled": false,
-      "description": "Only runs when op is set / delete / bulk_set. For op=get, the Trigger below bypasses this.",
+      "description": "Updates the soc_status_map Resource via the Tines API.",
       "guid": "b5a6f6cbacc8389e2665c12566fac113",
       "origin_story_identifier": "socmetric:tines-webapp:v1",
       "options": {
-        "url": "<<RESOURCE_URL('soc_status_map')>>",
+        "url": "=CONCAT('https://', RESOURCE.soc_tines_api.domain, '/api/v1/global_resources/', RESOURCE.soc_tines_api.resource_ids.soc_status_map)",
+        "content_type": "json",
         "method": "put",
-        "content_type": "application_json",
+        "headers": {
+          "x-user-email": "<<RESOURCE.soc_tines_api.user_email>>",
+          "x-user-token": "<<CREDENTIAL.tines_api_token>>"
+        },
         "payload": {
-          "value": "<<next_value>>"
+          "value": "<<route_by_op.next_value>>",
+          "value_type": "json"
         }
       },
       "reporting": {
@@ -105,12 +133,7 @@
         "created_from_template_version": null,
         "template_tags": []
       },
-      "width": null,
-      "position": {
-        "x": 0,
-        "y": 300
-      },
-      "schedule": null
+      "width": null
     },
     {
       "type": "Agents::EventTransformationAgent",
@@ -121,8 +144,9 @@
       "origin_story_identifier": "socmetric:tines-webapp:v1",
       "options": {
         "mode": "message_only",
+        "loop": false,
         "payload": {
-          "value": "<<IF(op == 'get', current, next_value)>>"
+          "value": "=IF(route_by_op.op = 'get', route_by_op.current, route_by_op.next_value)"
         }
       },
       "reporting": {
@@ -139,12 +163,7 @@
         "created_from_template_version": null,
         "template_tags": []
       },
-      "width": null,
-      "position": {
-        "x": 0,
-        "y": 450
-      },
-      "schedule": null
+      "width": null
     }
   ],
   "diagram_notes": [],
@@ -160,27 +179,36 @@
     {
       "source": 2,
       "receiver": 3
+    },
+    {
+      "source": 3,
+      "receiver": 4
+    },
+    {
+      "source": 1,
+      "receiver": 4
     }
   ],
-  "diagram_layout": "{}",
+  "diagram_layout": "{\"29ff17e16fa9b14e4dcf5d7c45193c12\": [0, 0], \"84cb7c03b69eeb93a58db97d1a44db29\": [0, 150], \"84cc53a161c5744931598b4c4108a83d\": [0, 300], \"b5a6f6cbacc8389e2665c12566fac113\": [0, 450], \"55f084a17b6f229a8622b3665853a2a5\": [0, 600]}",
   "send_to_story_enabled": true,
   "entry_agent_guid": "29ff17e16fa9b14e4dcf5d7c45193c12",
   "exit_agent_guids": [
     "55f084a17b6f229a8622b3665853a2a5"
   ],
-  "exit_agent_guid": "55f084a17b6f229a8622b3665853a2a5",
   "api_entry_action_guids": [],
   "api_exit_action_guids": [],
   "keep_events_for": 604800,
   "reporting_status": true,
-  "send_to_story_access": "team",
+  "send_to_story_access": null,
+  "send_to_story_access_source": 0,
+  "send_to_story_timeout_enabled": false,
+  "send_to_story_timeout_duration_seconds": null,
+  "send_to_story_skill_use_requires_confirmation": true,
   "story_library_metadata": {},
   "parent_only_send_to_story": false,
   "monitor_failures": false,
   "send_to_stories": [],
-  "form": {},
   "synchronous_webhooks_enabled": false,
-  "forms": [],
   "pages": [],
   "tags": [
     "crud",
@@ -192,6 +220,10 @@
   "integration_product": null,
   "integration_vendor": null,
   "exported_at": "2026-04-21T00:00:00Z",
-  "icon": null,
-  "integrations": []
+  "icon": ":pencil2:",
+  "integrations": [],
+  "recipients": [],
+  "sections": [],
+  "start_reference": null,
+  "llm_product_instructions": ""
 }

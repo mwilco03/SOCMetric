@@ -10,35 +10,71 @@ Operator runbook. Everything here happens inside a single Tines tenant and the J
 
 No Node, no npm, no CLI tooling. Imports happen via the Tines UI or the Tines API if you prefer scripted installs. The rest of this runbook assumes the UI.
 
-## 1. Create the Jira credential
+## 1. Create credentials
+
+### 1a. Jira credential
 
 Tines UI -> Credentials -> New credential.
 
 - Name: **jira_basic_auth**
-- Type: **HTTP Basic Auth**
-- Username: Jira account email.
-- Password: Jira API token.
-- Access: whatever your team's Tines policy requires.
+- Type: **HTTP Basic Auth** (or two-field custom: email + api_token)
+- Username / email field: Jira account email.
+- Password / api_token field: Jira API token.
+- Access: per your team's Tines policy.
 
-Set the domain:
+Stories reference both sub-fields as `<<CREDENTIAL.jira_basic_auth.email>>` and `<<CREDENTIAL.jira_basic_auth.api_token>>`.
 
-- Option A: store it on the credential as a custom field `domain`.
-- Option B: set it on `soc_settings.jira_domain` via the Setup Page after import (recommended: the stories already reference `RESOURCE.soc_settings.jira_domain`).
+The Jira domain is stored on `soc_settings.jira_domain`, set during first-run from the Setup Page. Not on the credential.
+
+### 1b. Tines API credential (required for Resource writes)
+
+The sync and CRUD stories write Resources by POSTing to the Tines tenant's own `/api/v1/global_resources/:id` endpoint. This needs a tenant API token.
+
+Tines UI -> Credentials -> New credential.
+
+- Name: **tines_api_token**
+- Type: **Text** (single-value) or **HTTP Token**
+- Value: a Tines API token with `global_resources:write` scope. Generate from User Settings -> API Keys in your tenant.
+- Access: per your policy; treat as sensitive.
+
+Stories reference it as `<<CREDENTIAL.tines_api_token>>`.
 
 ## 2. Import Resources
 
-Tines UI -> Resources -> New resource. For each of the six seeds in `resources/`, create a Resource with the exact name and paste the seed JSON as the initial value:
+Tines UI -> Resources -> New resource. For each seed in `resources/`, create a Resource (value_type: **JSON**) with the exact name and paste the seed content as the initial value:
 
-| Resource name | Seed file |
-|---|---|
-| `soc_settings` | `resources/soc_settings.seed.json` |
-| `soc_status_map` | `resources/soc_status_map.seed.json` |
-| `soc_label_config` | `resources/soc_label_config.seed.json` |
-| `soc_day_annotations` | `resources/soc_day_annotations.seed.json` |
-| `soc_tickets_cache` | `resources/soc_tickets_cache.seed.json` |
-| `soc_metrics_cache` | `resources/soc_metrics_cache.seed.json` |
+| Resource name | Seed file | value_type |
+|---|---|---|
+| `soc_settings` | `resources/soc_settings.seed.json` | JSON |
+| `soc_status_map` | `resources/soc_status_map.seed.json` | JSON |
+| `soc_label_config` | `resources/soc_label_config.seed.json` | JSON |
+| `soc_day_annotations` | `resources/soc_day_annotations.seed.json` | JSON |
+| `soc_tickets_cache` | `resources/soc_tickets_cache.seed.json` | JSON |
+| `soc_metrics_cache` | `resources/soc_metrics_cache.seed.json` | JSON |
+| `soc_tines_api` | `resources/soc_tines_api.seed.json` | JSON |
 
 Access scope: tenant or team, per your policy.
+
+### 2a. Fill in `soc_tines_api` with real values
+
+After the seven Resources exist, every Tines Resource gets an auto-assigned numeric ID visible in the Resource URL (`/team_resources/{id}`). Open `soc_tines_api` and edit its JSON:
+
+```json
+{
+  "domain": "your-tenant.tines.com",
+  "user_email": "admin@example.com",
+  "resource_ids": {
+    "soc_settings": 111,
+    "soc_status_map": 112,
+    "soc_label_config": 113,
+    "soc_day_annotations": 114,
+    "soc_tickets_cache": 115,
+    "soc_metrics_cache": 116
+  }
+}
+```
+
+Replace `your-tenant.tines.com` with your actual tenant hostname, `admin@example.com` with the user-email associated with the Tines API token, and each `0` with the real numeric ID from that Resource's URL. The sync story and every CRUD story look these IDs up when writing back.
 
 ## 3. Import Stories
 
@@ -76,10 +112,15 @@ If your tenant's Page export schema differs from the one here (Tines Page export
 
 ## 5. Wire the sync schedule
 
-Open `soc-jira-sync`. Select the first agent (Start) and set its schedule:
+Open `soc-jira-sync`. Click the first action (**Scheduled start**). In the Tines UI attach a **Schedule** to it:
 
-- Recommended: every 60 minutes.
-- This value can also be overridden at runtime by setting `soc_settings.sync_interval_minutes` and having the schedule read from the Resource (requires a small change in the Tines UI to the schedule formula).
+- Schedule type: cron
+- Recommended cron: `0 * * * *` (hourly on the hour)
+- Timezone: UTC or your local zone
+
+Schedules in schema-28 Tines live as a property attached to the entry action via the UI. They do not round-trip in the exported JSON (Confirmed from the `auto-action-collection.json` and `crowdstrike-secure.json` reference exports where every agent's export has no schedule but live scheduling is still possible). After saving the schedule in the UI, the story self-fires.
+
+Sync interval is NOT read from `soc_settings.sync_interval_minutes` at story-runtime in v1. The Resource key is a documentation hint for operators; to change cadence, edit the schedule in the UI.
 
 ## 6. First run
 

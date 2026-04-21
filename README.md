@@ -14,9 +14,9 @@ tines-webapp/
 │   ├── page-layouts.md             component-by-component Page spec
 │   ├── resource-schemas.md         field definitions and size budgets
 │   └── limitations.md              STL deferral, resource caps, rate limits, open questions
-├── resources/                      seed JSON for each Tines Resource
-├── stories/                        16 story exports (data + compute + CRUD)
-└── pages/                          10 Page exports (the "web app" UI)
+├── resources/                      seed JSON for each Tines Resource (7 Resources)
+├── stories/                        16 story exports (data + compute + CRUD), schema 28
+└── pages/                          10 Page exports (the dashboard UI)
 ```
 
 ## Quick start for operators
