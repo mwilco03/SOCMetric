@@ -1,6 +1,6 @@
 # SOCMetric on Tines: Architecture
 
-Version 1. Target schema: Tines story `schema_version` 23, `standard_lib_version` 63, `action_runtime_version` 15 (matches the terraform-provider-tines testdata reference exports, the newest known-good schema in the reference tree; Tines imports older schemas into current tenants per Tines docs). All artefacts import-and-run inside a single Tines tenant.
+Version 1. Target schema: Tines story `schema_version` 28, `standard_lib_version` 90, `action_runtime_version` 75 (matches the actual tenant export of the merged soc-data story and the reference imports at `tines-story-examples/community-stories-historical/auto-action-collection.json` and `crowdstrike-secure.json`, confirmed to import cleanly via both the UI and the `/api/v1/stories/import` REST endpoint). All artefacts import-and-run inside a single Tines tenant.
 
 ## Goals
 
@@ -36,17 +36,25 @@ Tines tenant
 │                                  Bootstrap map the stories use to find each Resource's numeric ID
 │                                  when writing back via the Tines /api/v1/global_resources endpoint.
 │
-├── Stories (1 total)
-│   └── soc-data       Single story containing every data-plane agent:
-│                      - Scheduled entry drives Jira sync on cron.
-│                      - Webhook entry dispatches on body.action:
-│                        sync_now, discover_projects, discover_statuses,
-│                        settings_op, status_map_op, labels_op,
-│                        annotations_op, reset.
-│                      - Compute slices run inline after sync: headline,
-│                        flow, speed, capacity, patterns, projections,
-│                        calendar, merge, write soc_metrics_cache.
-│                      - Reset branch wipes Resources by tier.
+├── Stories (1 total; ETL-layered internally)
+│   └── soc-data       Single story with clean E/T/L separation:
+│                      - EXTRACT entry (Scheduled): "Scheduled start"
+│                        fires on cron, pulls Jira pages, writes
+│                        soc_tickets_cache, terminates at "Mark sync ok".
+│                      - TRANSFORM entry (Scheduled, independent cadence):
+│                        "Transform schedule" fires on its own cron,
+│                        reads soc_tickets_cache via "Load inputs",
+│                        runs 7 compute slices, writes soc_metrics_cache.
+│                      - OPERATIONS entry (Webhook, Page-driven):
+│                        dispatches on body.action for CRUD
+│                        (settings/status_map/labels/annotations),
+│                        discover (projects/statuses), and manual
+│                        sync_now. Not part of ETL.
+│                      - LOAD: "Page action" FormAgent renders the
+│                        dashboard by reading soc_metrics_cache. No
+│                        compute in the render path.
+│                      - Reset entry (Webhook): separate admin endpoint
+│                        that wipes Resources by tier.
 │
 └── Pages
     ├── SOC Dashboard Home
@@ -63,35 +71,41 @@ Tines tenant
 
 ## Data flow
 
-### Sync path (scheduled or on-demand)
+The story is an ETL pipeline with three independent layers sharing one Resource-backed cache.
 
-1. The `Scheduled start` action inside `soc-data` fires on schedule (default hourly), OR a Page button posts `{action: "sync_now"}` to the `soc-data` webhook. Both feed the same `Sync entry` action.
+### Extract (E) — Scheduled, standalone
+
+1. The `Scheduled start` action fires on a cron attached in the UI (default hourly). No other trigger, no webhook path. Pages cannot start an extract — it is background-only.
 2. Reads `soc_settings.project_key`. If unset, the gate exits with a no-op.
-3. Computes the date window: `[now - soc_settings.date_range_days, now]`. Default window: 90 days.
-4. Calls `POST https://<jira_domain>/rest/api/3/search/jql` with a JQL of `project = "<project_key>" AND created >= "<start>" ORDER BY created ASC`, `expand=changelog`, `fields=summary,status,issuetype,priority,assignee,reporter,labels,components,created,updated,resolutiondate`, `maxResults=100`. Auth: HTTP Basic from the `jira_basic_auth` credential.
-5. Cursor-pages using `nextPageToken` until `isLast == true` or `total_fetched >= max_issues_per_sync`.
-6. Each issue is normalized to the flat `TicketRow` shape inside an Event Transformation agent. The changelog is filtered to status-change entries only and re-serialized into `changelog_json`.
-7. The accumulated JSON is written to `soc_tickets_cache` (inline mode). Sharded-write mode is scaffolded in `docs/limitations.md` for tenants with strict per-Resource byte budgets.
-8. On successful sync, soc-data fires a "Send to Story" into `soc-compute`.
+3. Computes the date window `[now - date_range_days, now]` (default 90 days) and builds a JQL for `project = <key> AND created >= <start> ORDER BY created ASC`, `expand=changelog`, `maxResults=<page_size>`.
+4. Pages `POST /rest/api/3/search/jql` via the `jira_basic_auth` credential. Cursor-pages using `nextPageToken` until `isLast == true` or `total_fetched >= max_issues_per_sync`.
+5. Each issue is flattened to the `TicketRow` shape; the changelog is filtered to status-change entries and re-serialized into `changelog_json`.
+6. The accumulated array is written to `soc_tickets_cache` (inline mode) via the Tines `/api/v1/global_resources` endpoint.
+7. `Mark sync ok` updates `soc_settings.last_sync_completed_at` / `last_sync_status` and the extract pipeline terminates. Extract does not trigger Transform; the layers are decoupled.
 
-### Compute path
+### Transform (T) — Scheduled, standalone, independent cadence
 
-1. `soc-compute` reads `soc_tickets_cache` (handles sharded mode), plus `soc_status_map`, `soc_label_config`, `soc_settings`.
-2. Seven sequential Event Transformation actions each compute one metric slice (headline → flow → speed → capacity → patterns → projections → calendar) per the formula chains in `docs/metric-mapping.md`.
-3. A final Merge action assembles the full `soc_metrics_cache` payload and an HTTP action writes the Resource in a single operation.
+1. The `Transform schedule` action fires on its own cron (attach in UI; typical cadence is slightly behind Extract, e.g. hourly on the 5-minute mark).
+2. `Load inputs` pulls `soc_tickets_cache`, `soc_status_map`, `soc_label_config`, and `soc_settings` from Resources.
+3. Seven sequential Event Transformation actions compute one slice each (headline → flow → speed → capacity → patterns → projections → calendar) per the formulas documented in `docs/metric-mapping.md`.
+4. `Merge results` assembles the full `soc_metrics_cache` payload and `Write metrics cache` persists it to the Resource in one PUT.
+5. Transform reads the cached extract and writes the cached metrics. It does not call Jira and does not trigger any other flow.
 
-### CRUD + discover paths
+### Load (L) — Pages Action, display-only
 
-All Page-driven reads and writes hit the `soc-data` webhook with `{action, ...params}`. The entry webhook fans out into seven TriggerAgents, each matching one action:
+1. The `Page action` FormAgent exposes a Tines Pages URL at `/pages/<url_identifier>` with dashboard elements (metric cards, line/bar/pie charts, cluster table).
+2. Every element's `value` / `content` / `data` binds directly to `RESOURCE.soc_metrics_cache.*` and `RESOURCE.soc_day_annotations`. The Page does not execute any compute or call out to Jira — it reads the warm cache.
 
-- `discover_projects` → Jira `/project/search` → `{projects: [...]}` exit
-- `discover_statuses` + `{project_key}` → Jira `/project/{key}/statuses` → `{discovered: [...]}` exit
-- `settings_op` / `status_map_op` / `labels_op` / `annotations_op` + `{op: get|set|delete|bulk_set, key?, value?, mappings?}` → Resource read or write → `{value: ...}` exit
-- `sync_now` → same pipeline as the scheduled entry
+### Operations (webhook) — separate from ETL
 
-### Read path (Pages)
+Page buttons (Setup page, Calendar annotations, etc.) post to the operations webhook with `{action, ...params}`. The webhook fans out into TriggerAgents that each route one action:
 
-Pages bind their components to `RESOURCE.soc_metrics_cache.<slice>` and `RESOURCE.soc_day_annotations`. No Page triggers a compute directly; all computed values come from the cache Resource. Pages can trigger CRUD stories (status-map, labels, annotations, settings) which write back to the matching Resource and optionally re-run compute.
+- `discover_projects` → Jira `/project/search` → `{projects: [...]}` response
+- `discover_statuses` + `{project_key}` → Jira `/project/{key}/statuses` → `{discovered: [...]}` response
+- `settings_op` / `status_map_op` / `labels_op` / `annotations_op` + `{op, key?, value?, mappings?}` → Resource mutate → `{value: ...}` response
+- `sync_now` (optional manual override) → enters the Extract pipeline
+
+Reset has its own webhook entry that wipes Resources by tier.
 
 ## Why this shape, and what it buys us
 

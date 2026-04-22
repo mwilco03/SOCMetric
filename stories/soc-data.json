@@ -667,37 +667,6 @@
       "schedule": null
     },
     {
-      "type": "Agents::SendToStoryAgent",
-      "name": "Trigger compute",
-      "disabled": false,
-      "description": "Kick off soc_compute after a successful sync.",
-      "guid": "e58e292cc0f29dba72e48dfc9806a97b",
-      "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:d1a7ac0001aa4b30ae5f0dd9c0ffee01",
-      "options": {
-        "story": "<<STORY.soc_compute>>",
-        "payload": {
-          "project_key": "<<sync_entry.project_key>>"
-        },
-        "mode": "publish"
-      },
-      "reporting": {
-        "time_saved_value": 0,
-        "time_saved_unit": "minutes"
-      },
-      "monitoring": {
-        "monitor_all_events": false,
-        "monitor_failures": false,
-        "monitor_no_events_emitted": null
-      },
-      "template": {
-        "created_from_template_guid": null,
-        "created_from_template_version": null,
-        "template_tags": []
-      },
-      "width": null,
-      "schedule": null
-    },
-    {
       "type": "Agents::HTTPRequestAgent",
       "name": "Fetch projects",
       "disabled": false,
@@ -1364,16 +1333,19 @@
       "schedule": null
     },
     {
-      "type": "Agents::WebhookAgent",
-      "name": "Webhook (from soc_data)",
+      "type": "Agents::EventTransformationAgent",
+      "name": "Transform schedule",
       "disabled": false,
-      "description": "Entry. Receives {project_key} from soc_data.Trigger_compute.",
+      "description": "Scheduled entry for the Transform phase. Attach a cron schedule (e.g. */15 * * * *) in the Tines UI. Reads soc_tickets_cache via Load inputs and writes soc_metrics_cache. Independent of the Extract schedule \u2014 Transform runs on its own cadence.",
       "guid": "504e67ace2f3edfcc4d6ff8e08edce4b",
       "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:c0a1cea2aabb0000000000000f0000c1",
       "options": {
-        "path": "b4ccbb2bb8bde5cbcc6f86abba36cb69",
-        "secret": "c0a1cea2aabb0000000000000f0000c3",
-        "verbs": "post"
+        "mode": "message_only",
+        "loop": false,
+        "payload": {
+          "started_at": "=NOW()",
+          "trigger": "schedule"
+        }
       },
       "reporting": {
         "time_saved_value": 0,
@@ -1389,7 +1361,8 @@
         "created_from_template_version": null,
         "template_tags": []
       },
-      "width": null
+      "width": null,
+      "schedule": null
     },
     {
       "type": "Agents::EventTransformationAgent",
@@ -2235,27 +2208,27 @@
     },
     {
       "source": 3,
-      "receiver": 20
+      "receiver": 19
     },
     {
       "source": 4,
-      "receiver": 22
+      "receiver": 21
     },
     {
       "source": 5,
-      "receiver": 24
+      "receiver": 23
     },
     {
       "source": 6,
-      "receiver": 28
+      "receiver": 27
     },
     {
       "source": 7,
-      "receiver": 32
+      "receiver": 31
     },
     {
       "source": 8,
-      "receiver": 36
+      "receiver": 35
     },
     {
       "source": 9,
@@ -2298,80 +2271,80 @@
       "receiver": 18
     },
     {
-      "source": 18,
-      "receiver": 19
+      "source": 19,
+      "receiver": 20
     },
     {
-      "source": 20,
-      "receiver": 21
+      "source": 21,
+      "receiver": 22
     },
     {
-      "source": 22,
-      "receiver": 23
+      "source": 23,
+      "receiver": 24
+    },
+    {
+      "source": 23,
+      "receiver": 26
     },
     {
       "source": 24,
       "receiver": 25
     },
     {
-      "source": 24,
-      "receiver": 27
-    },
-    {
       "source": 25,
       "receiver": 26
     },
     {
-      "source": 26,
-      "receiver": 27
+      "source": 27,
+      "receiver": 28
+    },
+    {
+      "source": 27,
+      "receiver": 30
     },
     {
       "source": 28,
       "receiver": 29
     },
     {
-      "source": 28,
-      "receiver": 31
-    },
-    {
       "source": 29,
       "receiver": 30
     },
     {
-      "source": 30,
-      "receiver": 31
+      "source": 31,
+      "receiver": 32
+    },
+    {
+      "source": 31,
+      "receiver": 34
     },
     {
       "source": 32,
       "receiver": 33
     },
     {
-      "source": 32,
-      "receiver": 35
-    },
-    {
       "source": 33,
       "receiver": 34
     },
     {
-      "source": 34,
-      "receiver": 35
+      "source": 35,
+      "receiver": 36
+    },
+    {
+      "source": 35,
+      "receiver": 38
     },
     {
       "source": 36,
       "receiver": 37
     },
     {
-      "source": 36,
-      "receiver": 39
-    },
-    {
       "source": 37,
       "receiver": 38
     },
     {
-      "source": 38,
-      "receiver": 39
+      "source": 39,
+      "receiver": 40
     },
     {
       "source": 40,
@@ -2410,8 +2383,8 @@
       "receiver": 49
     },
     {
-      "source": 49,
-      "receiver": 50
+      "source": 50,
+      "receiver": 51
     },
     {
       "source": 51,
@@ -2440,13 +2413,9 @@
     {
       "source": 57,
       "receiver": 58
-    },
-    {
-      "source": 58,
-      "receiver": 59
     }
   ],
-  "diagram_layout": "{\"01259256a589d88edda2e3fb3e2ff3b8\":[600,300],\"02bb6110462379a4922d5026ae5f27c2\":[-2055,1230],\"0433a12d6dbaa178a713f1d5c60c826f\":[1500,150],\"1520ecdeea94677f5a03ec6ca44d4108\":[-2055,930],\"159f1edddb268fbb98cc9540d46aaa17\":[900,750],\"16c6a046f8ec7e970b7bf3350e76b324\":[1500,600],\"1935bc9e5581bb99c60a358c4988b6b7\":[1200,300],\"1d7ff821540c6d2e6212886abe0dab67\":[-600,0],\"2168b2fb7b54e03c8ec2419f0d2e88f9\":[1200,150],\"270be32edae4225c9f61161dea5333ef\":[-300,1050],\"28a0e546faf4f1931ebdcf2f2a40f38e\":[-2055,630],\"2c7191c21207401492316d2f7c299855\":[-2055,180],\"2e10040cee6e0e0ba55a82b78971eb95\":[900,450],\"32b22b51dbc75980085e7cc801d8ad47\":[1800,750],\"3e3d87d2965acd42fe7076b6fd43b239\":[-150,1200],\"3ee9f912be32ed18f203d9d83cd9b5c4\":[1800,600],\"456fac15e260e330ea1eba30f41e79b2\":[-1290,870],\"46af1bbbdb7689fc5cd0c27f3b635bac\":[1200,750],\"4c55a17cb3f72da0c483af48fb4da550\":[-2055,780],\"4dd010d99b29c9178a55d24cbd4f9caa\":[900,600],\"504e67ace2f3edfcc4d6ff8e08edce4b\":[-1290,-30],\"57130aa2cc6ba4c4f65b8019013c2bbe\":[-300,900],\"581394db6e9abad99708e01e84e71f07\":[1800,150],\"5bd93e405fd2514fb9061811c9924753\":[-2055,1080],\"65685647f3df6a6176532f1cd1d716fd\":[-1290,1470],\"680536217189289117efab25d83a7e34\":[-2055,480],\"680d5c21417aa15ee044ece681be9bf5\":[-300,450],\"6e1985a0ebc30cd95317c50ee62e00db\":[-1290,1170],\"71365b8791d6887da6032479bef3f711\":[-2055,330],\"7192b211cc1c8077bdfce433ca4a3449\":[-1290,1020],\"82afe9f7594f6895b9a4373ba6e5e6f3\":[-1290,270],\"8307259d7d350f8a8bcef95ef68dc6ff\":[1500,300],\"87c5175124c33a1dc9f62a4b3f6356c6\":[1500,750],\"88ac6812941ad8db80512795616c4901\":[300,150],\"91cb76efce8210d61ba8b47a7e2b8eea\":[600,450],\"93c8ea5c5e51d758956937d1d8609aff\":[-2055,30],\"97c4c19058ac6d0ff51510dae0cc19ea\":[-450,1200],\"97f8066815de07e04ce92f90cfc23e1e\":[-1290,1320],\"9cfb70c5d0eb73afb4f732600349593b\":[-1290,120],\"a2fe4c818f5474499580fa1b1f36d99a\":[-1290,570],\"a4ded623d285a90d98b4dab9742ac0ba\":[-1290,420],\"ad3ef635cfb4510a8011f6e223902e20\":[300,300],\"b2664f1f1602c5d46027e5a078cd9f82\":[390,1110],\"b30bdc81c9e077ec006f4c738e3ea138\":[-150,1500],\"b9dbeb5d9fe063bd247636fa55633a8c\":[1200,600],\"ce25634ef72535a9d3d6549d572970a0\":[-300,300],\"d1a27ea40960e9e4897f1d21c636d28a\":[0,150],\"d6ae979add968b5ae4c7f378599480fd\":[300,450],\"d98c2b9a1e831f605b6309b0394889da\":[1800,450],\"dc1077ac19d729f2b7259d90135bd5bc\":[900,300],\"de4c99fe1aed89ab2c7e6e4d5273e759\":[-300,750],\"e58e292cc0f29dba72e48dfc9806a97b\":[-150,1650],\"e5960e0d7ccd8f9217cb4de1fcaf931c\":[1500,450],\"edc2810b25a4f1e5151ae22bc6668b44\":[600,0],\"f3471030e7fdb399639d8983fa1169b3\":[1800,300],\"f58c2f3df8b7c893c741ba57e147e949\":[1200,450],\"f736c342357ef13c9964a3e0645c8e9e\":[600,150],\"f767ee160951539cb9675a0a7356f113\":[900,150],\"f82fc40df010cb078ae0b5aa1dead035\":[-1290,720],\"fbdf8bac5799baa8e22e643303b13905\":[-300,600],\"fed50d44df715217a8f22ee203232225\":[-150,1350]}",
+  "diagram_layout": "{\"01259256a589d88edda2e3fb3e2ff3b8\":[600,300],\"02bb6110462379a4922d5026ae5f27c2\":[-2055,1230],\"0433a12d6dbaa178a713f1d5c60c826f\":[1500,150],\"1520ecdeea94677f5a03ec6ca44d4108\":[-2055,930],\"159f1edddb268fbb98cc9540d46aaa17\":[900,750],\"16c6a046f8ec7e970b7bf3350e76b324\":[1500,600],\"1935bc9e5581bb99c60a358c4988b6b7\":[1200,300],\"1d7ff821540c6d2e6212886abe0dab67\":[-600,0],\"2168b2fb7b54e03c8ec2419f0d2e88f9\":[1200,150],\"270be32edae4225c9f61161dea5333ef\":[-300,1050],\"28a0e546faf4f1931ebdcf2f2a40f38e\":[-2055,630],\"2c7191c21207401492316d2f7c299855\":[-2055,180],\"2e10040cee6e0e0ba55a82b78971eb95\":[900,450],\"32b22b51dbc75980085e7cc801d8ad47\":[1800,750],\"3e3d87d2965acd42fe7076b6fd43b239\":[-150,1200],\"3ee9f912be32ed18f203d9d83cd9b5c4\":[1800,600],\"456fac15e260e330ea1eba30f41e79b2\":[-1290,870],\"46af1bbbdb7689fc5cd0c27f3b635bac\":[1200,750],\"4c55a17cb3f72da0c483af48fb4da550\":[-2055,780],\"4dd010d99b29c9178a55d24cbd4f9caa\":[900,600],\"504e67ace2f3edfcc4d6ff8e08edce4b\":[-1290,-30],\"57130aa2cc6ba4c4f65b8019013c2bbe\":[-300,900],\"581394db6e9abad99708e01e84e71f07\":[1800,150],\"5bd93e405fd2514fb9061811c9924753\":[-2055,1080],\"65685647f3df6a6176532f1cd1d716fd\":[-1290,1470],\"680536217189289117efab25d83a7e34\":[-2055,480],\"680d5c21417aa15ee044ece681be9bf5\":[-300,450],\"6e1985a0ebc30cd95317c50ee62e00db\":[-1290,1170],\"71365b8791d6887da6032479bef3f711\":[-2055,330],\"7192b211cc1c8077bdfce433ca4a3449\":[-1290,1020],\"82afe9f7594f6895b9a4373ba6e5e6f3\":[-1290,270],\"8307259d7d350f8a8bcef95ef68dc6ff\":[1500,300],\"87c5175124c33a1dc9f62a4b3f6356c6\":[1500,750],\"88ac6812941ad8db80512795616c4901\":[300,150],\"91cb76efce8210d61ba8b47a7e2b8eea\":[600,450],\"93c8ea5c5e51d758956937d1d8609aff\":[-2055,30],\"97c4c19058ac6d0ff51510dae0cc19ea\":[-450,1200],\"97f8066815de07e04ce92f90cfc23e1e\":[-1290,1320],\"9cfb70c5d0eb73afb4f732600349593b\":[-1290,120],\"a2fe4c818f5474499580fa1b1f36d99a\":[-1290,570],\"a4ded623d285a90d98b4dab9742ac0ba\":[-1290,420],\"ad3ef635cfb4510a8011f6e223902e20\":[300,300],\"b2664f1f1602c5d46027e5a078cd9f82\":[390,1110],\"b30bdc81c9e077ec006f4c738e3ea138\":[-150,1500],\"b9dbeb5d9fe063bd247636fa55633a8c\":[1200,600],\"ce25634ef72535a9d3d6549d572970a0\":[-300,300],\"d1a27ea40960e9e4897f1d21c636d28a\":[0,150],\"d6ae979add968b5ae4c7f378599480fd\":[300,450],\"d98c2b9a1e831f605b6309b0394889da\":[1800,450],\"dc1077ac19d729f2b7259d90135bd5bc\":[900,300],\"de4c99fe1aed89ab2c7e6e4d5273e759\":[-300,750],\"e5960e0d7ccd8f9217cb4de1fcaf931c\":[1500,450],\"edc2810b25a4f1e5151ae22bc6668b44\":[600,0],\"f3471030e7fdb399639d8983fa1169b3\":[1800,300],\"f58c2f3df8b7c893c741ba57e147e949\":[1200,450],\"f736c342357ef13c9964a3e0645c8e9e\":[600,150],\"f767ee160951539cb9675a0a7356f113\":[900,150],\"f82fc40df010cb078ae0b5aa1dead035\":[-1290,720],\"fbdf8bac5799baa8e22e643303b13905\":[-300,600],\"fed50d44df715217a8f22ee203232225\":[-150,1350]}",
   "story_library_metadata": {},
   "monitor_failures": false,
   "synchronous_webhooks_enabled": false,
