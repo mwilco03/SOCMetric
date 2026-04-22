@@ -1,6 +1,6 @@
 # SOCMetric on Tines: Architecture
 
-Version 1. Target schema: Tines story `schema_version` 28, `standard_lib_version` 90, `action_runtime_version` 74 (matches the auto-action-collection and crowdstrike-secure exports validated against a live tenant). All artefacts import-and-run inside a single Tines tenant.
+Version 1. Target schema: Tines story `schema_version` 23, `standard_lib_version` 63, `action_runtime_version` 15 (matches the terraform-provider-tines testdata reference exports, the newest known-good schema in the reference tree; Tines imports older schemas into current tenants per Tines docs). All artefacts import-and-run inside a single Tines tenant.
 
 ## Goals
 
@@ -138,7 +138,7 @@ All slices live inside `soc-compute` as sequential EventTransformation actions.
 
 ## Schema versions
 
-- Stories written to `schema_version: 18`, matching the validated caldera export. Tines imports older schemas; if the tenant requires newer, re-export from the tenant after first import.
+- Stories written to `schema_version: 23` (terraform-provider-tines testdata format). Tines imports older schemas into newer tenants; if your tenant requires a newer schema, re-export from the tenant after first import to pick up the current format.
 - Pages: schema is the Page-export schema used by the tenant. `DEPLOYMENT.md` lists the exact header we target.
 - Resources: no version header; the Resource JSON is the content.
 

@@ -15,7 +15,7 @@ tines-webapp/
 │   ├── resource-schemas.md         field definitions and size budgets
 │   └── limitations.md              STL deferral, resource caps, rate limits, open questions
 ├── resources/                      seed JSON for each Tines Resource (7 Resources)
-├── stories/                        3 story exports (soc-data, soc-compute, soc-reset), schema 28
+├── stories/                        3 story exports (soc-data, soc-compute, soc-reset), schema 23
 └── pages/                          10 Page exports (the dashboard UI)
 ```
 
