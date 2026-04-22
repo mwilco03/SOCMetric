@@ -2044,7 +2044,122 @@
       "guid": "b2664f1f1602c5d46027e5a078cd9f82",
       "origin_story_identifier": "cloud:13d9061a37f1bfc12fd6d5044d2c9eca:60638b8311b4595b604334339cf14bc6",
       "options": {
-        "fields": "",
+        "fields": [
+          {
+            "type": "rich_text",
+            "content": "**SOCMetric** \u00b7 Last sync: <<RESOURCE.soc_settings.last_sync_completed_at | relative_time>> \u00b7 Status: **<<RESOURCE.soc_settings.last_sync_status>>**"
+          },
+          {
+            "type": "heading",
+            "content": "SOC Dashboard"
+          },
+          {
+            "type": "divider"
+          },
+          {
+            "type": "metric",
+            "label": "Queue Depth",
+            "value": "<<RESOURCE.soc_metrics_cache.headline.queue_depth>>"
+          },
+          {
+            "type": "metric",
+            "label": "Active Incidents",
+            "value": "<<RESOURCE.soc_metrics_cache.headline.active_incident_count>>"
+          },
+          {
+            "type": "metric",
+            "label": "TTFT P85 (hours)",
+            "value": "=ROUND(GET(RESOURCE.soc_metrics_cache, 'headline.ttft_p85_hours'), 1)"
+          },
+          {
+            "type": "metric",
+            "label": "TTFT P50 (hours)",
+            "value": "=ROUND(GET(RESOURCE.soc_metrics_cache, 'headline.ttft_p50_hours'), 1)"
+          },
+          {
+            "type": "metric",
+            "label": "TTFT P95 (hours)",
+            "value": "=ROUND(GET(RESOURCE.soc_metrics_cache, 'headline.ttft_p95_hours'), 1)"
+          },
+          {
+            "type": "metric",
+            "label": "Net Velocity (7d)",
+            "value": "=ROUND(GET(RESOURCE.soc_metrics_cache, 'headline.net_velocity_7d'), 2)"
+          },
+          {
+            "type": "metric",
+            "label": "Stalled Tickets",
+            "value": "<<RESOURCE.soc_metrics_cache.flow.stalled_tickets>>"
+          },
+          {
+            "type": "metric",
+            "label": "After-Hours Transitions",
+            "value": "<<RESOURCE.soc_metrics_cache.capacity.after_hours_transitions>>"
+          },
+          {
+            "type": "metric",
+            "label": "Staffing Verdict",
+            "value": "<<RESOURCE.soc_metrics_cache.capacity.staffing_verdict>>"
+          },
+          {
+            "type": "metric",
+            "label": "Last Computed",
+            "value": "<<RESOURCE.soc_metrics_cache.computed_at | relative_time>>"
+          },
+          {
+            "type": "divider"
+          },
+          {
+            "type": "heading",
+            "content": "TTFT P85 Trend"
+          },
+          {
+            "type": "chart",
+            "chart_type": "line",
+            "data": "<<RESOURCE.soc_metrics_cache.speed.response_time_trend>>",
+            "x_field": "date",
+            "y_field": "p85"
+          },
+          {
+            "type": "divider"
+          },
+          {
+            "type": "heading",
+            "content": "Ticket Aging Buckets"
+          },
+          {
+            "type": "chart",
+            "chart_type": "bar",
+            "data": "<<RESOURCE.soc_metrics_cache.flow.aging_buckets>>",
+            "x_field": "label",
+            "y_field": "count"
+          },
+          {
+            "type": "divider"
+          },
+          {
+            "type": "heading",
+            "content": "Closure Integrity"
+          },
+          {
+            "type": "chart",
+            "chart_type": "pie",
+            "data": "=MAP(KEYS(RESOURCE.soc_metrics_cache.flow.closure_integrity), k, OBJECT('label', k, 'count', GET(RESOURCE.soc_metrics_cache.flow.closure_integrity, k)))",
+            "x_field": "label",
+            "y_field": "count"
+          },
+          {
+            "type": "divider"
+          },
+          {
+            "type": "heading",
+            "content": "Top Recurring Clusters"
+          },
+          {
+            "type": "table",
+            "data": "=SLICE_ARRAY(RESOURCE.soc_metrics_cache.patterns.clusters, 0, 20)"
+          }
+        ],
         "mode": "success_page",
         "submissionMessage": "Thank you for your submission",
         "visibility": "tenant",
@@ -2056,7 +2171,7 @@
           "name": "nites.jpeg",
           "type": "image/jpeg"
         },
-        "page_width": "auto",
+        "page_width": "wide",
         "pages_action_color": "#777FFF",
         "pages_appearance_mode": "light",
         "pages_background_color": "#F9F9F9",
