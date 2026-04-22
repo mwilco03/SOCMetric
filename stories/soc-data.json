@@ -1,10 +1,10 @@
 {
   "schema_version": 28,
   "standard_lib_version": 90,
-  "action_runtime_version": 74,
+  "action_runtime_version": 75,
   "name": "SOC: Data",
   "description": "Single data-plane story. Scheduled entry drives the Jira sync on cron. Webhook entry dispatches on body.action: sync_now, discover_projects, discover_statuses, settings_op, status_map_op, labels_op, annotations_op. Replaces the 4 CRUD stories, 2 discover stories, sync story, and compute-fan-out orchestrator.",
-  "guid": "d1a7ac0001aa4b30ae5f0dd9c0ffee01",
+  "guid": "60638b8311b4595b604334339cf14bc6",
   "slug": "soc_data",
   "agents": [
     {
@@ -12,7 +12,7 @@
       "name": "Scheduled start",
       "disabled": false,
       "description": "Cron entry. Attach a schedule (e.g. 0 * * * *) on this action in the Tines UI. Emits the canonical sync payload that feeds into Sync entry.",
-      "guid": "e698334bf668ec7cf1fd1242b005741a",
+      "guid": "1d7ff821540c6d2e6212886abe0dab67",
       "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:d1a7ac0001aa4b30ae5f0dd9c0ffee01",
       "options": {
         "mode": "message_only",
@@ -51,10 +51,10 @@
       "name": "Webhook (from Pages)",
       "disabled": false,
       "description": "All Page-driven actions enter here. Body shape: {action, ...params}. action in [sync_now, discover_projects, discover_statuses, settings_op, status_map_op, labels_op, annotations_op]. CRUD params: {op: get|set|delete|bulk_set, key?, value?, mappings?}. discover_statuses: {project_key}.",
-      "guid": "60f9284f5778a10160b39bba9f26a672",
+      "guid": "edc2810b25a4f1e5151ae22bc6668b44",
       "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:d1a7ac0001aa4b30ae5f0dd9c0ffee01",
       "options": {
-        "path": "d1a7ac0001aa4b30ae5f0dd9c0ffee02",
+        "path": "cd6198fead6afef39710dc6de97ce82d",
         "secret": "d1a7ac0001aa4b30ae5f0dd9c0ffee03",
         "verbs": "post"
       },
@@ -79,7 +79,7 @@
       "name": "Route: sync_now",
       "disabled": false,
       "description": null,
-      "guid": "f155b20319ab92c7096b76c50c49a1bb",
+      "guid": "d1a27ea40960e9e4897f1d21c636d28a",
       "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:d1a7ac0001aa4b30ae5f0dd9c0ffee01",
       "options": {
         "rules": [
@@ -111,7 +111,7 @@
       "name": "Route: discover_projects",
       "disabled": false,
       "description": null,
-      "guid": "dc5b8572869959c50ec28eb955d97d26",
+      "guid": "88ac6812941ad8db80512795616c4901",
       "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:d1a7ac0001aa4b30ae5f0dd9c0ffee01",
       "options": {
         "rules": [
@@ -143,7 +143,7 @@
       "name": "Route: discover_statuses",
       "disabled": false,
       "description": null,
-      "guid": "7f18ab46913665aae612c502d4b1d95e",
+      "guid": "f736c342357ef13c9964a3e0645c8e9e",
       "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:d1a7ac0001aa4b30ae5f0dd9c0ffee01",
       "options": {
         "rules": [
@@ -175,7 +175,7 @@
       "name": "Route: settings_op",
       "disabled": false,
       "description": null,
-      "guid": "395e2e36d7de08e47ec97e7a86bba56e",
+      "guid": "f767ee160951539cb9675a0a7356f113",
       "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:d1a7ac0001aa4b30ae5f0dd9c0ffee01",
       "options": {
         "rules": [
@@ -207,7 +207,7 @@
       "name": "Route: status_map_op",
       "disabled": false,
       "description": null,
-      "guid": "594ca5b97381ac6f1906421692e8ec5f",
+      "guid": "2168b2fb7b54e03c8ec2419f0d2e88f9",
       "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:d1a7ac0001aa4b30ae5f0dd9c0ffee01",
       "options": {
         "rules": [
@@ -239,7 +239,7 @@
       "name": "Route: labels_op",
       "disabled": false,
       "description": null,
-      "guid": "fbe364e939c1b45d45b0218d120a4a46",
+      "guid": "0433a12d6dbaa178a713f1d5c60c826f",
       "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:d1a7ac0001aa4b30ae5f0dd9c0ffee01",
       "options": {
         "rules": [
@@ -271,7 +271,7 @@
       "name": "Route: annotations_op",
       "disabled": false,
       "description": null,
-      "guid": "b509400ff6d99c14fad63c072c75e1a1",
+      "guid": "581394db6e9abad99708e01e84e71f07",
       "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:d1a7ac0001aa4b30ae5f0dd9c0ffee01",
       "options": {
         "rules": [
@@ -303,7 +303,7 @@
       "name": "Sync entry",
       "disabled": false,
       "description": "Canonical sync payload. Fed by either Scheduled start or the sync_now webhook branch. Downstream references sync_entry.*.",
-      "guid": "51508468acad16d228341daf28258ff8",
+      "guid": "ce25634ef72535a9d3d6549d572970a0",
       "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:d1a7ac0001aa4b30ae5f0dd9c0ffee01",
       "options": {
         "mode": "message_only",
@@ -340,7 +340,7 @@
       "name": "Gate: project_key set",
       "disabled": false,
       "description": "Exits without work if no project has been configured.",
-      "guid": "b6bc975bcaf96cfa269e117054d6a308",
+      "guid": "680d5c21417aa15ee044ece681be9bf5",
       "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:d1a7ac0001aa4b30ae5f0dd9c0ffee01",
       "options": {
         "rules": [
@@ -372,7 +372,7 @@
       "name": "Mark sync running",
       "disabled": false,
       "description": "Updates soc_settings.last_sync_status = running.",
-      "guid": "d38af87a3181b5ad9c0e4e29eff18bcf",
+      "guid": "fbdf8bac5799baa8e22e643303b13905",
       "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:d1a7ac0001aa4b30ae5f0dd9c0ffee01",
       "options": {
         "url": "=CONCAT('https://', RESOURCE.soc_tines_api.domain, '/api/v1/global_resources/', RESOURCE.soc_tines_api.resource_ids.soc_settings)",
@@ -409,7 +409,7 @@
       "name": "Build initial paging state",
       "disabled": false,
       "description": null,
-      "guid": "52b24b74f4278296653b2881b3004099",
+      "guid": "de4c99fe1aed89ab2c7e6e4d5273e759",
       "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:d1a7ac0001aa4b30ae5f0dd9c0ffee01",
       "options": {
         "mode": "message_only",
@@ -443,7 +443,7 @@
       "name": "Jira search page",
       "disabled": false,
       "description": "One page of the sync. expand=changelog included so the backfill happens in a single pass.",
-      "guid": "fe9daf2cc6c26bd73323a5b5b1f269d7",
+      "guid": "57130aa2cc6ba4c4f65b8019013c2bbe",
       "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:d1a7ac0001aa4b30ae5f0dd9c0ffee01",
       "options": {
         "url": "=CONCAT('https://', sync_entry.domain, '/rest/api/3/search/jql')",
@@ -498,7 +498,7 @@
       "name": "Normalize to TicketRow",
       "disabled": false,
       "description": "Flattens Jira issues to 17-field TicketRow shape; keeps only status changelog entries.",
-      "guid": "525bc2209c85b1f9c4065a3cbb9e3510",
+      "guid": "270be32edae4225c9f61161dea5333ef",
       "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:d1a7ac0001aa4b30ae5f0dd9c0ffee01",
       "options": {
         "mode": "message_only",
@@ -533,7 +533,7 @@
       "name": "More pages?",
       "disabled": false,
       "description": "Loop guard: continue paging when not last and under cap.",
-      "guid": "03dd254b7e86ff5df0e54439da2dd968",
+      "guid": "97c4c19058ac6d0ff51510dae0cc19ea",
       "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:d1a7ac0001aa4b30ae5f0dd9c0ffee01",
       "options": {
         "rules": [
@@ -565,7 +565,7 @@
       "name": "Done paging",
       "disabled": false,
       "description": "Paging complete; proceed to write + compute.",
-      "guid": "cf7bab91df06beafc5dd33dfdaee9519",
+      "guid": "3e3d87d2965acd42fe7076b6fd43b239",
       "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:d1a7ac0001aa4b30ae5f0dd9c0ffee01",
       "options": {
         "rules": [
@@ -597,7 +597,7 @@
       "name": "Write tickets cache",
       "disabled": false,
       "description": "Updates the soc_tickets_cache Resource via the Tines API.",
-      "guid": "ce3fc00a68722af3896e92d9fd7c89b1",
+      "guid": "fed50d44df715217a8f22ee203232225",
       "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:d1a7ac0001aa4b30ae5f0dd9c0ffee01",
       "options": {
         "url": "=CONCAT('https://', RESOURCE.soc_tines_api.domain, '/api/v1/global_resources/', RESOURCE.soc_tines_api.resource_ids.soc_tickets_cache)",
@@ -634,7 +634,7 @@
       "name": "Mark sync ok",
       "disabled": false,
       "description": "Updates soc_settings on successful sync.",
-      "guid": "97920d659d249c4ca0d2a5122a504052",
+      "guid": "b30bdc81c9e077ec006f4c738e3ea138",
       "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:d1a7ac0001aa4b30ae5f0dd9c0ffee01",
       "options": {
         "url": "=CONCAT('https://', RESOURCE.soc_tines_api.domain, '/api/v1/global_resources/', RESOURCE.soc_tines_api.resource_ids.soc_settings)",
@@ -667,41 +667,11 @@
       "schedule": null
     },
     {
-      "type": "Agents::SendToStoryAgent",
-      "name": "Trigger compute",
-      "disabled": false,
-      "description": "Kick off soc_compute after a successful sync.",
-      "guid": "e595f72e41697f6f960029560447d4c2",
-      "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:d1a7ac0001aa4b30ae5f0dd9c0ffee01",
-      "options": {
-        "story": "<<STORY.soc_compute>>",
-        "payload": {
-          "project_key": "<<sync_entry.project_key>>"
-        },
-        "mode": "publish"
-      },
-      "reporting": {
-        "time_saved_value": 0,
-        "time_saved_unit": "minutes"
-      },
-      "monitoring": {
-        "monitor_all_events": false,
-        "monitor_failures": false,
-        "monitor_no_events_emitted": null
-      },
-      "template": {
-        "created_from_template_guid": null,
-        "created_from_template_version": null,
-        "template_tags": []
-      },
-      "width": null
-    },
-    {
       "type": "Agents::HTTPRequestAgent",
       "name": "Fetch projects",
       "disabled": false,
       "description": "Jira GET /rest/api/3/project/search (discover_projects).",
-      "guid": "46d8e265615533a1dd5965fab87d49ef",
+      "guid": "ad3ef635cfb4510a8011f6e223902e20",
       "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:d1a7ac0001aa4b30ae5f0dd9c0ffee01",
       "options": {
         "url": "=CONCAT('https://', RESOURCE.soc_settings.jira_domain, '/rest/api/3/project/search?maxResults=100')",
@@ -737,7 +707,7 @@
       "name": "Shape projects response",
       "disabled": false,
       "description": "Returns {projects: [{id, key, name}]} for the Setup Page dropdown.",
-      "guid": "cc69a97ab816718e2f0a433ee640f11f",
+      "guid": "d6ae979add968b5ae4c7f378599480fd",
       "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:d1a7ac0001aa4b30ae5f0dd9c0ffee01",
       "options": {
         "mode": "message_only",
@@ -768,7 +738,7 @@
       "name": "Fetch project statuses",
       "disabled": false,
       "description": "Jira GET /rest/api/3/project/{key}/statuses (discover_statuses).",
-      "guid": "0a18d45055773fd340984bbfd45dbaa7",
+      "guid": "01259256a589d88edda2e3fb3e2ff3b8",
       "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:d1a7ac0001aa4b30ae5f0dd9c0ffee01",
       "options": {
         "url": "=CONCAT('https://', RESOURCE.soc_settings.jira_domain, '/rest/api/3/project/', webhook.body.project_key, '/statuses')",
@@ -804,7 +774,7 @@
       "name": "Classify statuses",
       "disabled": false,
       "description": "Returns {discovered: [{status_name, category_key, suggested_classification, confidence, reason}]}.",
-      "guid": "4f17d75774b95c358098c2defb32cc0f",
+      "guid": "91cb76efce8210d61ba8b47a7e2b8eea",
       "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:d1a7ac0001aa4b30ae5f0dd9c0ffee01",
       "options": {
         "mode": "message_only",
@@ -835,7 +805,7 @@
       "name": "Compute next settings",
       "disabled": false,
       "description": "CRUD router for soc_settings. webhook.body.op in get|set|delete|bulk_set.",
-      "guid": "f6458835b7b01b89100848732755450e",
+      "guid": "dc1077ac19d729f2b7259d90135bd5bc",
       "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:d1a7ac0001aa4b30ae5f0dd9c0ffee01",
       "options": {
         "mode": "message_only",
@@ -868,7 +838,7 @@
       "name": "Settings is write?",
       "disabled": false,
       "description": null,
-      "guid": "6b8429888b309ac47dcda86dca412c34",
+      "guid": "2e10040cee6e0e0ba55a82b78971eb95",
       "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:d1a7ac0001aa4b30ae5f0dd9c0ffee01",
       "options": {
         "rules": [
@@ -900,7 +870,7 @@
       "name": "Write settings",
       "disabled": false,
       "description": "Updates the soc_settings Resource via the Tines API.",
-      "guid": "c36c76961d4910aa2eb02bc955c1258f",
+      "guid": "4dd010d99b29c9178a55d24cbd4f9caa",
       "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:d1a7ac0001aa4b30ae5f0dd9c0ffee01",
       "options": {
         "url": "=CONCAT('https://', RESOURCE.soc_tines_api.domain, '/api/v1/global_resources/', RESOURCE.soc_tines_api.resource_ids.soc_settings)",
@@ -937,7 +907,7 @@
       "name": "Respond settings",
       "disabled": false,
       "description": "Responds with current (get) or next_value (write).",
-      "guid": "da538f4760750490150717d464816ce2",
+      "guid": "159f1edddb268fbb98cc9540d46aaa17",
       "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:d1a7ac0001aa4b30ae5f0dd9c0ffee01",
       "options": {
         "mode": "message_only",
@@ -968,7 +938,7 @@
       "name": "Compute next status_map",
       "disabled": false,
       "description": "CRUD router for soc_status_map. webhook.body.op in get|set|delete|bulk_set. Keys are '<projectKey>:<statusName>'.",
-      "guid": "199dd3883644cb311e1cabb874bb25b3",
+      "guid": "1935bc9e5581bb99c60a358c4988b6b7",
       "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:d1a7ac0001aa4b30ae5f0dd9c0ffee01",
       "options": {
         "mode": "message_only",
@@ -1001,7 +971,7 @@
       "name": "Status map is write?",
       "disabled": false,
       "description": null,
-      "guid": "ad3eef1c1357856c50f2d8232dcd260c",
+      "guid": "f58c2f3df8b7c893c741ba57e147e949",
       "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:d1a7ac0001aa4b30ae5f0dd9c0ffee01",
       "options": {
         "rules": [
@@ -1033,7 +1003,7 @@
       "name": "Write status_map",
       "disabled": false,
       "description": "Updates the soc_status_map Resource via the Tines API.",
-      "guid": "8970f5ab81e24a82786d061f2a928162",
+      "guid": "b9dbeb5d9fe063bd247636fa55633a8c",
       "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:d1a7ac0001aa4b30ae5f0dd9c0ffee01",
       "options": {
         "url": "=CONCAT('https://', RESOURCE.soc_tines_api.domain, '/api/v1/global_resources/', RESOURCE.soc_tines_api.resource_ids.soc_status_map)",
@@ -1070,7 +1040,7 @@
       "name": "Respond status_map",
       "disabled": false,
       "description": null,
-      "guid": "a1c229586a1ea7f02e456fb885fa53cd",
+      "guid": "46af1bbbdb7689fc5cd0c27f3b635bac",
       "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:d1a7ac0001aa4b30ae5f0dd9c0ffee01",
       "options": {
         "mode": "message_only",
@@ -1101,7 +1071,7 @@
       "name": "Compute next labels",
       "disabled": false,
       "description": "CRUD router for soc_label_config.",
-      "guid": "e33efba5d709675ba19288d9769dffd1",
+      "guid": "8307259d7d350f8a8bcef95ef68dc6ff",
       "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:d1a7ac0001aa4b30ae5f0dd9c0ffee01",
       "options": {
         "mode": "message_only",
@@ -1134,7 +1104,7 @@
       "name": "Labels is write?",
       "disabled": false,
       "description": null,
-      "guid": "1b54131e0258d18a7d3302a0281dffd9",
+      "guid": "e5960e0d7ccd8f9217cb4de1fcaf931c",
       "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:d1a7ac0001aa4b30ae5f0dd9c0ffee01",
       "options": {
         "rules": [
@@ -1166,7 +1136,7 @@
       "name": "Write labels",
       "disabled": false,
       "description": "Updates the soc_label_config Resource via the Tines API.",
-      "guid": "27aa266a4cd4c7ae2c4c49e2dd59f8e5",
+      "guid": "16c6a046f8ec7e970b7bf3350e76b324",
       "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:d1a7ac0001aa4b30ae5f0dd9c0ffee01",
       "options": {
         "url": "=CONCAT('https://', RESOURCE.soc_tines_api.domain, '/api/v1/global_resources/', RESOURCE.soc_tines_api.resource_ids.soc_label_config)",
@@ -1203,7 +1173,7 @@
       "name": "Respond labels",
       "disabled": false,
       "description": null,
-      "guid": "d6cc4a44f8f37640f1548b57bbb3ac09",
+      "guid": "87c5175124c33a1dc9f62a4b3f6356c6",
       "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:d1a7ac0001aa4b30ae5f0dd9c0ffee01",
       "options": {
         "mode": "message_only",
@@ -1234,7 +1204,7 @@
       "name": "Compute next annotations",
       "disabled": false,
       "description": "CRUD router for soc_day_annotations. Keys are YYYY-MM-DD.",
-      "guid": "0323b5b76dd5a3566de17ddc2c97162f",
+      "guid": "f3471030e7fdb399639d8983fa1169b3",
       "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:d1a7ac0001aa4b30ae5f0dd9c0ffee01",
       "options": {
         "mode": "message_only",
@@ -1267,7 +1237,7 @@
       "name": "Annotations is write?",
       "disabled": false,
       "description": null,
-      "guid": "61743abdc3b05664709678361a96fc86",
+      "guid": "d98c2b9a1e831f605b6309b0394889da",
       "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:d1a7ac0001aa4b30ae5f0dd9c0ffee01",
       "options": {
         "rules": [
@@ -1299,7 +1269,7 @@
       "name": "Write annotations",
       "disabled": false,
       "description": "Updates the soc_day_annotations Resource via the Tines API.",
-      "guid": "9f3d37504426365ccabf2075e85ba00f",
+      "guid": "3ee9f912be32ed18f203d9d83cd9b5c4",
       "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:d1a7ac0001aa4b30ae5f0dd9c0ffee01",
       "options": {
         "url": "=CONCAT('https://', RESOURCE.soc_tines_api.domain, '/api/v1/global_resources/', RESOURCE.soc_tines_api.resource_ids.soc_day_annotations)",
@@ -1336,13 +1306,686 @@
       "name": "Respond annotations",
       "disabled": false,
       "description": null,
-      "guid": "089110a69c8e867adae1c041522ae9d6",
+      "guid": "32b22b51dbc75980085e7cc801d8ad47",
       "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:d1a7ac0001aa4b30ae5f0dd9c0ffee01",
       "options": {
         "mode": "message_only",
         "loop": false,
         "payload": {
           "value": "=IF(compute_next_annotations.op = 'get', compute_next_annotations.current, compute_next_annotations.next_value)"
+        }
+      },
+      "reporting": {
+        "time_saved_value": 0,
+        "time_saved_unit": "minutes"
+      },
+      "monitoring": {
+        "monitor_all_events": false,
+        "monitor_failures": false,
+        "monitor_no_events_emitted": null
+      },
+      "template": {
+        "created_from_template_guid": null,
+        "created_from_template_version": null,
+        "template_tags": []
+      },
+      "width": null,
+      "schedule": null
+    },
+    {
+      "type": "Agents::WebhookAgent",
+      "name": "Webhook (from soc_data)",
+      "disabled": false,
+      "description": "Entry. Receives {project_key} from soc_data.Trigger_compute.",
+      "guid": "504e67ace2f3edfcc4d6ff8e08edce4b",
+      "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:c0a1cea2aabb0000000000000f0000c1",
+      "options": {
+        "path": "b4ccbb2bb8bde5cbcc6f86abba36cb69",
+        "secret": "c0a1cea2aabb0000000000000f0000c3",
+        "verbs": "post"
+      },
+      "reporting": {
+        "time_saved_value": 0,
+        "time_saved_unit": "minutes"
+      },
+      "monitoring": {
+        "monitor_all_events": false,
+        "monitor_failures": false,
+        "monitor_no_events_emitted": null
+      },
+      "template": {
+        "created_from_template_guid": null,
+        "created_from_template_version": null,
+        "template_tags": []
+      },
+      "width": null
+    },
+    {
+      "type": "Agents::EventTransformationAgent",
+      "name": "Load inputs",
+      "disabled": false,
+      "description": "Reads tickets (handles sharded-mode Resource), status_map, label_config, settings.",
+      "guid": "9cfb70c5d0eb73afb4f732600349593b",
+      "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:c0a1cea2aabb0000000000000f0000c1",
+      "options": {
+        "mode": "message_only",
+        "loop": false,
+        "payload": {
+          "tickets": "=IF(RESOURCE.soc_tickets_cache.mode = 'inline', RESOURCE.soc_tickets_cache.tickets, FLATTEN(MAP(RANGE(1, RESOURCE.soc_tickets_cache.shards + 1), i, RESOURCE_BY_NAME(CONCAT('soc_tickets_cache_shard_', PAD_LEFT(i, 3, '0'))).tickets)))",
+          "status_map": "<<RESOURCE.soc_status_map>>",
+          "label_config": "<<RESOURCE.soc_label_config>>",
+          "settings": "<<RESOURCE.soc_settings>>"
+        }
+      },
+      "reporting": {
+        "time_saved_value": 0,
+        "time_saved_unit": "minutes"
+      },
+      "monitoring": {
+        "monitor_all_events": false,
+        "monitor_failures": false,
+        "monitor_no_events_emitted": null
+      },
+      "template": {
+        "created_from_template_guid": null,
+        "created_from_template_version": null,
+        "template_tags": []
+      },
+      "width": null,
+      "schedule": null
+    },
+    {
+      "type": "Agents::EventTransformationAgent",
+      "name": "Compute headline",
+      "disabled": false,
+      "description": "Queue depth, active incidents, net velocity, TTFT percentiles. See docs/metric-mapping.md.",
+      "guid": "82afe9f7594f6895b9a4373ba6e5e6f3",
+      "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:c0a1cea2aabb0000000000000f0000c1",
+      "options": {
+        "mode": "message_only",
+        "loop": false,
+        "payload": {
+          "headline": "=OBJECT('queue_depth', LENGTH(FILTER(load_inputs.tickets, t, LOOKUP(load_inputs.status_map, CONCAT(t.project_key, ':', t.status_name), 'queue') = 'queue')), 'active_incident_count', LENGTH(FILTER(load_inputs.tickets, t, LOOKUP(load_inputs.status_map, CONCAT(t.project_key, ':', t.status_name), 'queue') = 'active')), 'ttft_p50_hours', PERCENTILE(FILTER(MAP(load_inputs.tickets, t, TTFT_HOURS(t)), v, v != null), 50), 'ttft_p85_hours', PERCENTILE(FILTER(MAP(load_inputs.tickets, t, TTFT_HOURS(t)), v, v != null), 85), 'ttft_p95_hours', PERCENTILE(FILTER(MAP(load_inputs.tickets, t, TTFT_HOURS(t)), v, v != null), 95), 'net_velocity_7d', (LENGTH(FILTER(load_inputs.tickets, t, AND(t.resolved_at != null, DATE_DIFF(NOW(), t.resolved_at, 'days') <= 7))) - LENGTH(FILTER(load_inputs.tickets, t, DATE_DIFF(NOW(), t.created_at, 'days') <= 7))) / 7)"
+        }
+      },
+      "reporting": {
+        "time_saved_value": 0,
+        "time_saved_unit": "minutes"
+      },
+      "monitoring": {
+        "monitor_all_events": false,
+        "monitor_failures": false,
+        "monitor_no_events_emitted": null
+      },
+      "template": {
+        "created_from_template_guid": null,
+        "created_from_template_version": null,
+        "template_tags": []
+      },
+      "width": null,
+      "schedule": null
+    },
+    {
+      "type": "Agents::EventTransformationAgent",
+      "name": "Compute flow",
+      "disabled": false,
+      "description": "Lead time decomposition, aging buckets, closure integrity, stalled tickets. Placeholder shape; fill formulas from docs/metric-mapping.md.",
+      "guid": "a4ded623d285a90d98b4dab9742ac0ba",
+      "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:c0a1cea2aabb0000000000000f0000c1",
+      "options": {
+        "mode": "message_only",
+        "loop": false,
+        "payload": {
+          "flow": "=OBJECT('lead_time', OBJECT('queue_wait', OBJECT('p50', 0, 'p85', 0, 'p95', 0), 'active_work', OBJECT('p50', 0, 'p85', 0, 'p95', 0), 'post_active_wait', OBJECT('p50', 0, 'p85', 0, 'p95', 0)), 'aging_buckets', ARRAY(), 'stalled_tickets', 0, 'closure_integrity', OBJECT('instant', 0, 'untouched', 0, 'normal', 0, 'churned', 0, 'still_open', 0))"
+        }
+      },
+      "reporting": {
+        "time_saved_value": 0,
+        "time_saved_unit": "minutes"
+      },
+      "monitoring": {
+        "monitor_all_events": false,
+        "monitor_failures": false,
+        "monitor_no_events_emitted": null
+      },
+      "template": {
+        "created_from_template_guid": null,
+        "created_from_template_version": null,
+        "template_tags": []
+      },
+      "width": null,
+      "schedule": null
+    },
+    {
+      "type": "Agents::EventTransformationAgent",
+      "name": "Compute speed",
+      "disabled": false,
+      "description": "Response time trend and closure bursts. Placeholder shape.",
+      "guid": "a2fe4c818f5474499580fa1b1f36d99a",
+      "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:c0a1cea2aabb0000000000000f0000c1",
+      "options": {
+        "mode": "message_only",
+        "loop": false,
+        "payload": {
+          "speed": "=OBJECT('ttft_percentiles', OBJECT('p50', null, 'p85', null, 'p95', null), 'response_time_trend', ARRAY(), 'closure_bursts', ARRAY())"
+        }
+      },
+      "reporting": {
+        "time_saved_value": 0,
+        "time_saved_unit": "minutes"
+      },
+      "monitoring": {
+        "monitor_all_events": false,
+        "monitor_failures": false,
+        "monitor_no_events_emitted": null
+      },
+      "template": {
+        "created_from_template_guid": null,
+        "created_from_template_version": null,
+        "template_tags": []
+      },
+      "width": null,
+      "schedule": null
+    },
+    {
+      "type": "Agents::EventTransformationAgent",
+      "name": "Compute capacity",
+      "disabled": false,
+      "description": "Shift rollover, after-hours transitions, staffing verdict, velocity under load. Placeholder shape.",
+      "guid": "f82fc40df010cb078ae0b5aa1dead035",
+      "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:c0a1cea2aabb0000000000000f0000c1",
+      "options": {
+        "mode": "message_only",
+        "loop": false,
+        "payload": {
+          "capacity": "=OBJECT('shift_rollover', ARRAY(), 'after_hours_transitions', 0, 'staffing_verdict', 'healthy', 'velocity_under_load', 0)"
+        }
+      },
+      "reporting": {
+        "time_saved_value": 0,
+        "time_saved_unit": "minutes"
+      },
+      "monitoring": {
+        "monitor_all_events": false,
+        "monitor_failures": false,
+        "monitor_no_events_emitted": null
+      },
+      "template": {
+        "created_from_template_guid": null,
+        "created_from_template_version": null,
+        "template_tags": []
+      },
+      "width": null,
+      "schedule": null
+    },
+    {
+      "type": "Agents::EventTransformationAgent",
+      "name": "Compute patterns",
+      "disabled": false,
+      "description": "Cluster analysis, recurrence engine. Placeholder shape.",
+      "guid": "456fac15e260e330ea1eba30f41e79b2",
+      "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:c0a1cea2aabb0000000000000f0000c1",
+      "options": {
+        "mode": "message_only",
+        "loop": false,
+        "payload": {
+          "patterns": "=OBJECT('clusters', ARRAY(), 'recurrence', OBJECT('rapid', 0, 'slow', 0))"
+        }
+      },
+      "reporting": {
+        "time_saved_value": 0,
+        "time_saved_unit": "minutes"
+      },
+      "monitoring": {
+        "monitor_all_events": false,
+        "monitor_failures": false,
+        "monitor_no_events_emitted": null
+      },
+      "template": {
+        "created_from_template_guid": null,
+        "created_from_template_version": null,
+        "template_tags": []
+      },
+      "width": null,
+      "schedule": null
+    },
+    {
+      "type": "Agents::EventTransformationAgent",
+      "name": "Compute projections",
+      "disabled": false,
+      "description": "Linear regression projections. Placeholder shape.",
+      "guid": "7192b211cc1c8077bdfce433ca4a3449",
+      "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:c0a1cea2aabb0000000000000f0000c1",
+      "options": {
+        "mode": "message_only",
+        "loop": false,
+        "payload": {
+          "projections": "=OBJECT('method', 'linear', 'forecast', ARRAY(), 'r2', null)"
+        }
+      },
+      "reporting": {
+        "time_saved_value": 0,
+        "time_saved_unit": "minutes"
+      },
+      "monitoring": {
+        "monitor_all_events": false,
+        "monitor_failures": false,
+        "monitor_no_events_emitted": null
+      },
+      "template": {
+        "created_from_template_guid": null,
+        "created_from_template_version": null,
+        "template_tags": []
+      },
+      "width": null,
+      "schedule": null
+    },
+    {
+      "type": "Agents::EventTransformationAgent",
+      "name": "Compute calendar",
+      "disabled": false,
+      "description": "Per-day counts and top-N labels. Placeholder shape.",
+      "guid": "6e1985a0ebc30cd95317c50ee62e00db",
+      "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:c0a1cea2aabb0000000000000f0000c1",
+      "options": {
+        "mode": "message_only",
+        "loop": false,
+        "payload": {
+          "calendar": "=OBJECT('days', ARRAY())"
+        }
+      },
+      "reporting": {
+        "time_saved_value": 0,
+        "time_saved_unit": "minutes"
+      },
+      "monitoring": {
+        "monitor_all_events": false,
+        "monitor_failures": false,
+        "monitor_no_events_emitted": null
+      },
+      "template": {
+        "created_from_template_guid": null,
+        "created_from_template_version": null,
+        "template_tags": []
+      },
+      "width": null,
+      "schedule": null
+    },
+    {
+      "type": "Agents::EventTransformationAgent",
+      "name": "Merge results",
+      "disabled": false,
+      "description": "Assembles the complete soc_metrics_cache payload.",
+      "guid": "97f8066815de07e04ce92f90cfc23e1e",
+      "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:c0a1cea2aabb0000000000000f0000c1",
+      "options": {
+        "mode": "message_only",
+        "loop": false,
+        "payload": {
+          "computed_at": "=NOW()",
+          "project_key": "<<load_inputs.settings.project_key>>",
+          "date_range": {
+            "start": "=DATE_SUBTRACT(NOW(), load_inputs.settings.date_range_days, 'days')",
+            "end": "=NOW()"
+          },
+          "headline": "<<compute_headline.headline>>",
+          "flow": "<<compute_flow.flow>>",
+          "speed": "<<compute_speed.speed>>",
+          "capacity": "<<compute_capacity.capacity>>",
+          "patterns": "<<compute_patterns.patterns>>",
+          "projections": "<<compute_projections.projections>>",
+          "calendar": "<<compute_calendar.calendar>>"
+        }
+      },
+      "reporting": {
+        "time_saved_value": 0,
+        "time_saved_unit": "minutes"
+      },
+      "monitoring": {
+        "monitor_all_events": false,
+        "monitor_failures": false,
+        "monitor_no_events_emitted": null
+      },
+      "template": {
+        "created_from_template_guid": null,
+        "created_from_template_version": null,
+        "template_tags": []
+      },
+      "width": null,
+      "schedule": null
+    },
+    {
+      "type": "Agents::HTTPRequestAgent",
+      "name": "Write metrics cache",
+      "disabled": false,
+      "description": "Updates the soc_metrics_cache Resource via the Tines API.",
+      "guid": "65685647f3df6a6176532f1cd1d716fd",
+      "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:c0a1cea2aabb0000000000000f0000c1",
+      "options": {
+        "url": "=CONCAT('https://', RESOURCE.soc_tines_api.domain, '/api/v1/global_resources/', RESOURCE.soc_tines_api.resource_ids.soc_metrics_cache)",
+        "content_type": "json",
+        "method": "put",
+        "headers": {
+          "x-user-email": "<<RESOURCE.soc_tines_api.user_email>>",
+          "x-user-token": "<<CREDENTIAL.tines_api_token>>"
+        },
+        "payload": {
+          "value": "<<merge_results>>",
+          "value_type": "json"
+        }
+      },
+      "reporting": {
+        "time_saved_value": 0,
+        "time_saved_unit": "minutes"
+      },
+      "monitoring": {
+        "monitor_all_events": false,
+        "monitor_failures": false,
+        "monitor_no_events_emitted": null
+      },
+      "template": {
+        "created_from_template_guid": null,
+        "created_from_template_version": null,
+        "template_tags": []
+      },
+      "width": null,
+      "schedule": null
+    },
+    {
+      "type": "Agents::WebhookAgent",
+      "name": "Webhook",
+      "disabled": false,
+      "description": "Body: {tier: 'settings' | 'everything'}.",
+      "guid": "93c8ea5c5e51d758956937d1d8609aff",
+      "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:e83fff8fba49078bdc2f34382c7f4acd",
+      "options": {
+        "path": "1029785bd3b3725408f25a0492c21eb2",
+        "secret": "0758ce7e44a1263c5b853c7f52ae35cd",
+        "verbs": "post"
+      },
+      "reporting": {
+        "time_saved_value": 0,
+        "time_saved_unit": "minutes"
+      },
+      "monitoring": {
+        "monitor_all_events": false,
+        "monitor_failures": false,
+        "monitor_no_events_emitted": null
+      },
+      "template": {
+        "created_from_template_guid": null,
+        "created_from_template_version": null,
+        "template_tags": []
+      },
+      "width": null
+    },
+    {
+      "type": "Agents::TriggerAgent",
+      "name": "Is settings tier?",
+      "disabled": false,
+      "description": null,
+      "guid": "2c7191c21207401492316d2f7c299855",
+      "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:e83fff8fba49078bdc2f34382c7f4acd",
+      "options": {
+        "rules": [
+          {
+            "type": "formula",
+            "value": "true",
+            "path": "=OR(webhook.body.tier = 'settings', webhook.body.tier = 'everything')"
+          }
+        ]
+      },
+      "reporting": {
+        "time_saved_value": 0,
+        "time_saved_unit": "minutes"
+      },
+      "monitoring": {
+        "monitor_all_events": false,
+        "monitor_failures": false,
+        "monitor_no_events_emitted": null
+      },
+      "template": {
+        "created_from_template_guid": null,
+        "created_from_template_version": null,
+        "template_tags": []
+      },
+      "width": null
+    },
+    {
+      "type": "Agents::HTTPRequestAgent",
+      "name": "Reset settings",
+      "disabled": false,
+      "description": "Updates the soc_settings Resource via the Tines API.",
+      "guid": "71365b8791d6887da6032479bef3f711",
+      "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:e83fff8fba49078bdc2f34382c7f4acd",
+      "options": {
+        "url": "=CONCAT('https://', RESOURCE.soc_tines_api.domain, '/api/v1/global_resources/', RESOURCE.soc_tines_api.resource_ids.soc_settings)",
+        "content_type": "json",
+        "method": "put",
+        "headers": {
+          "x-user-email": "<<RESOURCE.soc_tines_api.user_email>>",
+          "x-user-token": "<<CREDENTIAL.tines_api_token>>"
+        },
+        "payload": {
+          "value": "=OBJECT('project_key', null, 'jira_domain', RESOURCE.soc_settings.jira_domain, 'sync_interval_minutes', 60, 'date_range_days', 90, 'first_sync_completed_at', null, 'last_sync_completed_at', null, 'last_sync_status', 'idle', 'last_sync_error', null, 'business_hours', RESOURCE.soc_settings.business_hours, 'max_issues_per_sync', 10000, 'page_size', 100, 'rate_limit_delay_ms', 200, 'calendar_view_month', null)",
+          "value_type": "json"
+        }
+      },
+      "reporting": {
+        "time_saved_value": 0,
+        "time_saved_unit": "minutes"
+      },
+      "monitoring": {
+        "monitor_all_events": false,
+        "monitor_failures": false,
+        "monitor_no_events_emitted": null
+      },
+      "template": {
+        "created_from_template_guid": null,
+        "created_from_template_version": null,
+        "template_tags": []
+      },
+      "width": null,
+      "schedule": null
+    },
+    {
+      "type": "Agents::HTTPRequestAgent",
+      "name": "Reset status map",
+      "disabled": false,
+      "description": "Updates the soc_status_map Resource via the Tines API.",
+      "guid": "680536217189289117efab25d83a7e34",
+      "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:e83fff8fba49078bdc2f34382c7f4acd",
+      "options": {
+        "url": "=CONCAT('https://', RESOURCE.soc_tines_api.domain, '/api/v1/global_resources/', RESOURCE.soc_tines_api.resource_ids.soc_status_map)",
+        "content_type": "json",
+        "method": "put",
+        "headers": {
+          "x-user-email": "<<RESOURCE.soc_tines_api.user_email>>",
+          "x-user-token": "<<CREDENTIAL.tines_api_token>>"
+        },
+        "payload": {
+          "value": "=OBJECT()",
+          "value_type": "json"
+        }
+      },
+      "reporting": {
+        "time_saved_value": 0,
+        "time_saved_unit": "minutes"
+      },
+      "monitoring": {
+        "monitor_all_events": false,
+        "monitor_failures": false,
+        "monitor_no_events_emitted": null
+      },
+      "template": {
+        "created_from_template_guid": null,
+        "created_from_template_version": null,
+        "template_tags": []
+      },
+      "width": null,
+      "schedule": null
+    },
+    {
+      "type": "Agents::HTTPRequestAgent",
+      "name": "Reset labels",
+      "disabled": false,
+      "description": "Updates the soc_label_config Resource via the Tines API.",
+      "guid": "28a0e546faf4f1931ebdcf2f2a40f38e",
+      "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:e83fff8fba49078bdc2f34382c7f4acd",
+      "options": {
+        "url": "=CONCAT('https://', RESOURCE.soc_tines_api.domain, '/api/v1/global_resources/', RESOURCE.soc_tines_api.resource_ids.soc_label_config)",
+        "content_type": "json",
+        "method": "put",
+        "headers": {
+          "x-user-email": "<<RESOURCE.soc_tines_api.user_email>>",
+          "x-user-token": "<<CREDENTIAL.tines_api_token>>"
+        },
+        "payload": {
+          "value": "=OBJECT()",
+          "value_type": "json"
+        }
+      },
+      "reporting": {
+        "time_saved_value": 0,
+        "time_saved_unit": "minutes"
+      },
+      "monitoring": {
+        "monitor_all_events": false,
+        "monitor_failures": false,
+        "monitor_no_events_emitted": null
+      },
+      "template": {
+        "created_from_template_guid": null,
+        "created_from_template_version": null,
+        "template_tags": []
+      },
+      "width": null,
+      "schedule": null
+    },
+    {
+      "type": "Agents::HTTPRequestAgent",
+      "name": "Reset annotations",
+      "disabled": false,
+      "description": "Updates the soc_day_annotations Resource via the Tines API.",
+      "guid": "4c55a17cb3f72da0c483af48fb4da550",
+      "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:e83fff8fba49078bdc2f34382c7f4acd",
+      "options": {
+        "url": "=CONCAT('https://', RESOURCE.soc_tines_api.domain, '/api/v1/global_resources/', RESOURCE.soc_tines_api.resource_ids.soc_day_annotations)",
+        "content_type": "json",
+        "method": "put",
+        "headers": {
+          "x-user-email": "<<RESOURCE.soc_tines_api.user_email>>",
+          "x-user-token": "<<CREDENTIAL.tines_api_token>>"
+        },
+        "payload": {
+          "value": "=OBJECT()",
+          "value_type": "json"
+        }
+      },
+      "reporting": {
+        "time_saved_value": 0,
+        "time_saved_unit": "minutes"
+      },
+      "monitoring": {
+        "monitor_all_events": false,
+        "monitor_failures": false,
+        "monitor_no_events_emitted": null
+      },
+      "template": {
+        "created_from_template_guid": null,
+        "created_from_template_version": null,
+        "template_tags": []
+      },
+      "width": null,
+      "schedule": null
+    },
+    {
+      "type": "Agents::TriggerAgent",
+      "name": "Is everything tier?",
+      "disabled": false,
+      "description": null,
+      "guid": "1520ecdeea94677f5a03ec6ca44d4108",
+      "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:e83fff8fba49078bdc2f34382c7f4acd",
+      "options": {
+        "rules": [
+          {
+            "type": "formula",
+            "value": "true",
+            "path": "=webhook.body.tier = 'everything'"
+          }
+        ]
+      },
+      "reporting": {
+        "time_saved_value": 0,
+        "time_saved_unit": "minutes"
+      },
+      "monitoring": {
+        "monitor_all_events": false,
+        "monitor_failures": false,
+        "monitor_no_events_emitted": null
+      },
+      "template": {
+        "created_from_template_guid": null,
+        "created_from_template_version": null,
+        "template_tags": []
+      },
+      "width": null
+    },
+    {
+      "type": "Agents::HTTPRequestAgent",
+      "name": "Reset tickets cache",
+      "disabled": false,
+      "description": "Updates the soc_tickets_cache Resource via the Tines API.",
+      "guid": "5bd93e405fd2514fb9061811c9924753",
+      "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:e83fff8fba49078bdc2f34382c7f4acd",
+      "options": {
+        "url": "=CONCAT('https://', RESOURCE.soc_tines_api.domain, '/api/v1/global_resources/', RESOURCE.soc_tines_api.resource_ids.soc_tickets_cache)",
+        "content_type": "json",
+        "method": "put",
+        "headers": {
+          "x-user-email": "<<RESOURCE.soc_tines_api.user_email>>",
+          "x-user-token": "<<CREDENTIAL.tines_api_token>>"
+        },
+        "payload": {
+          "value": "=OBJECT('mode', 'inline', 'project_key', null, 'last_synced_at', null, 'total', 0, 'tickets', ARRAY())",
+          "value_type": "json"
+        }
+      },
+      "reporting": {
+        "time_saved_value": 0,
+        "time_saved_unit": "minutes"
+      },
+      "monitoring": {
+        "monitor_all_events": false,
+        "monitor_failures": false,
+        "monitor_no_events_emitted": null
+      },
+      "template": {
+        "created_from_template_guid": null,
+        "created_from_template_version": null,
+        "template_tags": []
+      },
+      "width": null,
+      "schedule": null
+    },
+    {
+      "type": "Agents::HTTPRequestAgent",
+      "name": "Reset metrics cache",
+      "disabled": false,
+      "description": "Updates the soc_metrics_cache Resource via the Tines API.",
+      "guid": "02bb6110462379a4922d5026ae5f27c2",
+      "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:e83fff8fba49078bdc2f34382c7f4acd",
+      "options": {
+        "url": "=CONCAT('https://', RESOURCE.soc_tines_api.domain, '/api/v1/global_resources/', RESOURCE.soc_tines_api.resource_ids.soc_metrics_cache)",
+        "content_type": "json",
+        "method": "put",
+        "headers": {
+          "x-user-email": "<<RESOURCE.soc_tines_api.user_email>>",
+          "x-user-token": "<<CREDENTIAL.tines_api_token>>"
+        },
+        "payload": {
+          "value": "=OBJECT()",
+          "value_type": "json"
         }
       },
       "reporting": {
@@ -1402,6 +2045,30 @@
       "receiver": 9
     },
     {
+      "source": 3,
+      "receiver": 19
+    },
+    {
+      "source": 4,
+      "receiver": 21
+    },
+    {
+      "source": 5,
+      "receiver": 23
+    },
+    {
+      "source": 6,
+      "receiver": 27
+    },
+    {
+      "source": 7,
+      "receiver": 31
+    },
+    {
+      "source": 8,
+      "receiver": 35
+    },
+    {
       "source": 9,
       "receiver": 10
     },
@@ -1426,12 +2093,12 @@
       "receiver": 15
     },
     {
-      "source": 15,
-      "receiver": 13
-    },
-    {
       "source": 14,
       "receiver": 16
+    },
+    {
+      "source": 15,
+      "receiver": 13
     },
     {
       "source": 16,
@@ -1442,28 +2109,20 @@
       "receiver": 18
     },
     {
-      "source": 18,
-      "receiver": 19
-    },
-    {
-      "source": 3,
+      "source": 19,
       "receiver": 20
     },
     {
-      "source": 20,
-      "receiver": 21
-    },
-    {
-      "source": 4,
+      "source": 21,
       "receiver": 22
     },
     {
-      "source": 22,
-      "receiver": 23
+      "source": 23,
+      "receiver": 24
     },
     {
-      "source": 5,
-      "receiver": 24
+      "source": 23,
+      "receiver": 26
     },
     {
       "source": 24,
@@ -1474,16 +2133,12 @@
       "receiver": 26
     },
     {
-      "source": 26,
-      "receiver": 27
-    },
-    {
-      "source": 24,
-      "receiver": 27
-    },
-    {
-      "source": 6,
+      "source": 27,
       "receiver": 28
+    },
+    {
+      "source": 27,
+      "receiver": 30
     },
     {
       "source": 28,
@@ -1494,16 +2149,12 @@
       "receiver": 30
     },
     {
-      "source": 30,
-      "receiver": 31
-    },
-    {
-      "source": 28,
-      "receiver": 31
-    },
-    {
-      "source": 7,
+      "source": 31,
       "receiver": 32
+    },
+    {
+      "source": 31,
+      "receiver": 34
     },
     {
       "source": 32,
@@ -1514,16 +2165,12 @@
       "receiver": 34
     },
     {
-      "source": 34,
-      "receiver": 35
-    },
-    {
-      "source": 32,
-      "receiver": 35
-    },
-    {
-      "source": 8,
+      "source": 35,
       "receiver": 36
+    },
+    {
+      "source": 35,
+      "receiver": 38
     },
     {
       "source": 36,
@@ -1534,52 +2181,110 @@
       "receiver": 38
     },
     {
-      "source": 38,
-      "receiver": 39
+      "source": 39,
+      "receiver": 40
     },
     {
-      "source": 36,
-      "receiver": 39
+      "source": 40,
+      "receiver": 41
+    },
+    {
+      "source": 41,
+      "receiver": 42
+    },
+    {
+      "source": 42,
+      "receiver": 43
+    },
+    {
+      "source": 43,
+      "receiver": 44
+    },
+    {
+      "source": 44,
+      "receiver": 45
+    },
+    {
+      "source": 45,
+      "receiver": 46
+    },
+    {
+      "source": 46,
+      "receiver": 47
+    },
+    {
+      "source": 47,
+      "receiver": 48
+    },
+    {
+      "source": 48,
+      "receiver": 49
+    },
+    {
+      "source": 50,
+      "receiver": 51
+    },
+    {
+      "source": 51,
+      "receiver": 52
+    },
+    {
+      "source": 52,
+      "receiver": 53
+    },
+    {
+      "source": 53,
+      "receiver": 54
+    },
+    {
+      "source": 54,
+      "receiver": 55
+    },
+    {
+      "source": 55,
+      "receiver": 56
+    },
+    {
+      "source": 56,
+      "receiver": 57
+    },
+    {
+      "source": 57,
+      "receiver": 58
     }
   ],
-  "diagram_layout": "{\"e698334bf668ec7cf1fd1242b005741a\": [-600, 0], \"60f9284f5778a10160b39bba9f26a672\": [600, 0], \"f155b20319ab92c7096b76c50c49a1bb\": [0, 150], \"dc5b8572869959c50ec28eb955d97d26\": [300, 150], \"7f18ab46913665aae612c502d4b1d95e\": [600, 150], \"395e2e36d7de08e47ec97e7a86bba56e\": [900, 150], \"594ca5b97381ac6f1906421692e8ec5f\": [1200, 150], \"fbe364e939c1b45d45b0218d120a4a46\": [1500, 150], \"b509400ff6d99c14fad63c072c75e1a1\": [1800, 150], \"51508468acad16d228341daf28258ff8\": [-300, 300], \"b6bc975bcaf96cfa269e117054d6a308\": [-300, 450], \"d38af87a3181b5ad9c0e4e29eff18bcf\": [-300, 600], \"52b24b74f4278296653b2881b3004099\": [-300, 750], \"fe9daf2cc6c26bd73323a5b5b1f269d7\": [-300, 900], \"525bc2209c85b1f9c4065a3cbb9e3510\": [-300, 1050], \"03dd254b7e86ff5df0e54439da2dd968\": [-450, 1200], \"cf7bab91df06beafc5dd33dfdaee9519\": [-150, 1200], \"ce3fc00a68722af3896e92d9fd7c89b1\": [-150, 1350], \"97920d659d249c4ca0d2a5122a504052\": [-150, 1500], \"e595f72e41697f6f960029560447d4c2\": [-150, 1650], \"46d8e265615533a1dd5965fab87d49ef\": [300, 300], \"cc69a97ab816718e2f0a433ee640f11f\": [300, 450], \"0a18d45055773fd340984bbfd45dbaa7\": [600, 300], \"4f17d75774b95c358098c2defb32cc0f\": [600, 450], \"f6458835b7b01b89100848732755450e\": [900, 300], \"6b8429888b309ac47dcda86dca412c34\": [900, 450], \"c36c76961d4910aa2eb02bc955c1258f\": [900, 600], \"da538f4760750490150717d464816ce2\": [900, 750], \"199dd3883644cb311e1cabb874bb25b3\": [1200, 300], \"ad3eef1c1357856c50f2d8232dcd260c\": [1200, 450], \"8970f5ab81e24a82786d061f2a928162\": [1200, 600], \"a1c229586a1ea7f02e456fb885fa53cd\": [1200, 750], \"e33efba5d709675ba19288d9769dffd1\": [1500, 300], \"1b54131e0258d18a7d3302a0281dffd9\": [1500, 450], \"27aa266a4cd4c7ae2c4c49e2dd59f8e5\": [1500, 600], \"d6cc4a44f8f37640f1548b57bbb3ac09\": [1500, 750], \"0323b5b76dd5a3566de17ddc2c97162f\": [1800, 300], \"61743abdc3b05664709678361a96fc86\": [1800, 450], \"9f3d37504426365ccabf2075e85ba00f\": [1800, 600], \"089110a69c8e867adae1c041522ae9d6\": [1800, 750]}",
-  "send_to_story_enabled": true,
-  "entry_agent_guid": "60f9284f5778a10160b39bba9f26a672",
-  "exit_agent_guids": [
-    "e595f72e41697f6f960029560447d4c2",
-    "cc69a97ab816718e2f0a433ee640f11f",
-    "4f17d75774b95c358098c2defb32cc0f",
-    "da538f4760750490150717d464816ce2",
-    "a1c229586a1ea7f02e456fb885fa53cd",
-    "d6cc4a44f8f37640f1548b57bbb3ac09",
-    "089110a69c8e867adae1c041522ae9d6"
-  ],
+  "diagram_layout": "{\"01259256a589d88edda2e3fb3e2ff3b8\":[600,300],\"02bb6110462379a4922d5026ae5f27c2\":[-2055,1230],\"0433a12d6dbaa178a713f1d5c60c826f\":[1500,150],\"1520ecdeea94677f5a03ec6ca44d4108\":[-2055,930],\"159f1edddb268fbb98cc9540d46aaa17\":[900,750],\"16c6a046f8ec7e970b7bf3350e76b324\":[1500,600],\"1935bc9e5581bb99c60a358c4988b6b7\":[1200,300],\"1d7ff821540c6d2e6212886abe0dab67\":[-600,0],\"2168b2fb7b54e03c8ec2419f0d2e88f9\":[1200,150],\"270be32edae4225c9f61161dea5333ef\":[-300,1050],\"28a0e546faf4f1931ebdcf2f2a40f38e\":[-2055,630],\"2c7191c21207401492316d2f7c299855\":[-2055,180],\"2e10040cee6e0e0ba55a82b78971eb95\":[900,450],\"32b22b51dbc75980085e7cc801d8ad47\":[1800,750],\"3e3d87d2965acd42fe7076b6fd43b239\":[-150,1200],\"3ee9f912be32ed18f203d9d83cd9b5c4\":[1800,600],\"456fac15e260e330ea1eba30f41e79b2\":[-1290,870],\"46af1bbbdb7689fc5cd0c27f3b635bac\":[1200,750],\"4c55a17cb3f72da0c483af48fb4da550\":[-2055,780],\"4dd010d99b29c9178a55d24cbd4f9caa\":[900,600],\"504e67ace2f3edfcc4d6ff8e08edce4b\":[-1290,-30],\"57130aa2cc6ba4c4f65b8019013c2bbe\":[-300,900],\"581394db6e9abad99708e01e84e71f07\":[1800,150],\"5bd93e405fd2514fb9061811c9924753\":[-2055,1080],\"65685647f3df6a6176532f1cd1d716fd\":[-1290,1470],\"680536217189289117efab25d83a7e34\":[-2055,480],\"680d5c21417aa15ee044ece681be9bf5\":[-300,450],\"6e1985a0ebc30cd95317c50ee62e00db\":[-1290,1170],\"71365b8791d6887da6032479bef3f711\":[-2055,330],\"7192b211cc1c8077bdfce433ca4a3449\":[-1290,1020],\"82afe9f7594f6895b9a4373ba6e5e6f3\":[-1290,270],\"8307259d7d350f8a8bcef95ef68dc6ff\":[1500,300],\"87c5175124c33a1dc9f62a4b3f6356c6\":[1500,750],\"88ac6812941ad8db80512795616c4901\":[300,150],\"91cb76efce8210d61ba8b47a7e2b8eea\":[600,450],\"93c8ea5c5e51d758956937d1d8609aff\":[-2055,30],\"97c4c19058ac6d0ff51510dae0cc19ea\":[-450,1200],\"97f8066815de07e04ce92f90cfc23e1e\":[-1290,1320],\"9cfb70c5d0eb73afb4f732600349593b\":[-1290,120],\"a2fe4c818f5474499580fa1b1f36d99a\":[-1290,570],\"a4ded623d285a90d98b4dab9742ac0ba\":[-1290,420],\"ad3ef635cfb4510a8011f6e223902e20\":[300,300],\"b30bdc81c9e077ec006f4c738e3ea138\":[-150,1500],\"b9dbeb5d9fe063bd247636fa55633a8c\":[1200,600],\"ce25634ef72535a9d3d6549d572970a0\":[-300,300],\"d1a27ea40960e9e4897f1d21c636d28a\":[0,150],\"d6ae979add968b5ae4c7f378599480fd\":[300,450],\"d98c2b9a1e831f605b6309b0394889da\":[1800,450],\"dc1077ac19d729f2b7259d90135bd5bc\":[900,300],\"de4c99fe1aed89ab2c7e6e4d5273e759\":[-300,750],\"e5960e0d7ccd8f9217cb4de1fcaf931c\":[1500,450],\"edc2810b25a4f1e5151ae22bc6668b44\":[600,0],\"f3471030e7fdb399639d8983fa1169b3\":[1800,300],\"f58c2f3df8b7c893c741ba57e147e949\":[1200,450],\"f736c342357ef13c9964a3e0645c8e9e\":[600,150],\"f767ee160951539cb9675a0a7356f113\":[900,150],\"f82fc40df010cb078ae0b5aa1dead035\":[-1290,720],\"fbdf8bac5799baa8e22e643303b13905\":[-300,600],\"fed50d44df715217a8f22ee203232225\":[-150,1350]}",
+  "story_library_metadata": {},
+  "monitor_failures": false,
+  "synchronous_webhooks_enabled": false,
+  "integrations": [],
+  "sections": [],
+  "parent_only_send_to_story": false,
+  "send_to_story_timeout_enabled": false,
+  "send_to_story_timeout_duration_seconds": null,
+  "keep_events_for": 86400,
+  "reporting_status": true,
+  "send_to_story_enabled": false,
+  "entry_agent_guid": null,
+  "exit_agent_guids": [],
   "api_entry_action_guids": [],
   "api_exit_action_guids": [],
-  "keep_events_for": 604800,
-  "reporting_status": true,
   "send_to_story_access": null,
   "send_to_story_access_source": 0,
   "send_to_story_skill_use_requires_confirmation": true,
-  "story_library_metadata": {},
-  "parent_only_send_to_story": false,
-  "monitor_failures": false,
-  "send_to_stories": [],
-  "synchronous_webhooks_enabled": false,
   "pages": [],
   "tags": [],
   "time_saved_unit": "minutes",
   "time_saved_value": 0,
   "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:d1a7ac0001aa4b30ae5f0dd9c0ffee01",
+  "recipients": [
+    "mwilco03@gmail.com"
+  ],
   "integration_product": null,
   "integration_vendor": null,
-  "exported_at": "2026-04-21T00:00:00Z",
-  "icon": ":arrows_counterclockwise:",
-  "integrations": [],
   "llm_product_instructions": "",
-  "recipients": [],
-  "sections": [],
-  "send_to_story_timeout_duration_seconds": null,
-  "send_to_story_timeout_enabled": false,
-  "start_reference": null
+  "start_reference": null,
+  "send_to_stories": [],
+  "exported_at": "2026-04-22T16:16:47Z",
+  "icon": ":arrows_counterclockwise:"
 }

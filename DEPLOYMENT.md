@@ -76,15 +76,9 @@ After the seven Resources exist, every Tines Resource gets an auto-assigned nume
 
 Replace `your-tenant.tines.com` with your actual tenant hostname, `admin@example.com` with the user-email associated with the Tines API token, and each `0` with the real numeric ID from that Resource's URL. The sync story and every CRUD story look these IDs up when writing back.
 
-## 3. Import Stories
+## 3. Import the story
 
-Tines UI -> Stories -> Import story. Import in this order:
-
-1. `soc-compute.json` (no outbound Send-to-Story references)
-2. `soc-data.json` (references `soc_compute` via Send-to-Story; must exist first)
-3. `soc-reset.json` (no Send-to-Story references)
-
-After importing `soc-data`, open the "Trigger compute" action. If the Send-to-Story target reads `<unresolved>`, pick `SOC: Compute` from the dropdown and save. Tines story GUIDs in exports are installation-specific.
+Tines UI -> Stories -> Import story. Import `soc-data.json`. One file, 59 agents, everything inline (sync + CRUD + compute + reset). No Send-to-Story references between stories, so no GUID plumbing needed after import.
 
 ## 4. Import Pages
 

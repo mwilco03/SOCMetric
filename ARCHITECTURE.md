@@ -36,14 +36,17 @@ Tines tenant
 │                                  Bootstrap map the stories use to find each Resource's numeric ID
 │                                  when writing back via the Tines /api/v1/global_resources endpoint.
 │
-├── Stories (3 total)
-│   ├── soc-data       Scheduled entry drives the Jira sync on cron.
-│   │                  Webhook entry dispatches on body.action:
-│   │                  sync_now, discover_projects, discover_statuses,
-│   │                  settings_op, status_map_op, labels_op, annotations_op.
-│   ├── soc-compute    Inlines all 7 metric slices sequentially, writes soc_metrics_cache.
-│   │                  Triggered by soc-data after a successful sync.
-│   └── soc-reset      Admin-only destructive reset. Kept standalone for audit clarity.
+├── Stories (1 total)
+│   └── soc-data       Single story containing every data-plane agent:
+│                      - Scheduled entry drives Jira sync on cron.
+│                      - Webhook entry dispatches on body.action:
+│                        sync_now, discover_projects, discover_statuses,
+│                        settings_op, status_map_op, labels_op,
+│                        annotations_op, reset.
+│                      - Compute slices run inline after sync: headline,
+│                        flow, speed, capacity, patterns, projections,
+│                        calendar, merge, write soc_metrics_cache.
+│                      - Reset branch wipes Resources by tier.
 │
 └── Pages
     ├── SOC Dashboard Home
