@@ -1,7 +1,7 @@
 {
-  "schema_version": 23,
-  "standard_lib_version": 63,
-  "action_runtime_version": 15,
+  "schema_version": 28,
+  "standard_lib_version": 90,
+  "action_runtime_version": 74,
   "name": "SOC: Compute",
   "description": "Single compute story. Inlines all 7 metric slices sequentially (headline, flow, speed, capacity, patterns, projections, calendar), merges, writes soc_metrics_cache. Triggered by soc_data after a successful sync. Replaces the 7 compute sub-stories and the compute fan-out orchestrator.",
   "guid": "c0a1cea2aabb0000000000000f0000c1",
@@ -363,7 +363,8 @@
         "created_from_template_version": null,
         "template_tags": []
       },
-      "width": null
+      "width": null,
+      "schedule": null
     }
   ],
   "diagram_notes": [],
@@ -428,10 +429,7 @@
   "send_to_stories": [],
   "synchronous_webhooks_enabled": false,
   "pages": [],
-  "tags": [
-    "compute",
-    "socmetric"
-  ],
+  "tags": [],
   "time_saved_unit": "minutes",
   "time_saved_value": 0,
   "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:c0a1cea2aabb0000000000000f0000c1",
@@ -441,5 +439,9 @@
   "icon": ":abacus:",
   "integrations": [],
   "llm_product_instructions": "",
-  "exit_agent_guid": "f76dd79f6beaac86fe60466c02487540"
+  "recipients": [],
+  "sections": [],
+  "send_to_story_timeout_duration_seconds": null,
+  "send_to_story_timeout_enabled": false,
+  "start_reference": null
 }

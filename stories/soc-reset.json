@@ -1,7 +1,7 @@
 {
-  "schema_version": 23,
-  "standard_lib_version": 63,
-  "action_runtime_version": 15,
+  "schema_version": 28,
+  "standard_lib_version": 90,
+  "action_runtime_version": 74,
   "name": "SOC: Reset",
   "description": "Resets Resources by tier. 'settings' keeps tickets; 'everything' wipes all Resources. Credentials are never touched.",
   "guid": "e83fff8fba49078bdc2f34382c7f4acd",
@@ -101,7 +101,8 @@
         "created_from_template_version": null,
         "template_tags": []
       },
-      "width": null
+      "width": null,
+      "schedule": null
     },
     {
       "type": "Agents::HTTPRequestAgent",
@@ -137,7 +138,8 @@
         "created_from_template_version": null,
         "template_tags": []
       },
-      "width": null
+      "width": null,
+      "schedule": null
     },
     {
       "type": "Agents::HTTPRequestAgent",
@@ -173,7 +175,8 @@
         "created_from_template_version": null,
         "template_tags": []
       },
-      "width": null
+      "width": null,
+      "schedule": null
     },
     {
       "type": "Agents::HTTPRequestAgent",
@@ -209,7 +212,8 @@
         "created_from_template_version": null,
         "template_tags": []
       },
-      "width": null
+      "width": null,
+      "schedule": null
     },
     {
       "type": "Agents::TriggerAgent",
@@ -277,7 +281,8 @@
         "created_from_template_version": null,
         "template_tags": []
       },
-      "width": null
+      "width": null,
+      "schedule": null
     },
     {
       "type": "Agents::HTTPRequestAgent",
@@ -313,7 +318,8 @@
         "created_from_template_version": null,
         "template_tags": []
       },
-      "width": null
+      "width": null,
+      "schedule": null
     }
   ],
   "diagram_notes": [],
@@ -370,10 +376,7 @@
   "send_to_stories": [],
   "synchronous_webhooks_enabled": false,
   "pages": [],
-  "tags": [
-    "admin",
-    "socmetric"
-  ],
+  "tags": [],
   "time_saved_unit": "minutes",
   "time_saved_value": 0,
   "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:e83fff8fba49078bdc2f34382c7f4acd",
@@ -383,5 +386,9 @@
   "icon": ":warning:",
   "integrations": [],
   "llm_product_instructions": "",
-  "exit_agent_guid": "db4a2dde27cca83124e8b80b45fa02a6"
+  "recipients": [],
+  "sections": [],
+  "send_to_story_timeout_duration_seconds": null,
+  "send_to_story_timeout_enabled": false,
+  "start_reference": null
 }

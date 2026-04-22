@@ -1,7 +1,7 @@
 {
-  "schema_version": 23,
-  "standard_lib_version": 63,
-  "action_runtime_version": 15,
+  "schema_version": 28,
+  "standard_lib_version": 90,
+  "action_runtime_version": 74,
   "name": "SOC: Data",
   "description": "Single data-plane story. Scheduled entry drives the Jira sync on cron. Webhook entry dispatches on body.action: sync_now, discover_projects, discover_statuses, settings_op, status_map_op, labels_op, annotations_op. Replaces the 4 CRUD stories, 2 discover stories, sync story, and compute-fan-out orchestrator.",
   "guid": "d1a7ac0001aa4b30ae5f0dd9c0ffee01",
@@ -401,7 +401,8 @@
         "created_from_template_version": null,
         "template_tags": []
       },
-      "width": null
+      "width": null,
+      "schedule": null
     },
     {
       "type": "Agents::EventTransformationAgent",
@@ -489,7 +490,8 @@
         "created_from_template_version": null,
         "template_tags": []
       },
-      "width": null
+      "width": null,
+      "schedule": null
     },
     {
       "type": "Agents::EventTransformationAgent",
@@ -624,7 +626,8 @@
         "created_from_template_version": null,
         "template_tags": []
       },
-      "width": null
+      "width": null,
+      "schedule": null
     },
     {
       "type": "Agents::HTTPRequestAgent",
@@ -660,7 +663,8 @@
         "created_from_template_version": null,
         "template_tags": []
       },
-      "width": null
+      "width": null,
+      "schedule": null
     },
     {
       "type": "Agents::SendToStoryAgent",
@@ -725,7 +729,8 @@
         "created_from_template_version": null,
         "template_tags": []
       },
-      "width": null
+      "width": null,
+      "schedule": null
     },
     {
       "type": "Agents::EventTransformationAgent",
@@ -791,7 +796,8 @@
         "created_from_template_version": null,
         "template_tags": []
       },
-      "width": null
+      "width": null,
+      "schedule": null
     },
     {
       "type": "Agents::EventTransformationAgent",
@@ -923,7 +929,8 @@
         "created_from_template_version": null,
         "template_tags": []
       },
-      "width": null
+      "width": null,
+      "schedule": null
     },
     {
       "type": "Agents::EventTransformationAgent",
@@ -1055,7 +1062,8 @@
         "created_from_template_version": null,
         "template_tags": []
       },
-      "width": null
+      "width": null,
+      "schedule": null
     },
     {
       "type": "Agents::EventTransformationAgent",
@@ -1187,7 +1195,8 @@
         "created_from_template_version": null,
         "template_tags": []
       },
-      "width": null
+      "width": null,
+      "schedule": null
     },
     {
       "type": "Agents::EventTransformationAgent",
@@ -1319,7 +1328,8 @@
         "created_from_template_version": null,
         "template_tags": []
       },
-      "width": null
+      "width": null,
+      "schedule": null
     },
     {
       "type": "Agents::EventTransformationAgent",
@@ -1557,12 +1567,7 @@
   "send_to_stories": [],
   "synchronous_webhooks_enabled": false,
   "pages": [],
-  "tags": [
-    "data",
-    "jira",
-    "crud",
-    "socmetric"
-  ],
+  "tags": [],
   "time_saved_unit": "minutes",
   "time_saved_value": 0,
   "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:d1a7ac0001aa4b30ae5f0dd9c0ffee01",
@@ -1572,5 +1577,9 @@
   "icon": ":arrows_counterclockwise:",
   "integrations": [],
   "llm_product_instructions": "",
-  "exit_agent_guid": "e595f72e41697f6f960029560447d4c2"
+  "recipients": [],
+  "sections": [],
+  "send_to_story_timeout_duration_seconds": null,
+  "send_to_story_timeout_enabled": false,
+  "start_reference": null
 }
