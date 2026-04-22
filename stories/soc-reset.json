@@ -13,7 +13,7 @@
       "disabled": false,
       "description": "Body: {tier: 'settings' | 'everything'}.",
       "guid": "4ce8b0fc54159d1a49f0ea9351c26cda",
-      "origin_story_identifier": null,
+      "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:e83fff8fba49078bdc2f34382c7f4acd",
       "options": {
         "path": "0df66f28f29e934d345f0dca3c5b8b05",
         "secret": "0758ce7e44a1263c5b853c7f52ae35cd",
@@ -41,7 +41,7 @@
       "disabled": false,
       "description": null,
       "guid": "eb76d547a40001d5cc8c9dd77ec66361",
-      "origin_story_identifier": null,
+      "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:e83fff8fba49078bdc2f34382c7f4acd",
       "options": {
         "rules": [
           {
@@ -73,7 +73,7 @@
       "disabled": false,
       "description": "Updates the soc_settings Resource via the Tines API.",
       "guid": "082dea4e7abbb5ccdf55b41bd3485b33",
-      "origin_story_identifier": null,
+      "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:e83fff8fba49078bdc2f34382c7f4acd",
       "options": {
         "url": "=CONCAT('https://', RESOURCE.soc_tines_api.domain, '/api/v1/global_resources/', RESOURCE.soc_tines_api.resource_ids.soc_settings)",
         "content_type": "json",
@@ -109,7 +109,7 @@
       "disabled": false,
       "description": "Updates the soc_status_map Resource via the Tines API.",
       "guid": "69043c5654e11389f755c912719ecea2",
-      "origin_story_identifier": null,
+      "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:e83fff8fba49078bdc2f34382c7f4acd",
       "options": {
         "url": "=CONCAT('https://', RESOURCE.soc_tines_api.domain, '/api/v1/global_resources/', RESOURCE.soc_tines_api.resource_ids.soc_status_map)",
         "content_type": "json",
@@ -145,7 +145,7 @@
       "disabled": false,
       "description": "Updates the soc_label_config Resource via the Tines API.",
       "guid": "3abe0a0d3dfbf076a2a93ecae13b20ca",
-      "origin_story_identifier": null,
+      "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:e83fff8fba49078bdc2f34382c7f4acd",
       "options": {
         "url": "=CONCAT('https://', RESOURCE.soc_tines_api.domain, '/api/v1/global_resources/', RESOURCE.soc_tines_api.resource_ids.soc_label_config)",
         "content_type": "json",
@@ -181,7 +181,7 @@
       "disabled": false,
       "description": "Updates the soc_day_annotations Resource via the Tines API.",
       "guid": "09f07e7dd968df7e8baf3033ed2ada43",
-      "origin_story_identifier": null,
+      "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:e83fff8fba49078bdc2f34382c7f4acd",
       "options": {
         "url": "=CONCAT('https://', RESOURCE.soc_tines_api.domain, '/api/v1/global_resources/', RESOURCE.soc_tines_api.resource_ids.soc_day_annotations)",
         "content_type": "json",
@@ -217,7 +217,7 @@
       "disabled": false,
       "description": null,
       "guid": "11ed9ee275d9980b621a822bf8c58bc7",
-      "origin_story_identifier": null,
+      "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:e83fff8fba49078bdc2f34382c7f4acd",
       "options": {
         "rules": [
           {
@@ -249,7 +249,7 @@
       "disabled": false,
       "description": "Updates the soc_tickets_cache Resource via the Tines API.",
       "guid": "9c8a0c721f7c56e611c87a02ce7a5645",
-      "origin_story_identifier": null,
+      "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:e83fff8fba49078bdc2f34382c7f4acd",
       "options": {
         "url": "=CONCAT('https://', RESOURCE.soc_tines_api.domain, '/api/v1/global_resources/', RESOURCE.soc_tines_api.resource_ids.soc_tickets_cache)",
         "content_type": "json",
@@ -285,7 +285,7 @@
       "disabled": false,
       "description": "Updates the soc_metrics_cache Resource via the Tines API.",
       "guid": "db4a2dde27cca83124e8b80b45fa02a6",
-      "origin_story_identifier": null,
+      "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:e83fff8fba49078bdc2f34382c7f4acd",
       "options": {
         "url": "=CONCAT('https://', RESOURCE.soc_tines_api.domain, '/api/v1/global_resources/', RESOURCE.soc_tines_api.resource_ids.soc_metrics_cache)",
         "content_type": "json",
@@ -376,7 +376,7 @@
   ],
   "time_saved_unit": "minutes",
   "time_saved_value": 0,
-  "origin_story_identifier": null,
+  "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:e83fff8fba49078bdc2f34382c7f4acd",
   "integration_product": null,
   "integration_vendor": null,
   "exported_at": "2026-04-21T00:00:00Z",

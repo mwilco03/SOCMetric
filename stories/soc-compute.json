@@ -13,7 +13,7 @@
       "disabled": false,
       "description": "Entry. Receives {project_key} from soc_data.Trigger_compute.",
       "guid": "3b66d4b2a4f6fbb71481fa4fe65df81e",
-      "origin_story_identifier": null,
+      "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:c0a1cea2aabb0000000000000f0000c1",
       "options": {
         "path": "c0a1cea2aabb0000000000000f0000c2",
         "secret": "c0a1cea2aabb0000000000000f0000c3",
@@ -41,7 +41,7 @@
       "disabled": false,
       "description": "Reads tickets (handles sharded-mode Resource), status_map, label_config, settings.",
       "guid": "007338d0d78562e5fb9f299e5527fc6e",
-      "origin_story_identifier": null,
+      "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:c0a1cea2aabb0000000000000f0000c1",
       "options": {
         "mode": "message_only",
         "loop": false,
@@ -75,7 +75,7 @@
       "disabled": false,
       "description": "Queue depth, active incidents, net velocity, TTFT percentiles. See docs/metric-mapping.md.",
       "guid": "d1eb1288d13fe2cd0eb9f1b1768d0f1a",
-      "origin_story_identifier": null,
+      "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:c0a1cea2aabb0000000000000f0000c1",
       "options": {
         "mode": "message_only",
         "loop": false,
@@ -106,7 +106,7 @@
       "disabled": false,
       "description": "Lead time decomposition, aging buckets, closure integrity, stalled tickets. Placeholder shape; fill formulas from docs/metric-mapping.md.",
       "guid": "7f09277cb7d280fabca1f9f3b2d372cf",
-      "origin_story_identifier": null,
+      "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:c0a1cea2aabb0000000000000f0000c1",
       "options": {
         "mode": "message_only",
         "loop": false,
@@ -137,7 +137,7 @@
       "disabled": false,
       "description": "Response time trend and closure bursts. Placeholder shape.",
       "guid": "68b18546396197931819aaf7c05d56b8",
-      "origin_story_identifier": null,
+      "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:c0a1cea2aabb0000000000000f0000c1",
       "options": {
         "mode": "message_only",
         "loop": false,
@@ -168,7 +168,7 @@
       "disabled": false,
       "description": "Shift rollover, after-hours transitions, staffing verdict, velocity under load. Placeholder shape.",
       "guid": "73f1275113d9c6701a8269bb4c26f5d3",
-      "origin_story_identifier": null,
+      "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:c0a1cea2aabb0000000000000f0000c1",
       "options": {
         "mode": "message_only",
         "loop": false,
@@ -199,7 +199,7 @@
       "disabled": false,
       "description": "Cluster analysis, recurrence engine. Placeholder shape.",
       "guid": "dc41510fe8d9f249a58caac23ac4e745",
-      "origin_story_identifier": null,
+      "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:c0a1cea2aabb0000000000000f0000c1",
       "options": {
         "mode": "message_only",
         "loop": false,
@@ -230,7 +230,7 @@
       "disabled": false,
       "description": "Linear regression projections. Placeholder shape.",
       "guid": "6597330d8fed642d7e6864302c7c61f5",
-      "origin_story_identifier": null,
+      "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:c0a1cea2aabb0000000000000f0000c1",
       "options": {
         "mode": "message_only",
         "loop": false,
@@ -261,7 +261,7 @@
       "disabled": false,
       "description": "Per-day counts and top-N labels. Placeholder shape.",
       "guid": "71a0b1cf677924571d6e6eefa7ac9e15",
-      "origin_story_identifier": null,
+      "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:c0a1cea2aabb0000000000000f0000c1",
       "options": {
         "mode": "message_only",
         "loop": false,
@@ -292,7 +292,7 @@
       "disabled": false,
       "description": "Assembles the complete soc_metrics_cache payload.",
       "guid": "1e98b49843916b4aa0ada67faba14791",
-      "origin_story_identifier": null,
+      "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:c0a1cea2aabb0000000000000f0000c1",
       "options": {
         "mode": "message_only",
         "loop": false,
@@ -335,7 +335,7 @@
       "disabled": false,
       "description": "Updates the soc_metrics_cache Resource via the Tines API.",
       "guid": "f76dd79f6beaac86fe60466c02487540",
-      "origin_story_identifier": null,
+      "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:c0a1cea2aabb0000000000000f0000c1",
       "options": {
         "url": "=CONCAT('https://', RESOURCE.soc_tines_api.domain, '/api/v1/global_resources/', RESOURCE.soc_tines_api.resource_ids.soc_metrics_cache)",
         "content_type": "json",
@@ -434,7 +434,7 @@
   ],
   "time_saved_unit": "minutes",
   "time_saved_value": 0,
-  "origin_story_identifier": null,
+  "origin_story_identifier": "cloud:efb6c89a318c2b334f60976498c55c9d:c0a1cea2aabb0000000000000f0000c1",
   "integration_product": null,
   "integration_vendor": null,
   "exported_at": "2026-04-21T00:00:00Z",
